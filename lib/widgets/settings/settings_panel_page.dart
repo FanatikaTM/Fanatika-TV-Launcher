@@ -26,6 +26,7 @@ import 'package:flauncher/widgets/settings/update_dialogs.dart';
 import 'package:flauncher/widgets/settings/general_settings_page.dart';
 import 'package:flauncher/widgets/settings/tv_inputs_panel_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_v2_page.dart';
+import 'package:flauncher/widgets/settings/fanatika_sleep_page.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -69,6 +70,12 @@ class SettingsPanelPage extends StatelessWidget {
                   title: const Text('Fanatika v2 tools'),
                   subtitle: const Text('Backup, editor, weather, HDMI, presets, updater, PIN'),
                   onPressed: () => Navigator.of(context).pushNamed(FanatikaV2Page.routeName),
+                ),
+                FocusableSettingsTile(
+                  leading: const Icon(Icons.bedtime_outlined),
+                  title: const Text('Sleep / Standby'),
+                  subtitle: const Text('Remote shortcut and 15–120 minute sleep timer'),
+                  onPressed: () => Navigator.of(context).pushNamed(FanatikaSleepPage.routeName),
                 ),
                 FocusableSettingsTile(
                   leading: const Icon(Icons.settings_input_hdmi),

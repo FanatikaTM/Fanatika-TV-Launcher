@@ -45,10 +45,10 @@ class _FocusableSettingsTileState extends State<FocusableSettingsTile> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: _focused ? Colors.white.withOpacity(0.05) : Colors.transparent,
+                  color: _focused ? const Color(0xFF213656) : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                   border: _focused
-                      ? Border.all(color: Theme.of(context).colorScheme.primary, width: 2)
+                      ? Border.all(color: const Color(0xFF7CB7FF), width: 2)
                       : Border.all(color: Colors.transparent, width: 2),
                 ),
                 child: Row(

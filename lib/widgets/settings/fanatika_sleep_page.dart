@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flauncher/flauncher_channel.dart';
 import 'package:provider/provider.dart';
 import 'package:flauncher/providers/settings_service.dart';
-import 'package:flauncher/widgets/settings/focusable_settings_tile.dart';
+import 'package:flauncher/widgets/settings/fanatika_tv_controls.dart';
 
 class FanatikaSleepPage extends StatefulWidget {
   static const routeName = 'fanatika_sleep_settings';
@@ -78,19 +78,17 @@ class _FanatikaSleepPageState extends State<FanatikaSleepPage> with WidgetsBindi
         ]),
       ) ?? false;
 
-  Widget _tile(IconData icon, String label, VoidCallback onPressed, {String? subtitle}) =>
-      FocusableSettingsTile(
-        leading: Icon(icon), title: Text(label),
-        subtitle: subtitle == null ? null : Text(subtitle), onPressed: onPressed,
+  Widget _tile(IconData icon, String label, VoidCallback onPressed, {String? subtitle, bool autofocus = false}) =>
+      FanatikaTvControls.action(
+        icon: icon, title: label, subtitle: subtitle,
+        autofocus: autofocus, onPressed: onPressed,
       );
 
   Future<void> _selectKey() async {
-    final chosen = await showDialog<int>(context: context, builder: (ctx) =>
-      SimpleDialog(title: const Text('Remote sleep shortcut'),
-        children: _remoteKeys.entries.map((entry) => SimpleDialogOption(
-          onPressed: () => Navigator.pop(ctx, entry.key),
-          child: Text(entry.value),
-        )).toList()));
+    final chosen = await FanatikaTvControls.choose<int>(context,
+      title: 'Remote sleep shortcut', values: _remoteKeys.keys.toList(),
+      label: (v) => _remoteKeys[v] ?? 'Unknown',
+      current: (_status['shortcutKey'] as int?) ?? 0);
     if (chosen == null || !mounted) return;
     if (chosen != 0) {
       final confirmed = await _confirm('Assign a long-press key?',
@@ -145,6 +143,7 @@ class _FanatikaSleepPageState extends State<FanatikaSleepPage> with WidgetsBindi
           () => _perform(_native.fanatikaRequestSleepAdmin),
           subtitle: !adminSupported ? 'Not supported by this TV firmware' :
             adminActive ? 'You can revoke it in Android security settings' : 'Required for timer and shortcut',
+          autofocus: true,
         ),
         const Divider(),
         const ListTile(title: Text('Configurable remote button')),

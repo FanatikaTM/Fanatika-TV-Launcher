@@ -251,15 +251,43 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 crossAxisAlignment: fanatikaSettings.fanatikaHeroPlacement == 'center' ? CrossAxisAlignment.center : CrossAxisAlignment.start,
-                                children: [Text(
-                                _focusedFavoriteAppName ??
-                                    (favoriteApps.isNotEmpty ? favoriteApps.first.name : ''),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: fanatikaSettings.fanatikaHeroOpacity), fontSize: fanatikaSettings.fanatikaHeroSize, fontWeight: FontWeight.bold,
-                                  shadows: const [Shadow(color: Colors.black87, blurRadius: 12)],
-                                ),
+                                children: [
+                                AnimatedSwitcher(
+                                  duration: fanatikaSettings.fanatikaFocusAnimations && !fanatikaSettings.fanatikaPerformance
+                                    ? const Duration(milliseconds: 220) : Duration.zero,
+                                  child: Container(
+                                    key: ValueKey(_focusedFavoritePackage ?? 'first-favorite'),
+                                    padding: fanatikaSettings.fanatikaTitleStyle == 'Glass'
+                                      ? const EdgeInsets.symmetric(horizontal: 18, vertical: 8)
+                                      : EdgeInsets.zero,
+                                    decoration: fanatikaSettings.fanatikaTitleStyle == 'Glass'
+                                      ? BoxDecoration(
+                                        color: const Color(0xFF0A1424).withValues(alpha: 0.60),
+                                        borderRadius: BorderRadius.circular(14),
+                                        border: Border.all(color: Colors.white24),
+                                      ) : null,
+                                    child: Text(
+                                      _focusedFavoriteAppName ??
+                                        (favoriteApps.isNotEmpty ? favoriteApps.first.name : ''),
+                                      maxLines: 2, overflow: TextOverflow.ellipsis,
+                                      textAlign: fanatikaSettings.fanatikaHeroPlacement == 'center'
+                                        ? TextAlign.center : TextAlign.left,
+                                      style: TextStyle(
+                                        color: Colors.white.withValues(alpha: fanatikaSettings.fanatikaHeroOpacity),
+                                        fontSize: fanatikaSettings.fanatikaHeroSize,
+                                        fontWeight: fanatikaSettings.fanatikaTitleStyle == 'Classic'
+                                          ? FontWeight.w600 : FontWeight.w800,
+                                        letterSpacing: fanatikaSettings.fanatikaTitleStyle == 'Bold' ? 1.3 : 0.35,
+                                        height: 1.04,
+                                        shadows: fanatikaSettings.fanatikaTitleStyle == 'Classic'
+                                          ? const [Shadow(color: Colors.black87, blurRadius: 10)]
+                                          : const [
+                                              Shadow(color: Color(0xEE07101B), blurRadius: 16, offset: Offset(0, 3)),
+                                              Shadow(color: Colors.black87, blurRadius: 26, offset: Offset(0, 6)),
+                                            ],
+                                      ),
+                                    ),
+                                  ),
                                 ),
                                 if (_focusedFavoritePackage != null &&
                                     fanatikaSettings.fanatikaDescriptions.containsKey(_focusedFavoritePackage))
@@ -267,7 +295,11 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                                     fanatikaSettings.fanatikaDescriptions[_focusedFavoritePackage]!,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(color: Colors.white70, fontSize: 20),
+                                    style: const TextStyle(
+                                      color: Color(0xFFE2E8F0), fontSize: 19,
+                                      fontWeight: FontWeight.w500, height: 1.3,
+                                      shadows: [Shadow(color: Colors.black87, blurRadius: 10)],
+                                    ),
                                   ),
                                 ],
                               ),

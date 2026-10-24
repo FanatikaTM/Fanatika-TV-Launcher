@@ -158,6 +158,7 @@ class SettingsService extends ChangeNotifier {
   // Fanatika v2 options are namespaced; original Arc preferences stay untouched.
   double get fanatikaHeroSize => (_sharedPreferences.getDouble('fanatika_v2_hero_size') ?? 58.0).clamp(28.0, 96.0).toDouble();
   String get fanatikaHeroPlacement => _sharedPreferences.getString('fanatika_v2_hero_position') ?? 'left';
+  String get fanatikaTitleStyle => _sharedPreferences.getString('fanatika_v2_title_style') ?? 'Cinema';
   int get fanatikaForecastDays => (_sharedPreferences.getInt('fanatika_v2_forecast_days') ?? 3).clamp(1, 5).toInt();
   int get fanatikaWeatherRefresh => (_sharedPreferences.getInt('fanatika_v2_weather_refresh') ?? 60).clamp(30, 180).toInt();
   bool get fanatikaPerformance => _sharedPreferences.getBool('fanatika_v2_performance') ?? false;

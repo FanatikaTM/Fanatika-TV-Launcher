@@ -27,6 +27,7 @@ import 'package:flauncher/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'flauncher.dart';
+import 'widgets/fanatika_startup_splash.dart';
 
 class FLauncherApp extends StatelessWidget
 {
@@ -145,7 +146,7 @@ class FLauncherApp extends StatelessWidget
         builder: (context) => PopScope(
           canPop: false,
           child: ExcludeSemantics(
-            child: FLauncher(),
+            child: const FanatikaStartupSplash(child: FLauncher()),
           ),
           onPopInvoked: (didPop) {
             LauncherState launcherState = context.read<LauncherState>();

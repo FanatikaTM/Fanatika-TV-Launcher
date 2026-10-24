@@ -8,7 +8,7 @@ import 'package:flauncher/providers/settings_service.dart';
 import 'package:flauncher/providers/apps_service.dart';
 import 'package:flauncher/providers/fanatika_backup_service.dart';
 import 'package:flauncher/flauncher_channel.dart';
-import 'package:flauncher/widgets/settings/focusable_settings_tile.dart';
+import 'package:flauncher/widgets/settings/fanatika_tv_controls.dart';
 import 'package:flauncher/widgets/settings/tv_inputs_panel_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_sleep_page.dart';
 
@@ -113,12 +113,10 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
   Future<void> editDescription() async {
     final apps = context.read<AppsService>().applications;
     if (apps.isEmpty) return;
-    final result = await showDialog<String>(context: context, builder: (ctx) => SimpleDialog(
-      title: const Text('Choose app for description'),
-      children: apps.take(150).map((a) => SimpleDialogOption(
-        onPressed: () => Navigator.pop(ctx, a.packageName), child: Text(a.name),
-      )).toList(),
-    ));
+    final result = await FanatikaTvControls.choose<String>(context,
+      title: 'Choose app for description',
+      values: apps.take(150).map((a) => a.packageName).toList(),
+      label: (id) => apps.firstWhere((a) => a.packageName == id).name);
     if (!mounted || result == null) return;
     final settings = context.read<SettingsService>();
     final value = await askText('Description', value: settings.fanatikaDescriptions[result] ?? '');
@@ -128,11 +126,13 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
   Future<void> editInputNames() async {
     final inputs = await native.getTvInputs();
     if (!mounted) return;
-    final choice = await showDialog<Map<String, dynamic>>(context: context, builder: (ctx) => SimpleDialog(
-      title: const Text('Name an HDMI / TV input'), children: inputs.map((i) => SimpleDialogOption(
-        onPressed: () => Navigator.pop(ctx, i), child: Text(i['label']?.toString() ?? i['id']?.toString() ?? 'Input'),
-      )).toList(),
-    ));
+    final keys = inputs.map((i) => i['id']?.toString() ?? '').where((i) => i.isNotEmpty).toList();
+    if (keys.isEmpty) {
+      setState(() => status = 'No selectable Android TV inputs were found'); return;
+    }
+    final selected = await FanatikaTvControls.choose<String>(context, title: 'Name TV input',
+      values: keys, label: (id) => inputs.firstWhere((i) => i['id']?.toString() == id)['label']?.toString() ?? id);
+    final choice = selected == null ? null : inputs.firstWhere((i) => i['id']?.toString() == selected);
     if (!mounted || choice == null) return;
     final settings = context.read<SettingsService>();
     final id = choice['id']?.toString() ?? '';
@@ -153,89 +153,105 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
   });
 
   Widget tile(IconData icon, String title, VoidCallback handler, {String? subtitle}) =>
-      FocusableSettingsTile(leading: Icon(icon), title: Text(title),
-        subtitle: subtitle == null ? null : Text(subtitle), onPressed: handler);
-  Widget switcher(String title, bool checked, Future<void> Function(bool) apply) =>
-      SwitchListTile(title: Text(title), value: checked, onChanged: (v) => guard(() => apply(v)));
+    FanatikaTvControls.action(icon: icon, title: title, subtitle: subtitle, onPressed: handler);
+  Widget switcher(String title, bool checked, Future<void> Function(bool) apply, {IconData icon = Icons.tune}) =>
+    FanatikaTvControls.toggle(icon: icon, title: title, value: checked,
+      onPressed: () => guard(() => apply(!checked)));
+
+  Future<void> chooseSetting<T>(SettingsService s, String title, String key,
+      List<T> values, String Function(T) label, T current) async {
+    final selected = await FanatikaTvControls.choose<T>(context, title: title,
+      values: values, label: label, current: current);
+    if (selected != null && mounted) await guard(() => s.setFanatikaOption(key, selected as Object));
+  }
 
   @override
   Widget build(BuildContext context) {
     final s = context.watch<SettingsService>();
     if (s.fanatikaSettingsPin.isNotEmpty && !unlocked) {
-      return Column(children: [const Text('Fanatika protected settings'),
-        tile(Icons.lock_open, 'Unlock settings', authenticate), Text(status)]);
+      return Column(children: [
+        const Padding(padding: EdgeInsets.all(12), child: Text('Protected settings',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600))),
+        FanatikaTvControls.action(icon: Icons.lock_open, title: 'Unlock settings',
+          autofocus: true, onPressed: authenticate),
+        if (status.isNotEmpty) Text(status),
+      ]);
     }
     return Column(children: [
-      const Text('Fanatika customization', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w600)),
-      const Divider(),
-      Expanded(child: ListView(children: [
-        const ListTile(title: Text('Backup and Restore')),
-        tile(Icons.file_upload_outlined, 'Export settings & Favorites', exportBackup),
-        tile(Icons.file_download_outlined, 'Import settings & Favorites', importBackup),
-        const Divider(),
-        const ListTile(title: Text('Visual home-screen editor')),
-        switcher('Large selected-app title', s.showFanatikaHero, s.setShowFanatikaHero),
-        ListTile(title: Text('Title size: ${s.fanatikaHeroSize.round()}'), subtitle: Slider(
-          value: s.fanatikaHeroSize, min: 28, max: 96, divisions: 17,
-          onChanged: (v) => s.setFanatikaOption('fanatika_v2_hero_size', v),
-        )),
-        tile(Icons.format_align_left, 'Title position', () async {
-          final newValue = await showDialog<String>(context: context, builder: (ctx) => SimpleDialog(
-            title: const Text('Title placement'),
-            children: ['left','center'].map((p) => SimpleDialogOption(onPressed: () => Navigator.pop(ctx, p), child: Text(p))).toList(),
-          ));
-          if (newValue != null) await s.setFanatikaOption('fanatika_v2_hero_position', newValue);
-        }, subtitle: s.fanatikaHeroPlacement),
-        ListTile(title: Text('Title opacity: ${(s.fanatikaHeroOpacity * 100).round()}%'),
-          subtitle: Slider(value: s.fanatikaHeroOpacity, min: 0.3, max: 1.0, divisions: 14,
-            onChanged: (v) => s.setFanatikaOption('fanatika_v2_hero_opacity', v))),
-        tile(Icons.edit_note, 'Custom app descriptions', editDescription),
-        const Divider(),
-        const ListTile(title: Text('Advanced weather')),
-        switcher('Show weather', s.showFanatikaWeather, s.setShowFanatikaWeather),
-        tile(Icons.location_city, 'Weather city', () async {
-          final value = await askText('Weather city', value: s.fanatikaWeatherCity);
-          if (value != null) await s.setFanatikaWeatherCity(value);
-        }, subtitle: s.fanatikaWeatherCity),
-        switcher('Fahrenheit', s.fanatikaFahrenheit, s.setFanatikaFahrenheit),
-        tile(Icons.calendar_month, 'Forecast days: ${s.fanatikaForecastDays}', () async {
-          await s.setFanatikaOption('fanatika_v2_forecast_days', s.fanatikaForecastDays == 5 ? 3 : 5);
-        }, subtitle: 'Switch between 3 and 5 days'),
-        tile(Icons.schedule, 'Weather refresh: ${s.fanatikaWeatherRefresh} minutes', () async {
-          final next = s.fanatikaWeatherRefresh == 30 ? 60 : s.fanatikaWeatherRefresh == 60 ? 120 : 30;
-          await s.setFanatikaOption('fanatika_v2_weather_refresh', next);
-        }),
-        const Divider(),
-        const ListTile(title: Text('Wallpaper & inputs')),
-        switcher('Smart bundled mountain wallpaper (day/night)', s.fanatikaSmartMountains,
-          (v) => s.setFanatikaOption('fanatika_v2_smart_mountains', v)),
-        tile(Icons.input, 'Rename TV / HDMI sources', editInputNames),
-        tile(Icons.settings_input_hdmi, 'Open sources', () => Navigator.of(context).pushNamed(TvInputsPanelPage.routeName)),
-        const Divider(),
-        const ListTile(title: Text('Layouts and performance')),
-        for (final preset in ['Minimal','Cinema','Classic'])
-          tile(Icons.dashboard_customize_outlined, '$preset preset', () => guard(() => s.setFanatikaLayout(preset)),
-            subtitle: s.fanatikaLayoutPreset == preset ? 'Selected' : null),
-        switcher('App focus animations', s.fanatikaFocusAnimations,
-          (v) => s.setFanatikaOption('fanatika_v2_focus_animations', v)),
-        switcher('Performance mode', s.fanatikaPerformance, s.setFanatikaPerformance),
-        const Divider(),
-        const ListTile(title: Text('Sleep / Standby')),
-        tile(Icons.bedtime_outlined, 'Remote sleep shortcut & timer',
-          () => Navigator.of(context).pushNamed(FanatikaSleepPage.routeName),
-          subtitle: 'Choose remote long-press key, or 15 / 30 / 60 / 90 / 120-minute timer'),
-        const Divider(),
-        const ListTile(title: Text('Security, updates and quick settings')),
-        tile(Icons.pin, s.fanatikaSettingsPin.isEmpty ? 'Set settings PIN' : 'Change or remove settings PIN', changePin),
-        tile(Icons.system_update, 'Install manually selected Fanatika update', localUpdate,
-          subtitle: 'Requires APK signed with the same certificate; no upstream Arc auto-updates'),
-        tile(Icons.wifi, 'Wi-Fi settings', () => guard(native.openWifiSettings)),
-        tile(Icons.bluetooth, 'Bluetooth settings', () => guard(() => native.launchActivityFromAction('android.settings.BLUETOOTH_SETTINGS'))),
-        tile(Icons.display_settings, 'Display settings', () => guard(() => native.launchActivityFromAction('android.settings.DISPLAY_SETTINGS'))),
-        tile(Icons.settings, 'Android system settings', () => guard(native.openSettings)),
-        if (working) const LinearProgressIndicator(),
-        if (status.isNotEmpty) Padding(padding: const EdgeInsets.all(10), child: Text(status)),
-      ])),
+      const Padding(padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+        child: Text('Fanatika customization',
+          style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700))),
+      const Divider(height: 1),
+      Expanded(child: FocusTraversalGroup(
+        policy: ReadingOrderTraversalPolicy(),
+        child: ListView(
+        padding: const EdgeInsets.only(bottom: 24),
+        children: [
+          FanatikaTvControls.section('Backup and restore'),
+          FanatikaTvControls.action(icon: Icons.file_upload_outlined, title: 'Export settings & Favorites',
+            autofocus: true, onPressed: exportBackup),
+          tile(Icons.file_download_outlined, 'Import settings & Favorites', importBackup),
+          FanatikaTvControls.section('Large selected-app title'),
+          switcher('Show large app title', s.showFanatikaHero, s.setShowFanatikaHero, icon: Icons.title),
+          tile(Icons.format_size, 'Title size', () => chooseSetting<double>(s, 'Title size',
+            'fanatika_v2_hero_size', [28, 36, 44, 52, 60, 72, 84, 96].map((n) => n.toDouble()).toList(),
+            (v) => '${v.round()} px', s.fanatikaHeroSize),
+            subtitle: '${s.fanatikaHeroSize.round()} px'),
+          tile(Icons.format_align_left, 'Title position', () => chooseSetting<String>(s, 'Title position',
+            'fanatika_v2_hero_position', ['left', 'center'], (v) => v == 'left' ? 'Left' : 'Center',
+            s.fanatikaHeroPlacement), subtitle: s.fanatikaHeroPlacement),
+          tile(Icons.opacity, 'Title opacity', () => chooseSetting<double>(s, 'Title opacity',
+            'fanatika_v2_hero_opacity', [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0],
+            (v) => '${(v*100).round()}%', s.fanatikaHeroOpacity),
+            subtitle: '${(s.fanatikaHeroOpacity * 100).round()}%'),
+          tile(Icons.auto_awesome, 'Text style', () => chooseSetting<String>(s, 'App title text style',
+            'fanatika_v2_title_style', ['Classic','Bold','Cinema','Glass'], (v) => v,
+            s.fanatikaTitleStyle), subtitle: s.fanatikaTitleStyle),
+          tile(Icons.edit_note, 'Custom app descriptions', editDescription),
+          FanatikaTvControls.section('Weather'),
+          switcher('Show weather', s.showFanatikaWeather, s.setShowFanatikaWeather, icon: Icons.cloud_outlined),
+          tile(Icons.location_city, 'Weather city', () async {
+            final value = await askText('Weather city', value: s.fanatikaWeatherCity);
+            if (value != null) await s.setFanatikaWeatherCity(value);
+          }, subtitle: s.fanatikaWeatherCity),
+          switcher('Fahrenheit', s.fanatikaFahrenheit, s.setFanatikaFahrenheit, icon: Icons.thermostat),
+          tile(Icons.calendar_month, 'Forecast days', () => chooseSetting<int>(s, 'Forecast days',
+            'fanatika_v2_forecast_days', [3,5], (v) => '$v days', s.fanatikaForecastDays),
+            subtitle: '${s.fanatikaForecastDays} days'),
+          tile(Icons.schedule, 'Weather refresh', () => chooseSetting<int>(s, 'Weather refresh',
+            'fanatika_v2_weather_refresh', [30,60,120,180], (v) => '$v minutes', s.fanatikaWeatherRefresh),
+            subtitle: '${s.fanatikaWeatherRefresh} minutes'),
+          FanatikaTvControls.section('Wallpaper and sources'),
+          switcher('Smart mountain wallpapers', s.fanatikaSmartMountains,
+            (v) => s.setFanatikaOption('fanatika_v2_smart_mountains', v), icon: Icons.landscape),
+          tile(Icons.input, 'Rename TV / HDMI sources', editInputNames),
+          tile(Icons.settings_input_hdmi, 'Open sources',
+            () => Navigator.of(context).pushNamed(TvInputsPanelPage.routeName)),
+          FanatikaTvControls.section('Layouts and performance'),
+          for (final preset in ['Minimal','Cinema','Classic'])
+            tile(Icons.dashboard_customize_outlined, '$preset preset',
+              () => guard(() => s.setFanatikaLayout(preset)),
+              subtitle: s.fanatikaLayoutPreset == preset ? 'Selected' : null),
+          switcher('App focus animations', s.fanatikaFocusAnimations,
+            (v) => s.setFanatikaOption('fanatika_v2_focus_animations', v), icon: Icons.animation),
+          switcher('Performance mode', s.fanatikaPerformance, s.setFanatikaPerformance, icon: Icons.speed),
+          FanatikaTvControls.section('Sleep and standby'),
+          tile(Icons.bedtime_outlined, 'Remote sleep shortcut & timer',
+            () => Navigator.of(context).pushNamed(FanatikaSleepPage.routeName),
+            subtitle: 'Sleep now, timers, permissions and remote keys'),
+          FanatikaTvControls.section('Security and quick settings'),
+          tile(Icons.pin, s.fanatikaSettingsPin.isEmpty ? 'Set settings PIN' : 'Change or remove PIN', changePin),
+          tile(Icons.system_update, 'Install reviewed Fanatika APK', localUpdate),
+          tile(Icons.wifi, 'Wi-Fi settings', () => guard(native.openWifiSettings)),
+          tile(Icons.bluetooth, 'Bluetooth settings',
+            () => guard(() => native.launchActivityFromAction('android.settings.BLUETOOTH_SETTINGS'))),
+          tile(Icons.display_settings, 'Display settings',
+            () => guard(() => native.launchActivityFromAction('android.settings.DISPLAY_SETTINGS'))),
+          tile(Icons.settings, 'Android system settings', () => guard(native.openSettings)),
+          if (working) const LinearProgressIndicator(),
+          if (status.isNotEmpty) Padding(padding: const EdgeInsets.all(12), child: Text(status)),
+        ],
+      ))),
     ]);
   }
 }
