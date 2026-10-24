@@ -1,6 +1,7 @@
 import 'package:flauncher/widgets/settings/settings_panel.dart';
 import 'package:flauncher/widgets/settings/tv_inputs_panel_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_v2_page.dart';
+import 'package:flauncher/widgets/settings/fanatika_tools_hub.dart';
 import 'package:flauncher/widgets/settings/fanatika_sleep_page.dart';
 import 'package:flauncher/widgets/settings/applications_panel_page.dart';
 import 'package:flutter/material.dart';

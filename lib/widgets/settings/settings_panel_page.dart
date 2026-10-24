@@ -25,7 +25,9 @@ import 'package:flauncher/widgets/settings/interface_settings_page.dart';
 import 'package:flauncher/widgets/settings/update_dialogs.dart';
 import 'package:flauncher/widgets/settings/general_settings_page.dart';
 import 'package:flauncher/widgets/settings/tv_inputs_panel_page.dart';
-import 'package:flauncher/widgets/settings/fanatika_v2_page.dart';
+import 'package:flauncher/widgets/settings/fanatika_tools_hub.dart';
+import 'package:flauncher/widgets/settings/fanatika_updates_page.dart';
+import 'package:flauncher/widgets/settings/fanatika_usb_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_sleep_page.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -68,8 +70,18 @@ class SettingsPanelPage extends StatelessWidget {
                 FocusableSettingsTile(
                   leading: const Icon(Icons.tune),
                   title: const Text('Fanatika tools'),
-                  subtitle: const Text('Backup, editor, weather, HDMI, presets, updater, PIN'),
-                  onPressed: () => Navigator.of(context).pushNamed(FanatikaV2Page.routeName),
+                  subtitle: const Text('Favorites, title, weather, wallpaper, backup and controls'),
+                  onPressed: () => Navigator.of(context).pushNamed(FanatikaToolsHub.routeName),
+                ),
+                FocusableSettingsTile(
+                  leading: const Icon(Icons.system_update), title: const Text('Fanatika updates'),
+                  subtitle: const Text('Check, download and install signed updates'),
+                  onPressed: () => Navigator.of(context).pushNamed(FanatikaUpdatesPage.routeName),
+                ),
+                FocusableSettingsTile(
+                  leading: const Icon(Icons.usb), title: const Text('USB storage'),
+                  subtitle: const Text('Browse supported USB drives and import images or backups'),
+                  onPressed: () => Navigator.of(context).pushNamed(FanatikaUsbPage.routeName),
                 ),
                 FocusableSettingsTile(
                   leading: const Icon(Icons.bedtime_outlined),

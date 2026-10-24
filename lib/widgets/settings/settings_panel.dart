@@ -27,8 +27,10 @@ import 'package:flauncher/widgets/settings/launcher_section_panel_page.dart';
 import 'package:flauncher/widgets/settings/settings_panel_page.dart';
 import 'package:flauncher/widgets/settings/tv_inputs_panel_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_v2_page.dart';
+import 'package:flauncher/widgets/settings/fanatika_tools_hub.dart';
+import 'package:flauncher/widgets/settings/fanatika_updates_page.dart';
+import 'package:flauncher/widgets/settings/fanatika_usb_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_sleep_page.dart';
-import 'package:flauncher/widgets/settings/fanatika_remote_tester_page.dart';
 import 'package:flauncher/widgets/settings/status_bar_panel_page.dart';
 import 'package:flauncher/widgets/settings/wallpaper_panel_page.dart';
 import 'package:flauncher/widgets/settings/wifi_usage_period_page.dart';
@@ -81,10 +83,14 @@ class _SettingsPanelState extends State<SettingsPanel> {
                 initialRoute: widget.initialRoute ?? SettingsPanelPage.routeName,
                 onGenerateRoute: (settings) {
                   switch (settings.name) {
+                    case FanatikaToolsHub.routeName:
+                      return _FastPageRoute(builder: (_) => const FanatikaToolsHub());
+                    case FanatikaUpdatesPage.routeName:
+                      return _FastPageRoute(builder: (_) => const FanatikaUpdatesPage());
+                    case FanatikaUsbPage.routeName:
+                      return _FastPageRoute(builder: (_) => const FanatikaUsbPage());
                     case FanatikaV2Page.routeName:
                       return _FastPageRoute(builder: (_) => const FanatikaV2Page());
-                    case FanatikaRemoteTesterPage.routeName:
-                      return _FastPageRoute(builder: (_) => const FanatikaRemoteTesterPage());
                     case FanatikaSleepPage.routeName:
                       return _FastPageRoute(builder: (_) => const FanatikaSleepPage());
                     case TvInputsPanelPage.routeName:

@@ -200,6 +200,7 @@ class SettingsService extends ChangeNotifier {
   double get fanatikaHeroSize => (_sharedPreferences.getDouble('fanatika_v2_hero_size') ?? 58.0).clamp(28.0, 96.0).toDouble();
   String get fanatikaHeroPlacement => _sharedPreferences.getString('fanatika_v2_hero_position') ?? 'left';
   String get fanatikaTitleStyle => _sharedPreferences.getString('fanatika_v2_title_style') ?? 'Cinema';
+  bool get fanatikaWeatherAutoLocation => _sharedPreferences.getBool('fanatika_v27_auto_weather_location') ?? false;
   bool get fanatikaRecoveryProfileActive => _sharedPreferences.containsKey('fanatika_v23_recovery_snapshot');
   String get fanatikaToolsLanguage => _sharedPreferences.getString('fanatika_v23_tools_language') ?? 'en';
   bool get fanatikaRememberLast => _sharedPreferences.getBool('fanatika_v23_remember_last') ?? false;

@@ -33,6 +33,11 @@ class FanatikaBackupService {
   static Future<Map<String, dynamic>?> selectImport() async {
     final contents = await _files.invokeMethod<String>('fanatikaReadBackup');
     if (contents == null) return null;
+    return validateImportedJson(contents);
+  }
+
+  static Map<String, dynamic> validateImportedJson(String contents) {
+    if (contents.length > 2000000) throw const FormatException('Backup too large');
     final raw = jsonDecode(contents);
     if (raw is! Map || raw['format'] != 'fanatika-launcher-backup' || raw['schema'] != 1) {
       throw const FormatException('Not a compatible Fanatika backup');

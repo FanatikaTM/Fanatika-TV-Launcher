@@ -24,10 +24,10 @@ class V24Checks(unittest.TestCase):
   self.assertIn('Timer.periodic',obs)
   self.assertIn('lastAttempt',obs)
  def test_settings_remote_entry_and_observer(self):
-  ui=self.read('lib/widgets/settings/fanatika_v2_page.dart')
-  self.assertIn('Every $days days',ui)
+  ui=self.read('lib/widgets/settings/fanatika_updates_page.dart')
+  self.assertIn('Every $v days',ui)
   self.assertIn('FanatikaTvControls.choose<int>',ui)
-  self.assertIn('FanatikaReleaseChecker.check(releaseRepo: repo)',ui)
+  self.assertIn('FanatikaReleaseChecker.check(releaseRepo:',ui)
   self.assertIn('FanatikaAutoUpdateObserver(child: FLauncher())',self.read('lib/flauncher_app.dart'))
  def test_logos_separate_and_unbranded_home(self):
   icon=(ROOT/'assets/icon.png').read_bytes()

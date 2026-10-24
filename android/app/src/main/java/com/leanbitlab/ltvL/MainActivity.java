@@ -82,6 +82,10 @@ public class MainActivity extends FlutterActivity {
     private static final int FANATIKA_SAVE_JSON = 9321;
     private static final int FANATIKA_READ_JSON = 9322;
     private static final int FANATIKA_PICK_APK = 9323;
+    private static final int FANATIKA_USB_IMAGE = 9341;
+    private static final int FANATIKA_USB_BACKUP = 9342;
+    private static final int FANATIKA_LOCATION_REQUEST = 9343;
+    private MethodChannel.Result fanatikaLocationPending;
     private MethodChannel.Result fanatikaPending;
     private String fanatikaExportPayload;
 
@@ -116,6 +120,19 @@ public class MainActivity extends FlutterActivity {
                     catch (Exception e) { result.error("BACKUP_READ", e.getMessage(), null); }
                 }
                 case "fanatikaPickUpdateApk" -> fanatikaPickUpdate(result);
+                case "fanatikaUsbVolumes" -> result.success(FanatikaDeviceFiles.usbVolumes(this));
+                case "fanatikaUsbChoose" -> fanatikaUsbChoose((String) call.argument("kind"), result);
+                case "fanatikaApproximateLocation" -> FanatikaDeviceFiles.approximateLocation(this, result);
+                case "fanatikaRequestLocationPermission" -> {
+                    if (android.os.Build.VERSION.SDK_INT < 23 || checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                        FanatikaDeviceFiles.approximateLocation(this, result);
+                    } else if (fanatikaLocationPending != null) {
+                        result.error("BUSY", "Location permission request already running", null);
+                    } else {
+                        fanatikaLocationPending = result;
+                        requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, FANATIKA_LOCATION_REQUEST);
+                    }
+                }
                 case "fanatikaVerifyReleaseApk" ->
                     result.success(fanatikaCheckReleaseApk((String)call.argument("path")));
                 case "fanatikaInstallVerifiedReleaseApk" ->
@@ -361,10 +378,43 @@ public class MainActivity extends FlutterActivity {
         }
     }
 
+    private void fanatikaUsbChoose(String kind, MethodChannel.Result result) {
+        if (fanatikaPending != null) { result.error("BUSY", "File picker already open", null); return; }
+        final int request;
+        final String mime;
+        if ("wallpaper".equals(kind)) { request = FANATIKA_USB_IMAGE; mime = "image/*"; }
+        else if ("backup".equals(kind)) { request = FANATIKA_USB_BACKUP; mime = "application/json"; }
+        else { result.success(FanatikaDeviceFiles.outcome(false,"Unknown USB import type")); return; }
+        try {
+            Intent picker = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            picker.addCategory(Intent.CATEGORY_OPENABLE);
+            picker.setType(mime);
+            // The system picker can browse USB providers if Xiaomi exposes one.
+            fanatikaPending = result;
+            startActivityForResult(picker, request);
+        } catch (Exception ex) {
+            fanatikaPending = null;
+            result.success(FanatikaDeviceFiles.outcome(false, "USB file picker unavailable: " + ex.getMessage()));
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode != FANATIKA_LOCATION_REQUEST) return;
+        MethodChannel.Result callback = fanatikaLocationPending;
+        fanatikaLocationPending = null;
+        if (callback == null) return;
+        if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+            FanatikaDeviceFiles.approximateLocation(this, callback);
+        else callback.success(FanatikaDeviceFiles.outcome(false, "Location permission denied. Manual city remains available."));
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode != FANATIKA_SAVE_JSON && requestCode != FANATIKA_READ_JSON && requestCode != FANATIKA_PICK_APK) return;
+        if (requestCode != FANATIKA_SAVE_JSON && requestCode != FANATIKA_READ_JSON && requestCode != FANATIKA_PICK_APK
+                && requestCode != FANATIKA_USB_IMAGE && requestCode != FANATIKA_USB_BACKUP) return;
         MethodChannel.Result callback = fanatikaPending;
         fanatikaPending = null;
         if (callback == null) return;
@@ -374,7 +424,11 @@ public class MainActivity extends FlutterActivity {
         }
         Uri uri = data.getData();
         try {
-            if (requestCode == FANATIKA_SAVE_JSON) {
+            if (requestCode == FANATIKA_USB_IMAGE) {
+                callback.success(FanatikaDeviceFiles.copySelectedImageToGallery(this, uri));
+            } else if (requestCode == FANATIKA_USB_BACKUP) {
+                callback.success(FanatikaDeviceFiles.readBackup(this, uri));
+            } else if (requestCode == FANATIKA_SAVE_JSON) {
                 if (fanatikaExportPayload == null || fanatikaExportPayload.length() > 2000000)
                     throw new IllegalArgumentException("Backup too large");
                 try (java.io.OutputStream out = getContentResolver().openOutputStream(uri, "wt")) {

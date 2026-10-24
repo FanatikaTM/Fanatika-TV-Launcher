@@ -34,6 +34,18 @@ class FLauncherChannel {
   Future<bool> fanatikaOpenUnknownSources() async =>
       await _methodChannel.invokeMethod<bool>('fanatikaOpenUnknownSources') ?? false;
 
+  // Android TV location is opt-in, and USB files are user-selected via Android SAF.
+  Future<Map<String, dynamic>> fanatikaApproximateLocation() async =>
+      (await _methodChannel.invokeMapMethod<String, dynamic>('fanatikaApproximateLocation')) ?? {};
+  Future<Map<String, dynamic>> fanatikaRequestLocationPermission() async =>
+      (await _methodChannel.invokeMapMethod<String, dynamic>('fanatikaRequestLocationPermission')) ?? {};
+  Future<List<Map<String, dynamic>>> fanatikaUsbVolumes() async {
+    final list = await _methodChannel.invokeListMethod<dynamic>('fanatikaUsbVolumes');
+    return (list ?? const []).whereType<Map>().map((v) => Map<String, dynamic>.from(v)).toList();
+  }
+  Future<Map<String, dynamic>> fanatikaUsbChoose(String kind) async =>
+      (await _methodChannel.invokeMapMethod<String, dynamic>('fanatikaUsbChoose', {'kind': kind})) ?? {};
+
   // Fanatika v2 sleep controls. Permission is always approved on the TV.
   Future<bool> fanatikaOpenDisplaySleepSettings() async =>
       await _methodChannel.invokeMethod<bool>('fanatikaOpenDisplaySleepSettings') ?? false;

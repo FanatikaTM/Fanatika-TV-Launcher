@@ -298,13 +298,19 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                                       style: TextStyle(
                                         color: Colors.white.withValues(alpha: fanatikaSettings.fanatikaHeroOpacity),
                                         fontSize: fanatikaSettings.fanatikaHeroSize,
-                                        fontWeight: fanatikaSettings.fanatikaTitleStyle == 'Classic'
-                                          ? FontWeight.w600 : fanatikaSettings.fanatikaTitleStyle == 'Minimal'
+                                        fontWeight: fanatikaSettings.fanatikaTitleStyle == 'Classic' || fanatikaSettings.fanatikaTitleStyle == 'Elegant' || fanatikaSettings.fanatikaTitleStyle == 'Soft'
+                                          ? FontWeight.w500 : fanatikaSettings.fanatikaTitleStyle == 'Minimal'
                                           ? FontWeight.w300 : FontWeight.w800,
                                         letterSpacing: fanatikaSettings.fanatikaTitleStyle == 'Bold' ? 1.3
-                                          : fanatikaSettings.fanatikaTitleStyle == 'Wide' ? 2.7 : 0.35,
+                                          : fanatikaSettings.fanatikaTitleStyle == 'Wide' ? 2.7 : fanatikaSettings.fanatikaTitleStyle == 'Mono' ? 1.5 : fanatikaSettings.fanatikaTitleStyle == 'Elegant' ? 1.8 : 0.35,
+                                        fontFamily: fanatikaSettings.fanatikaTitleStyle == 'Mono' ? 'monospace' : fanatikaSettings.fanatikaTitleStyle == 'Elegant' ? 'serif' : null,
+                                        fontStyle: fanatikaSettings.fanatikaTitleStyle == 'Elegant' ? FontStyle.italic : FontStyle.normal,
                                         height: 1.04,
-                                        shadows: fanatikaSettings.fanatikaTitleStyle == 'Glow' || fanatikaSettings.fanatikaTitleStyle == 'Neon'
+                                        shadows: fanatikaSettings.fanatikaTitleStyle == 'Outline' || fanatikaSettings.fanatikaTitleStyle == 'Steel'
+                                          ? const [Shadow(color: Colors.black, blurRadius: 1, offset: Offset(1, 1)), Shadow(color: Colors.white54, blurRadius: 4)]
+                                          : fanatikaSettings.fanatikaTitleStyle == 'Sunset'
+                                          ? const [Shadow(color: Colors.deepOrangeAccent, blurRadius: 19), Shadow(color: Colors.black87, blurRadius: 28)]
+                                          : fanatikaSettings.fanatikaTitleStyle == 'Glow' || fanatikaSettings.fanatikaTitleStyle == 'Neon'
                                           ? const [Shadow(color: Colors.lightBlueAccent, blurRadius: 22), Shadow(color: Colors.black87, blurRadius: 28)]
                                           : fanatikaSettings.fanatikaTitleStyle == 'Classic'
                                           ? const [Shadow(color: Colors.black87, blurRadius: 10)]
@@ -340,6 +346,7 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                           if (weatherEnabled)
                             FanatikaWeatherCard(
                               city: fanatikaSettings.fanatikaWeatherCity,
+                              autoLocation: fanatikaSettings.fanatikaWeatherAutoLocation,
                               fahrenheit: fanatikaSettings.fanatikaFahrenheit,
                               days: fanatikaSettings.fanatikaForecastDays,
                               refreshMinutes: fanatikaSettings.fanatikaPerformance ? 180 : fanatikaSettings.fanatikaWeatherRefresh,

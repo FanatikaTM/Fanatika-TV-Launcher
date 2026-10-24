@@ -6,13 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flauncher/flauncher_channel.dart';
 
 class FanatikaWeatherCard extends StatefulWidget {
   final String city;
   final bool fahrenheit;
+  final bool autoLocation;
   final int days;
   final int refreshMinutes;
-  const FanatikaWeatherCard({super.key, required this.city, required this.fahrenheit, this.days = 3, this.refreshMinutes = 60});
+  const FanatikaWeatherCard({super.key, required this.city, required this.fahrenheit, this.autoLocation = false, this.days = 3, this.refreshMinutes = 60});
   @override
   State<FanatikaWeatherCard> createState() => _FanatikaWeatherCardState();
 }
@@ -23,6 +25,7 @@ class _FanatikaWeatherCardState extends State<FanatikaWeatherCard> {
   String? _error;
   DateTime? _readingTime;
   bool _offlineReading = false;
+  String? _autoLocationLabel;
   int _requestNumber = 0;
   @override
   void initState() {
@@ -34,7 +37,7 @@ class _FanatikaWeatherCardState extends State<FanatikaWeatherCard> {
   @override
   void didUpdateWidget(covariant FanatikaWeatherCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.city != widget.city || oldWidget.fahrenheit != widget.fahrenheit || oldWidget.days != widget.days) {
+    if (oldWidget.city != widget.city || oldWidget.autoLocation != widget.autoLocation || oldWidget.fahrenheit != widget.fahrenheit || oldWidget.days != widget.days) {
       setState(() { _current = null; _error = null; _readingTime = null; _offlineReading = false; });
       _fetch();
     }
@@ -53,7 +56,7 @@ class _FanatikaWeatherCardState extends State<FanatikaWeatherCard> {
     super.dispose();
   }
 
-  String get _cacheKey => 'fanatika_weather_cache_${widget.city.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_')}_${widget.fahrenheit}_${widget.days}';
+  String get _cacheKey => 'fanatika_weather_cache_${widget.autoLocation ? 'automatic' : widget.city.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_')}_${widget.fahrenheit}_${widget.days}';
 
   Future<void> _readOfflineCache(int request) async {
     try {
@@ -84,7 +87,24 @@ class _FanatikaWeatherCardState extends State<FanatikaWeatherCard> {
     final request = ++_requestNumber;
     if (_current == null) await _readOfflineCache(request);
     try {
-      final data = await fetchWeather(widget.city, widget.fahrenheit, widget.days);
+      WeatherInfo data;
+      if (widget.autoLocation) {
+        // Read location only when the user opted in. A denied/unsupported fix
+        // falls back to the manually selected city without guessing from IP.
+        final fix = await FLauncherChannel().fanatikaApproximateLocation();
+        final lat = fix['latitude'];
+        final lon = fix['longitude'];
+        if (fix['ok'] == true && lat is num && lon is num) {
+          data = await fetchWeatherByCoordinates(lat.toDouble(), lon.toDouble(), widget.fahrenheit, widget.days);
+          _autoLocationLabel = 'Current location (approximate)';
+        } else {
+          data = await fetchWeather(widget.city, widget.fahrenheit, widget.days);
+          _autoLocationLabel = null;
+        }
+      } else {
+        _autoLocationLabel = null;
+        data = await fetchWeather(widget.city, widget.fahrenheit, widget.days);
+      }
       if (!mounted || request != _requestNumber) return;
       setState(() { _current = data; _error = null; _offlineReading = false; _readingTime = DateTime.now(); });
       _saveOfflineCache(data);
@@ -107,7 +127,7 @@ class _FanatikaWeatherCardState extends State<FanatikaWeatherCard> {
         border: Border.all(color: Colors.white24),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-        Text(widget.city, maxLines: 1, overflow: TextOverflow.ellipsis,
+        Text(_autoLocationLabel ?? widget.city, maxLines: 1, overflow: TextOverflow.ellipsis,
           style: const TextStyle(color: Colors.white70, fontSize: 16)),
         const SizedBox(height: 7),
         if (w != null) ...[
@@ -193,9 +213,18 @@ Future<WeatherInfo> fetchWeather(String city, bool fahrenheit, [int days = 3]) a
   final results = (jsonDecode(geo.body) as Map<String, dynamic>)['results'] as List<dynamic>?;
   if (results == null || results.isEmpty) throw const FormatException('City not found');
   final location = results.first as Map<String, dynamic>;
+  return fetchWeatherByCoordinates(
+    (location['latitude'] as num).toDouble(),
+    (location['longitude'] as num).toDouble(), fahrenheit, days);
+}
+
+Future<WeatherInfo> fetchWeatherByCoordinates(double latitude, double longitude, bool fahrenheit, [int days = 3]) async {
+  if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+    throw const FormatException('Invalid weather coordinates');
+  }
   final weatherUri = Uri.https('api.open-meteo.com', '/v1/forecast', {
-    'latitude': '${location['latitude']}',
-    'longitude': '${location['longitude']}',
+    'latitude': '$latitude',
+    'longitude': '$longitude',
     'current': 'temperature_2m,weather_code',
     'daily': 'temperature_2m_max,temperature_2m_min,weather_code',
     'temperature_unit': fahrenheit ? 'fahrenheit' : 'celsius',

@@ -16,8 +16,8 @@ class FanatikaV23SourceChecks(unittest.TestCase):
     def test_focusable_entry_point_and_registered_route(self):
         t=read('lib/widgets/settings/fanatika_v2_page.dart')
         n=read('lib/widgets/settings/settings_panel.dart')
-        self.assertIn('Remote Button Tester', t)
-        self.assertIn('FanatikaRemoteTesterPage.routeName', n)
+        self.assertNotIn('Remote Button Tester', t)  # intentionally removed from v2.7 menus
+        self.assertIn('FanatikaToolsHub.routeName', n)
         self.assertIn('Live theme preview', t)
     def test_preview_does_not_write_until_apply(self):
         t=read('lib/widgets/settings/fanatika_theme_preview.dart')
