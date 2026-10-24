@@ -339,7 +339,7 @@ public class MainActivity extends FlutterActivity {
             for (TvInputInfo tvInput : manager.getTvInputList()) {
                 Map<String, Object> item = new HashMap<>();
                 item.put("id", tvInput.getId());
-                CharSequence title = tvInput.loadLabel(getPackageManager());
+                CharSequence title = tvInput.loadLabel(MainActivity.this);
                 item.put("label", title != null ? title.toString() : tvInput.getId());
                 item.put("type", tvInput.getType());
                 item.put("passthrough", tvInput.isPassthroughInput());
@@ -423,7 +423,7 @@ public class MainActivity extends FlutterActivity {
             if (info == null || info.getType() != TvInputInfo.TYPE_HDMI) {
                 response.put("detail", "Only a detected HDMI source can be selected"); return response;
             }
-            String label = String.valueOf(info.loadLabel(getPackageManager())).toLowerCase(java.util.Locale.ROOT);
+            String label = String.valueOf(info.loadLabel(MainActivity.this)).toLowerCase(java.util.Locale.ROOT);
             java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("hdmi\\s*([123])").matcher(label);
             if (!matcher.find()) {
                 response.put("detail", "HDMI port number could not be verified; use TV remote INPUT"); return response;
