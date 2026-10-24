@@ -1,0 +1,37 @@
+name: Build Fanatika TV Launcher APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+          channel: stable
+          cache: true
+      - name: Sleep source & safety checks
+        run: python3 tests_sleep_source.py
+      - name: Flutter environment
+        run: flutter doctor -v
+      - name: Resolve packages
+        run: flutter pub get
+      - name: Analyze modified project
+        run: flutter analyze --no-fatal-infos
+      - name: Build Android TV APK
+        run: flutter build apk --debug --flavor github --target-platform android-arm
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Fanatika-TV-Launcher-debug-APK
+          path: build/app/outputs/flutter-apk/*.apk
+          if-no-files-found: error
