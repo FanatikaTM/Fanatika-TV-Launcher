@@ -155,10 +155,48 @@ class SettingsService extends ChangeNotifier {
   }
 
 
+  // Opt-in public GitHub release checks. Checks run when the app launches/resumes,
+  // not as a privileged background service. Off by default.
+  static const List<int> fanatikaUpdateCadenceChoices = [0, 15, 30];
+  int get fanatikaUpdateCheckDays =>
+      fanatikaUpdateCadenceChoices.contains(_sharedPreferences.getInt('fanatika_v2_update_days'))
+          ? _sharedPreferences.getInt('fanatika_v2_update_days')!
+          : 0;
+  int get fanatikaUpdateLastSuccessMs =>
+      _sharedPreferences.getInt('fanatika_v2_update_success_ms') ?? 0;
+  int get fanatikaUpdateLastAttemptMs =>
+      _sharedPreferences.getInt('fanatika_v2_update_attempt_ms') ?? 0;
+  String get fanatikaUpdateLastAlertedTag =>
+      _sharedPreferences.getString('fanatika_v2_update_alerted_tag') ?? '';
+  Future<void> setFanatikaUpdateCheckDays(int days) async {
+    if (!fanatikaUpdateCadenceChoices.contains(days)) throw ArgumentError('Invalid update cadence');
+    await _sharedPreferences.setInt('fanatika_v2_update_days', days);
+    notifyListeners();
+  }
+  // These timestamps are internal bookkeeping and must not rebuild all Favorites.
+  Future<void> markFanatikaUpdateAttempt(int timeMs, {required bool success}) async {
+    await _sharedPreferences.setInt('fanatika_v2_update_attempt_ms', timeMs);
+    if (success) await _sharedPreferences.setInt('fanatika_v2_update_success_ms', timeMs);
+  }
+  Future<void> markFanatikaUpdateAlerted(String tag) async {
+    await _sharedPreferences.setString('fanatika_v2_update_alerted_tag', tag);
+  }
+
   // Fanatika v2 options are namespaced; original Arc preferences stay untouched.
   double get fanatikaHeroSize => (_sharedPreferences.getDouble('fanatika_v2_hero_size') ?? 58.0).clamp(28.0, 96.0).toDouble();
   String get fanatikaHeroPlacement => _sharedPreferences.getString('fanatika_v2_hero_position') ?? 'left';
   String get fanatikaTitleStyle => _sharedPreferences.getString('fanatika_v2_title_style') ?? 'Cinema';
+  bool get fanatikaRecoveryProfileActive => _sharedPreferences.containsKey('fanatika_v23_recovery_snapshot');
+  String get fanatikaToolsLanguage => _sharedPreferences.getString('fanatika_v23_tools_language') ?? 'en';
+  bool get fanatikaRememberLast => _sharedPreferences.getBool('fanatika_v23_remember_last') ?? false;
+  String get fanatikaLastFavorite => _sharedPreferences.getString('fanatika_v23_last_favorite') ?? '';
+  Future<void> saveFanatikaLastFavorite(String name) async {
+    if (fanatikaRememberLast && name.length <= 200 && fanatikaLastFavorite != name) {
+      await _sharedPreferences.setString('fanatika_v23_last_favorite', name);
+      // Intentionally no notifyListeners: D-pad focus must not reset during navigation.
+    }
+  }
+  Map<String, String> get fanatikaAppBackgrounds => _v2Map('fanatika_v23_app_backgrounds');
   int get fanatikaForecastDays => (_sharedPreferences.getInt('fanatika_v2_forecast_days') ?? 3).clamp(1, 5).toInt();
   int get fanatikaWeatherRefresh => (_sharedPreferences.getInt('fanatika_v2_weather_refresh') ?? 60).clamp(30, 180).toInt();
   bool get fanatikaPerformance => _sharedPreferences.getBool('fanatika_v2_performance') ?? false;
@@ -190,7 +228,7 @@ class SettingsService extends ChangeNotifier {
     notifyListeners();
   }
   Future<void> setFanatikaMapValue(String key, String item, String label) async {
-    if (key != 'fanatika_v2_descriptions' && key != 'fanatika_v2_input_names') {
+    if (key != 'fanatika_v2_descriptions' && key != 'fanatika_v2_input_names' && key != 'fanatika_v23_app_backgrounds') {
       throw ArgumentError('Invalid map');
     }
     if (item.length > 200 || label.length > 120) throw ArgumentError('Value too long');
@@ -237,6 +275,52 @@ class SettingsService extends ChangeNotifier {
   }
   Future<void> setFanatikaPerformance(bool value) async {
     await _sharedPreferences.setBool('fanatika_v2_performance', value);
+    notifyListeners();
+  }
+
+  // Manual recovery only. Never changes Android HOME, installs/uninstalls, or clears Arc's Favorites.
+  // Only the six visual options below are changed; backup remains private to this app.
+  Future<void> enableFanatikaRecoveryProfile() async {
+    if (fanatikaRecoveryProfileActive) return;
+    const keys = <String>[
+      'fanatika_large_title', 'fanatika_weather_enabled',
+      'fanatika_v2_focus_animations', 'fanatika_v2_smart_mountains',
+      'fanatika_v2_performance', 'fanatika_v2_title_style',
+    ];
+    final previous = <String, dynamic>{};
+    for (final key in keys) {
+      if (_sharedPreferences.containsKey(key)) previous[key] = _sharedPreferences.get(key);
+    }
+    await _sharedPreferences.setString('fanatika_v23_recovery_snapshot', jsonEncode(previous));
+    await _sharedPreferences.setBool('fanatika_large_title', false);
+    await _sharedPreferences.setBool('fanatika_weather_enabled', false);
+    await _sharedPreferences.setBool('fanatika_v2_focus_animations', false);
+    await _sharedPreferences.setBool('fanatika_v2_smart_mountains', false);
+    await _sharedPreferences.setBool('fanatika_v2_performance', true);
+    await _sharedPreferences.setString('fanatika_v2_title_style', 'Classic');
+    notifyListeners();
+  }
+
+  Future<void> restoreFanatikaRecoveryProfile() async {
+    final backup = _sharedPreferences.getString('fanatika_v23_recovery_snapshot');
+    if (backup == null) return;
+    final parsed = jsonDecode(backup);
+    if (parsed is! Map) throw const FormatException('Invalid recovery snapshot');
+    const keys = <String>[
+      'fanatika_large_title', 'fanatika_weather_enabled',
+      'fanatika_v2_focus_animations', 'fanatika_v2_smart_mountains',
+      'fanatika_v2_performance', 'fanatika_v2_title_style',
+    ];
+    for (final key in keys) {
+      if (!parsed.containsKey(key)) {
+        await _sharedPreferences.remove(key);
+      } else if (parsed[key] is bool) {
+        await _sharedPreferences.setBool(key, parsed[key] as bool);
+      } else if (parsed[key] is String) {
+        await _sharedPreferences.setString(key, parsed[key] as String);
+      }
+    }
+    await _sharedPreferences.remove('fanatika_v23_recovery_snapshot');
     notifyListeners();
   }
 

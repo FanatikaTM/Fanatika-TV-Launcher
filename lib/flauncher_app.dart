@@ -28,6 +28,7 @@ import 'package:provider/provider.dart';
 
 import 'flauncher.dart';
 import 'widgets/fanatika_startup_splash.dart';
+import 'widgets/fanatika_auto_update_observer.dart';
 
 class FLauncherApp extends StatelessWidget
 {
@@ -146,7 +147,7 @@ class FLauncherApp extends StatelessWidget
         builder: (context) => PopScope(
           canPop: false,
           child: ExcludeSemantics(
-            child: const FanatikaStartupSplash(child: FLauncher()),
+            child: const FanatikaStartupSplash(child: FanatikaAutoUpdateObserver(child: FLauncher())),
           ),
           onPopInvoked: (didPop) {
             LauncherState launcherState = context.read<LauncherState>();

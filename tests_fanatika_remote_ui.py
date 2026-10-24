@@ -41,13 +41,13 @@ class RemoteUpdateTests(unittest.TestCase):
   for x in ['Classic','Bold','Cinema','Glass']:self.assertIn(x,v)
  def test_splash_is_not_firmware_boot(self):
   v=self.read('lib/widgets/fanatika_startup_splash.dart')
-  self.assertIn('Image.asset(\'assets/icon.png\'',v)
+  self.assertIn("'assets/splash_fanatika_tv.png'",v)
   self.assertIn('TweenAnimationBuilder',v)
   self.assertIn('FanatikaStartupSplash',self.read('lib/flauncher_app.dart'))
   xml=self.read('android/app/src/main/res/drawable/launch_background.xml')
   self.assertIn('@drawable/fanatika_splash_logo',xml)
  def test_brand_assets(self):
-  for name in ['assets/icon.png','android/app/src/main/res/drawable/fanatika_splash_logo.png',
+  for name in ['assets/icon.png','android/app/src/main/res/drawable-nodpi/fanatika_splash_logo.png',
     'android/app/src/main/res/drawable/banner.png']:
    data=(ROOT/name).read_bytes()
    self.assertTrue(data.startswith(b'\x89PNG\r\n\x1a\n'))

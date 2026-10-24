@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class FanatikaWeatherCard extends StatefulWidget {
   final String city;
@@ -20,6 +21,8 @@ class _FanatikaWeatherCardState extends State<FanatikaWeatherCard> {
   Timer? _refreshTimer;
   WeatherInfo? _current;
   String? _error;
+  DateTime? _readingTime;
+  bool _offlineReading = false;
   int _requestNumber = 0;
   @override
   void initState() {
@@ -31,7 +34,10 @@ class _FanatikaWeatherCardState extends State<FanatikaWeatherCard> {
   @override
   void didUpdateWidget(covariant FanatikaWeatherCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.city != widget.city || oldWidget.fahrenheit != widget.fahrenheit || oldWidget.days != widget.days) _fetch();
+    if (oldWidget.city != widget.city || oldWidget.fahrenheit != widget.fahrenheit || oldWidget.days != widget.days) {
+      setState(() { _current = null; _error = null; _readingTime = null; _offlineReading = false; });
+      _fetch();
+    }
     if (oldWidget.refreshMinutes != widget.refreshMinutes) _scheduleRefresh();
   }
 
@@ -47,15 +53,44 @@ class _FanatikaWeatherCardState extends State<FanatikaWeatherCard> {
     super.dispose();
   }
 
+  String get _cacheKey => 'fanatika_weather_cache_${widget.city.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_')}_${widget.fahrenheit}_${widget.days}';
+
+  Future<void> _readOfflineCache(int request) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_cacheKey);
+      if (raw == null || raw.length > 12000) return;
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map<String, dynamic>) return;
+      final savedAt = DateTime.tryParse(decoded['savedAt']?.toString() ?? '');
+      if (savedAt == null) return;
+      final weather = WeatherInfo.fromJson(decoded['weather']);
+      if (weather == null || !mounted || request != _requestNumber) return;
+      if (_current == null) setState(() {
+        _current = weather; _readingTime = savedAt; _offlineReading = true;
+      });
+    } catch (_) { /* A malformed cache never prevents weather display. */ }
+  }
+
+  Future<void> _saveOfflineCache(WeatherInfo info) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_cacheKey,
+        jsonEncode({'savedAt': DateTime.now().toUtc().toIso8601String(), 'weather': info.toJson()}));
+    } catch (_) { /* Caching is best-effort and never blocks the widget. */ }
+  }
+
   Future<void> _fetch() async {
     final request = ++_requestNumber;
+    if (_current == null) await _readOfflineCache(request);
     try {
       final data = await fetchWeather(widget.city, widget.fahrenheit, widget.days);
       if (!mounted || request != _requestNumber) return;
-      setState(() { _current = data; _error = null; });
+      setState(() { _current = data; _error = null; _offlineReading = false; _readingTime = DateTime.now(); });
+      _saveOfflineCache(data);
     } catch (_) {
       if (!mounted || request != _requestNumber) return;
-      setState(() { _error = 'Weather unavailable'; });
+      setState(() { _error = _current == null ? 'Weather unavailable' : null; _offlineReading = _current != null; });
     }
   }
 
@@ -99,8 +134,9 @@ class _FanatikaWeatherCardState extends State<FanatikaWeatherCard> {
             ),
           ],
         ] else Text(_error ?? 'Loading weather…', style: const TextStyle(color: Colors.white70, fontSize: 15)),
-        if (_error != null && w != null)
-          const Text('Last available reading', style: TextStyle(color: Colors.white54, fontSize: 11)),
+        if (_offlineReading && w != null)
+          Text('Offline forecast · last updated ${_readingTime == null ? 'previously' : DateFormat('MMM d, HH:mm').format(_readingTime!.toLocal())}',
+            style: const TextStyle(color: Colors.amberAccent, fontSize: 11)),
       ]),
     );
   }
@@ -111,6 +147,22 @@ class WeatherInfo {
   final int code;
   final List<DayForecast> forecast;
   WeatherInfo(this.temperature, this.maximum, this.minimum, this.code, this.forecast);
+
+  Map<String, dynamic> toJson() => {
+    'temperature': temperature, 'maximum': maximum, 'minimum': minimum,
+    'code': code, 'forecast': forecast.map((d) => d.toJson()).toList(),
+  };
+  static WeatherInfo? fromJson(Object? input) {
+    if (input is! Map) return null;
+    try {
+      final list = (input['forecast'] as List).take(5);
+      return WeatherInfo(
+        (input['temperature'] as num).toDouble(), (input['maximum'] as num).toDouble(),
+        (input['minimum'] as num).toDouble(), (input['code'] as num).toInt(),
+        list.map((v) => DayForecast.fromJson(v)).whereType<DayForecast>().toList(),
+      );
+    } catch (_) { return null; }
+  }
 }
 
 class DayForecast {
@@ -118,6 +170,18 @@ class DayForecast {
   final double high, low;
   final int code;
   DayForecast(this.day, this.high, this.low, this.code);
+  Map<String, dynamic> toJson() => {
+    'day': day.toIso8601String(), 'high': high, 'low': low, 'code': code,
+  };
+  static DayForecast? fromJson(Object? input) {
+    if (input is! Map) return null;
+    try {
+      final d = DateTime.tryParse(input['day'].toString());
+      if (d == null) return null;
+      return DayForecast(d, (input['high'] as num).toDouble(),
+        (input['low'] as num).toDouble(), (input['code'] as num).toInt());
+    } catch (_) { return null; }
+  }
 }
 
 Future<WeatherInfo> fetchWeather(String city, bool fahrenheit, [int days = 3]) async {

@@ -49,6 +49,9 @@ class CategoryCleanRow extends StatelessWidget
   @override
   Widget build(BuildContext context) {
     final showAppNames = context.select<SettingsService, bool>((s) => s.showAppNamesBelowIcons);
+    final settings = context.read<SettingsService>();
+    final last = settings.fanatikaRememberLast ? settings.fanatikaLastFavorite : '';
+    final lastExists = applications.any((a) => a.packageName == last);
     Widget categoryContent;
     if (applications.isEmpty) {
       categoryContent = categoryContainerEmptyState(context);
@@ -73,7 +76,7 @@ class CategoryCleanRow extends StatelessWidget
                       child: AppCard(
                         category: category,
                         application: applications[index],
-                        autofocus: index == 0,
+                        autofocus: lastExists ? applications[index].packageName == last : index == 0,
                         handleUpNavigationToSettings: isFirstSection,
                         scrollAlignment: scrollAlignment,
                         enforceAspectRatio: false,

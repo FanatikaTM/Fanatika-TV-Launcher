@@ -145,6 +145,24 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
               },
             ),
           ),
+          // Optional per-app bundled backdrop. Does not modify Arc's Favorites or actual wallpaper.
+          if (_focusedFavoritePackage != null)
+            Builder(builder: (context) {
+              final image = context.watch<SettingsService>()
+                .fanatikaAppBackgrounds[_focusedFavoritePackage];
+              const available = <String>{
+                '01_Violet_Sunset.jpg', '02_Starlit_Alps.jpg', '03_Golden_Lake.jpg',
+                '04_Amber_Peaks.jpg', '05_Midnight_Blue.jpg', '06_Soft_Mountain_Dusk.jpg',
+              };
+              if (image == null || !available.contains(image)) return const SizedBox.shrink();
+              return Positioned.fill(child: IgnorePointer(child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 350),
+                child: Stack(key: ValueKey(image), fit: StackFit.expand, children: [
+                  Image.asset('assets/mountains/$image', fit: BoxFit.cover),
+                  Container(color: Colors.black.withValues(alpha: 0.30)),
+                ]),
+              )));
+            }),
           Selector3<LauncherState, SettingsService, WallpaperService, (bool, bool, bool)>(
             selector: (_, launcherState, settings, wallpaperService) => (
               launcherState.appGridFocused,
@@ -279,7 +297,9 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                                           ? FontWeight.w600 : FontWeight.w800,
                                         letterSpacing: fanatikaSettings.fanatikaTitleStyle == 'Bold' ? 1.3 : 0.35,
                                         height: 1.04,
-                                        shadows: fanatikaSettings.fanatikaTitleStyle == 'Classic'
+                                        shadows: fanatikaSettings.fanatikaTitleStyle == 'Glow'
+                                          ? const [Shadow(color: Colors.lightBlueAccent, blurRadius: 22), Shadow(color: Colors.black87, blurRadius: 28)]
+                                          : fanatikaSettings.fanatikaTitleStyle == 'Classic'
                                           ? const [Shadow(color: Colors.black87, blurRadius: 10)]
                                           : const [
                                               Shadow(color: Color(0xEE07101B), blurRadius: 16, offset: Offset(0, 3)),
@@ -591,6 +611,7 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
           onFavoriteFocused: (app) {
             if (!mounted || _focusedFavoritePackage == app.packageName) return;
             setState(() { _focusedFavoriteAppName = app.name; _focusedFavoritePackage = app.packageName; });
+            context.read<SettingsService>().saveFanatikaLastFavorite(app.packageName);
           },
         ),
       ),

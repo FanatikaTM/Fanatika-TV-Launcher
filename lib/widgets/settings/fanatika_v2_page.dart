@@ -7,10 +7,13 @@ import 'package:provider/provider.dart';
 import 'package:flauncher/providers/settings_service.dart';
 import 'package:flauncher/providers/apps_service.dart';
 import 'package:flauncher/providers/fanatika_backup_service.dart';
+import 'package:flauncher/providers/fanatika_release_checker.dart';
 import 'package:flauncher/flauncher_channel.dart';
 import 'package:flauncher/widgets/settings/fanatika_tv_controls.dart';
 import 'package:flauncher/widgets/settings/tv_inputs_panel_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_sleep_page.dart';
+import 'package:flauncher/widgets/settings/fanatika_remote_tester_page.dart';
+import 'package:flauncher/widgets/settings/fanatika_theme_preview.dart';
 
 class FanatikaV2Page extends StatefulWidget {
   static const routeName = 'fanatika_v2_settings';
@@ -141,6 +144,50 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
     if (text != null) await settings.setFanatikaMapValue('fanatika_v2_input_names', id, text);
   }
 
+  Future<void> checkForUpdates() => guard(() async {
+    final result = await FanatikaReleaseChecker.check();
+    if (mounted) setState(() => status = result.message +
+      (result.releaseUrl.isNotEmpty ? '\nRelease page: ${result.releaseUrl}' : ''));
+  });
+
+  Future<void> searchInstalledApps() async {
+    final query = await askText('Search installed apps');
+    if (!mounted || query == null || query.trim().isEmpty) return;
+    final apps = context.read<AppsService>();
+    final matching = apps.applications.where((a) =>
+      a.name.toLowerCase().contains(query.trim().toLowerCase()) ||
+      a.packageName.toLowerCase().contains(query.trim().toLowerCase())).take(60).toList();
+    if (matching.isEmpty) { setState(() => status = 'No matching apps'); return; }
+    final id = await FanatikaTvControls.choose<String>(context,
+      title: 'Open app', values: matching.map((a) => a.packageName).toList(),
+      label: (id) => matching.firstWhere((a) => a.packageName == id).name);
+    if (id != null && mounted) await guard(() => apps.launchApp(
+      matching.firstWhere((a) => a.packageName == id)));
+  }
+
+  Future<void> chooseAppBackground() async {
+    final apps = context.read<AppsService>();
+    final favorites = apps.categories.where((c) => c.name == 'Favorites')
+      .expand((c) => c.applications).toList();
+    if (favorites.isEmpty) { setState(() => status = 'Add Favorites in Arc settings first'); return; }
+    final id = await FanatikaTvControls.choose<String>(context, title: 'Favorite app',
+      values: favorites.map((a) => a.packageName).toList(),
+      label: (id) => favorites.firstWhere((a) => a.packageName == id).name);
+    if (id == null || !mounted) return;
+    const options = <String>['', '01_Violet_Sunset.jpg','02_Starlit_Alps.jpg',
+      '03_Golden_Lake.jpg','04_Amber_Peaks.jpg','05_Midnight_Blue.jpg',
+      '06_Soft_Mountain_Dusk.jpg'];
+    final selected = await FanatikaTvControls.choose<String>(context,
+      title: 'Background for selected favorite', values: options,
+      label: (name) => name.isEmpty ? 'None — use regular wallpaper' :
+        name.replaceAll(RegExp(r'^\d+_'), '').replaceAll('_', ' ').replaceAll('.jpg', ''),
+      current: context.read<SettingsService>().fanatikaAppBackgrounds[id]);
+    if (selected != null && mounted) {
+      await guard(() => context.read<SettingsService>()
+        .setFanatikaMapValue('fanatika_v23_app_backgrounds', id, selected));
+    }
+  }
+
   Future<void> localUpdate() => guard(() async {
     final file = await FanatikaBackupService.selectReviewedUpdate();
     if (file == null || !mounted) return;
@@ -191,6 +238,52 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
           FanatikaTvControls.action(icon: Icons.file_upload_outlined, title: 'Export settings & Favorites',
             autofocus: true, onPressed: exportBackup),
           tile(Icons.file_download_outlined, 'Import settings & Favorites', importBackup),
+          FanatikaTvControls.section('Diagnostics and appearance preview'),
+          tile(Icons.gamepad_outlined, 'Remote Button Tester',
+            () => Navigator.of(context).pushNamed(FanatikaRemoteTesterPage.routeName),
+            subtitle: 'Test key codes and long presses without remapping'),
+          tile(Icons.visibility_outlined, 'Live theme preview', () async {
+            await showDialog<bool>(context: context,
+              builder: (_) => const FanatikaThemePreview());
+          }, subtitle: 'Preview changes; Apply only when ready'),
+          tile(Icons.health_and_safety_outlined, 'Launcher health checks', () async {
+            final apps = context.read<AppsService>();
+            final details = <String>[
+              'Installed apps loaded: ${apps.initialized ? 'Yes' : 'Not yet'}',
+              'Applications detected: ${apps.applications.length}',
+              'Favorite applications: Managed by original Arc Launcher',
+              'Weather configured: ${s.showFanatikaWeather ? 'Yes' : 'Disabled'}',
+              'Weather city: ${s.fanatikaWeatherCity}',
+              'Performance mode: ${s.fanatikaPerformance ? 'On' : 'Off'}',
+              'Recovery profile: ${s.fanatikaRecoveryProfileActive ? 'Active' : 'Off'}',
+              'HDMI, Wi-Fi and sleep permissions depend on TV firmware. Use those tools separately.',
+            ];
+            if (!mounted) return;
+            await showDialog<void>(context: context, builder: (c) => AlertDialog(
+              title: const Text('Read-only launcher health checks'),
+              content: SingleChildScrollView(child: Text(details.join('\n'))),
+              actions: [TextButton(onPressed: () => Navigator.pop(c), child: const Text('Close'))],
+            ));
+          }, subtitle: 'Read-only status; no Android settings changed'),
+          tile(Icons.settings_backup_restore_outlined,
+            s.fanatikaRecoveryProfileActive ? 'Restore previous visual settings' : 'Activate visual recovery profile',
+            () async {
+              final ok = await confirm('Visual recovery profile',
+                s.fanatikaRecoveryProfileActive
+                  ? 'Restore the exact appearance switches saved before recovery?'
+                  : 'Temporarily disable optional weather, title and animations. This does not change HOME, system packages or Favorites. Restore afterward from this button.');
+              if (!ok || !mounted) return;
+              await guard(() => s.fanatikaRecoveryProfileActive
+                ? s.restoreFanatikaRecoveryProfile()
+                : s.enableFanatikaRecoveryProfile());
+            }, subtitle: 'Manual recovery for problematic appearance settings'),
+          tile(Icons.search, 'Quick app search', searchInstalledApps,
+            subtitle: 'Find installed apps without changing Favorites'),
+          switcher('Remember last focused favorite', s.fanatikaRememberLast,
+            (v) => s.setFanatikaOption('fanatika_v23_remember_last', v),
+            icon: Icons.bookmark_outline),
+          tile(Icons.wallpaper_outlined, 'Background per favorite app', chooseAppBackground,
+            subtitle: 'Optional mountain photo when you highlight a Favorite'),
           FanatikaTvControls.section('Large selected-app title'),
           switcher('Show large app title', s.showFanatikaHero, s.setShowFanatikaHero, icon: Icons.title),
           tile(Icons.format_size, 'Title size', () => chooseSetting<double>(s, 'Title size',
@@ -205,7 +298,7 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
             (v) => '${(v*100).round()}%', s.fanatikaHeroOpacity),
             subtitle: '${(s.fanatikaHeroOpacity * 100).round()}%'),
           tile(Icons.auto_awesome, 'Text style', () => chooseSetting<String>(s, 'App title text style',
-            'fanatika_v2_title_style', ['Classic','Bold','Cinema','Glass'], (v) => v,
+            'fanatika_v2_title_style', ['Classic','Bold','Cinema','Glass','Glow'], (v) => v,
             s.fanatikaTitleStyle), subtitle: s.fanatikaTitleStyle),
           tile(Icons.edit_note, 'Custom app descriptions', editDescription),
           FanatikaTvControls.section('Weather'),
@@ -242,6 +335,17 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
           FanatikaTvControls.section('Security and quick settings'),
           tile(Icons.pin, s.fanatikaSettingsPin.isEmpty ? 'Set settings PIN' : 'Change or remove PIN', changePin),
           tile(Icons.system_update, 'Install reviewed Fanatika APK', localUpdate),
+          tile(Icons.update, 'Automatic update checks', () async {
+            final setting = context.read<SettingsService>();
+            final value = await FanatikaTvControls.choose<int>(context,
+              title: 'Check for updates', values: SettingsService.fanatikaUpdateCadenceChoices,
+              label: (days) => days == 0 ? 'Off' : 'Every $days days',
+              current: setting.fanatikaUpdateCheckDays);
+            if (value != null) await guard(() => setting.setFanatikaUpdateCheckDays(value));
+          }, subtitle: s.fanatikaUpdateCheckDays == 0 ? 'Off (default)' :
+              'Every ${s.fanatikaUpdateCheckDays} days when the launcher opens or resumes; asks before installation'),
+          tile(Icons.new_releases_outlined, 'Check Fanatika GitHub Releases', checkForUpdates,
+            subtitle: 'Read-only: never installs an APK automatically'),
           tile(Icons.wifi, 'Wi-Fi settings', () => guard(native.openWifiSettings)),
           tile(Icons.bluetooth, 'Bluetooth settings',
             () => guard(() => native.launchActivityFromAction('android.settings.BLUETOOTH_SETTINGS'))),

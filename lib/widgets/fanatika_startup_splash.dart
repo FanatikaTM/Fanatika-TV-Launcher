@@ -20,10 +20,12 @@ class _FanatikaStartupSplashState extends State<FanatikaStartupSplash> {
         curve: Curves.easeInOutCubic,
         onEnd: () { if (mounted) setState(() => _show = false); },
         builder: (_, opacity, __) => Opacity(opacity: opacity, child: ColoredBox(
-          color: const Color(0xFF091426),
-          child: Center(child: Transform.scale(
-            scale: 1 + opacity * 0.14,
-            child: Image.asset('assets/icon.png', width: 152, height: 152),
+          color: Colors.black,
+          child: Center(child: Image.asset(
+            'assets/splash_fanatika_tv.png',
+            fit: BoxFit.contain,
+            width: double.infinity,
+            height: double.infinity,
           )),
         )),
       ),

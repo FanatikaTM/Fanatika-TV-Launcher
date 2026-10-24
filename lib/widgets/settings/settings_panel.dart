@@ -28,6 +28,7 @@ import 'package:flauncher/widgets/settings/settings_panel_page.dart';
 import 'package:flauncher/widgets/settings/tv_inputs_panel_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_v2_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_sleep_page.dart';
+import 'package:flauncher/widgets/settings/fanatika_remote_tester_page.dart';
 import 'package:flauncher/widgets/settings/status_bar_panel_page.dart';
 import 'package:flauncher/widgets/settings/wallpaper_panel_page.dart';
 import 'package:flauncher/widgets/settings/wifi_usage_period_page.dart';
@@ -82,6 +83,8 @@ class _SettingsPanelState extends State<SettingsPanel> {
                   switch (settings.name) {
                     case FanatikaV2Page.routeName:
                       return _FastPageRoute(builder: (_) => const FanatikaV2Page());
+                    case FanatikaRemoteTesterPage.routeName:
+                      return _FastPageRoute(builder: (_) => const FanatikaRemoteTesterPage());
                     case FanatikaSleepPage.routeName:
                       return _FastPageRoute(builder: (_) => const FanatikaSleepPage());
                     case TvInputsPanelPage.routeName:
