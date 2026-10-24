@@ -866,49 +866,62 @@ public class MainActivity extends FlutterActivity {
         return outcome;
     }
 
+    // Xiaomi Android TV may report false for canRequestPackageInstalls()
+    // despite showing its Install Unknown Apps toggle as on. Android's own
+    // installer must enforce permission and request the user's confirmation.
     private Map<String, Object> fanatikaInstallVerifiedReleaseApk(String apkPath) {
         Map<String, Object> outcome = fanatikaCheckReleaseApk(apkPath);
         if (!Boolean.TRUE.equals(outcome.get("ok"))) return outcome;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                !getPackageManager().canRequestPackageInstalls()) {
-            outcome.put("ok", false);
-            outcome.put("detail", "Allow installs from Fanatika in Android Settings, then retry");
-            outcome.put("needsPermission", true);
-            return outcome;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            outcome.put("permissionReported", getPackageManager().canRequestPackageInstalls());
         }
         try {
-            if (!installApk(apkPath)) throw new Exception("No Android package installer available");
-            outcome.put("detail", "Android package installer opened. Confirm on TV to update.");
+            openAndroidApkInstaller(apkPath);
+            outcome.put("detail", "Android installer requested. Confirm the installation on the TV.");
+        } catch (SecurityException e) {
+            outcome.put("ok", false);
+            outcome.put("needsPermission", true);
+            outcome.put("detail", "Android denied the installer request: " + e.getMessage());
         } catch (Exception e) {
             outcome.put("ok", false);
-            outcome.put("detail", "Unable to open installer: " + e.getMessage());
+            outcome.put("detail", "Android installer could not open: " + e.getMessage());
         }
         return outcome;
     }
 
     private boolean installApk(String apkPath) {
+        try {
+            openAndroidApkInstaller(apkPath);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    // User-approved APK installer handoff, with legacy Android TV fallback.
+    // Both intents grant temporary read access to the verified file via FileProvider.
+    private void openAndroidApkInstaller(String apkPath) throws Exception {
         File apkFile = new File(apkPath);
-        if (!apkFile.exists()) {
-            return false;
+        if (!apkFile.isFile() || apkFile.length() == 0) {
+            throw new Exception("APK file is missing or empty");
         }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                !getPackageManager().canRequestPackageInstalls()) {
-            return false;
-        }
-
         Uri apkUri = FileProvider.getUriForFile(
-                this,
-                getPackageName() + ".fileprovider",
-                apkFile
-        );
-
-        Intent installIntent = new Intent(Intent.ACTION_VIEW)
-                .setDataAndType(apkUri, "application/vnd.android.package-archive")
-                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-        return tryStartActivity(installIntent);
+                this, getPackageName() + ".fileprovider", apkFile);
+        int grants = Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK;
+        android.content.ClipData uriGrant = android.content.ClipData.newRawUri("Fanatika APK", apkUri);
+        Intent installIntent = new Intent(Intent.ACTION_INSTALL_PACKAGE)
+                .setData(apkUri)
+                .setClipData(uriGrant)
+                .addFlags(grants);
+        try {
+            startActivity(installIntent);
+        } catch (ActivityNotFoundException unavailable) {
+            Intent legacyIntent = new Intent(Intent.ACTION_VIEW)
+                    .setDataAndType(apkUri, "application/vnd.android.package-archive")
+                    .setClipData(uriGrant)
+                    .addFlags(grants);
+            startActivity(legacyIntent);
+        }
     }
 
     private void requestInstallUnknownAppsPermission() {
