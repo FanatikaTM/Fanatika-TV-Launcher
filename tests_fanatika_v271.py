@@ -21,4 +21,10 @@ class FanatikaV271Tests(unittest.TestCase):
         for token in ['Intent.ACTION_INSTALL_PACKAGE','Intent.ACTION_VIEW','FLAG_GRANT_READ_URI_PERMISSION','setClipData(uriGrant)','FileProvider.getUriForFile']:
             self.assertIn(token,block)
         self.assertNotIn('pm install',block)
+    def test_set_clip_data_cannot_be_chained(self):
+        source = (ROOT/'android/app/src/main/java/com/leanbitlab/ltvL/MainActivity.java').read_text()
+        block = source.split('private void openAndroidApkInstaller',1)[1].split('private void requestInstallUnknownAppsPermission',1)[0]
+        self.assertRegex(block, r'installIntent\\.setClipData\\(uriGrant\\);')
+        self.assertRegex(block, r'legacyIntent\\.setClipData\\(uriGrant\\);')
+        self.assertNotRegex(block, r'\\.setClipData\\(uriGrant\\)\\s*\\.addFlags\\(')
 if __name__ == '__main__': unittest.main()

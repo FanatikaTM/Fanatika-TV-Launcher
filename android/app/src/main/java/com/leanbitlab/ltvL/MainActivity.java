@@ -911,15 +911,15 @@ public class MainActivity extends FlutterActivity {
         android.content.ClipData uriGrant = android.content.ClipData.newRawUri("Fanatika APK", apkUri);
         Intent installIntent = new Intent(Intent.ACTION_INSTALL_PACKAGE)
                 .setData(apkUri)
-                .setClipData(uriGrant)
                 .addFlags(grants);
+        installIntent.setClipData(uriGrant);
         try {
             startActivity(installIntent);
         } catch (ActivityNotFoundException unavailable) {
             Intent legacyIntent = new Intent(Intent.ACTION_VIEW)
                     .setDataAndType(apkUri, "application/vnd.android.package-archive")
-                    .setClipData(uriGrant)
                     .addFlags(grants);
+            legacyIntent.setClipData(uriGrant);
             startActivity(legacyIntent);
         }
     }
