@@ -8,7 +8,7 @@ ROOT=Path(__file__).resolve().parent
 
 def src(p):return (ROOT/p).read_text(encoding='utf-8')
 class V25Checks(unittest.TestCase):
- def test_new_version(self): self.assertIn('version: 2.5.0+4129',src('pubspec.yaml'))
+ def test_new_version(self): self.assertRegex(src('pubspec.yaml'), r'version: 2\.[5-9]\.\d+\+41\d+')
  def test_tools_renamed(self):
   self.assertIn("'Fanatika tools'",src('lib/widgets/settings/settings_panel_page.dart'))
   self.assertNotIn("'Fanatika v2 tools'",src('lib/widgets/settings/settings_panel_page.dart'))

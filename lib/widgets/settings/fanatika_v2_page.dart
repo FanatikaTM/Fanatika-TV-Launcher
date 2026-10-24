@@ -8,6 +8,7 @@ import 'package:flauncher/providers/settings_service.dart';
 import 'package:flauncher/providers/apps_service.dart';
 import 'package:flauncher/providers/fanatika_backup_service.dart';
 import 'package:flauncher/providers/fanatika_release_checker.dart';
+import 'package:flauncher/widgets/fanatika_update_dialog.dart';
 import 'package:flauncher/flauncher_channel.dart';
 import 'package:flauncher/widgets/settings/fanatika_tv_controls.dart';
 import 'package:flauncher/widgets/settings/tv_inputs_panel_page.dart';
@@ -150,9 +151,24 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
   }
 
   Future<void> checkForUpdates() => guard(() async {
-    final result = await FanatikaReleaseChecker.check();
-    if (mounted) setState(() => status = result.message +
-      (result.releaseUrl.isNotEmpty ? '\nRelease page: ${result.releaseUrl}' : ''));
+    final repo = context.read<SettingsService>().fanatikaReleaseRepo;
+    final result = await FanatikaReleaseChecker.check(releaseRepo: repo);
+    if (!mounted) return;
+    setState(() => status = result.message);
+    if (result.updateAvailable) {
+      await FanatikaUpdateDialogs.offer(context, result);
+    } else {
+      await FanatikaUpdateDialogs.showStatus(context, result.message);
+    }
+  });
+
+  Future<void> configureUpdateSource() => guard(() async {
+    final settings = context.read<SettingsService>();
+    final result = await askText('Public APK release repository (owner/repo)',
+      value: settings.fanatikaReleaseRepo);
+    if (result == null || !mounted) return;
+    await settings.setFanatikaReleaseRepo(FanatikaReleaseChecker.normalizedRepo(result));
+    if (mounted) setState(() => status = 'Release source saved. The repository must be PUBLIC and contain signed APK releases.');
   });
 
   Future<void> searchInstalledApps() async {
@@ -372,9 +388,11 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
               current: setting.fanatikaUpdateCheckDays);
             if (value != null) await guard(() => setting.setFanatikaUpdateCheckDays(value));
           }, subtitle: s.fanatikaUpdateCheckDays == 0 ? 'Off (default)' :
-              'Every ${s.fanatikaUpdateCheckDays} days when the launcher opens or resumes; asks before installation'),
-          tile(Icons.new_releases_outlined, 'Check Fanatika GitHub Releases', checkForUpdates,
-            subtitle: 'Read-only: never installs an APK automatically'),
+              'Every ${s.fanatikaUpdateCheckDays} days when launcher opens; asks before download or installation'),
+          tile(Icons.public, 'Public release source', configureUpdateSource,
+            subtitle: 'GitHub: ${s.fanatikaReleaseRepo} (must be public)'),
+          tile(Icons.new_releases_outlined, 'Check, download and install Fanatika update', checkForUpdates,
+            subtitle: 'Review, download, verify APK signature, then confirm in Android installer'),
           tile(Icons.wifi, 'Wi-Fi settings', () => guard(native.openWifiSettings)),
           tile(Icons.bluetooth, 'Bluetooth settings',
             () => guard(() => native.launchActivityFromAction('android.settings.BLUETOOTH_SETTINGS'))),

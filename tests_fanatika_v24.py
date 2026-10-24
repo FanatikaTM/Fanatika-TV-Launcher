@@ -17,8 +17,8 @@ class V24Checks(unittest.TestCase):
   self.assertIn('/releases/latest',service)
   self.assertIn('newerThan',service)
   self.assertIn("RegExp(r'^v?",service)
-  self.assertIn('showDialog<void>',obs)
-  self.assertIn('update available',obs)
+  self.assertIn('FanatikaUpdateDialogs.offer(context, result)',obs)
+  self.assertIn('result.updateAvailable',obs)
   for unsafe in ['installApk(', 'pm disable-user','adb install','uninstall(']:
    self.assertNotIn(unsafe,service+obs)
   self.assertIn('Timer.periodic',obs)
@@ -27,7 +27,7 @@ class V24Checks(unittest.TestCase):
   ui=self.read('lib/widgets/settings/fanatika_v2_page.dart')
   self.assertIn('Every $days days',ui)
   self.assertIn('FanatikaTvControls.choose<int>',ui)
-  self.assertIn('FanatikaReleaseChecker.check()',ui)
+  self.assertIn('FanatikaReleaseChecker.check(releaseRepo: repo)',ui)
   self.assertIn('FanatikaAutoUpdateObserver(child: FLauncher())',self.read('lib/flauncher_app.dart'))
  def test_logos_separate_and_unbranded_home(self):
   icon=(ROOT/'assets/icon.png').read_bytes()

@@ -116,6 +116,15 @@ public class MainActivity extends FlutterActivity {
                     catch (Exception e) { result.error("BACKUP_READ", e.getMessage(), null); }
                 }
                 case "fanatikaPickUpdateApk" -> fanatikaPickUpdate(result);
+                case "fanatikaVerifyReleaseApk" ->
+                    result.success(fanatikaCheckReleaseApk((String)call.argument("path")));
+                case "fanatikaInstallVerifiedReleaseApk" ->
+                    result.success(fanatikaInstallVerifiedReleaseApk((String)call.argument("path")));
+                case "fanatikaOpenUnknownSources" -> {
+                    requestInstallUnknownAppsPermission();
+                    result.success(true);
+                }
+
                 case "fanatikaOpenDisplaySleepSettings" -> {
                     try { startActivity(new Intent(Settings.ACTION_DISPLAY_SETTINGS)); result.success(true); }
                     catch (Exception e) {
@@ -752,6 +761,75 @@ public class MainActivity extends FlutterActivity {
 
     private boolean openSettings() {
         return launchActivityFromAction(Settings.ACTION_SETTINGS);
+    }
+
+    // Fanatika's update installer: reject foreign, downgraded, and differently signed APKs.
+    // Does not grant install permission, install silently, or change the HOME activity.
+    private Map<String, Object> fanatikaCheckReleaseApk(String apkPath) {
+        Map<String, Object> outcome = new HashMap<>();
+        outcome.put("ok", false);
+        try {
+            if (apkPath == null || apkPath.isEmpty()) throw new Exception("No APK supplied");
+            File apk = new File(apkPath).getCanonicalFile();
+            File allowed = new File(getFilesDir(), "fanatika_updates").getCanonicalFile();
+            if (!apk.getParentFile().equals(allowed) || !apk.getName().equals("fanatika-reviewed-release.apk") ||
+                    !apk.isFile() || apk.length() == 0 || apk.length() > 250L * 1024L * 1024L) {
+                throw new Exception("APK is not a downloaded Fanatika release");
+            }
+            PackageManager pm = getPackageManager();
+            final int flags = Build.VERSION.SDK_INT >= 28
+                    ? PackageManager.GET_SIGNING_CERTIFICATES : PackageManager.GET_SIGNATURES;
+            android.content.pm.PackageInfo incoming = pm.getPackageArchiveInfo(apk.getAbsolutePath(), flags);
+            if (incoming == null || !getPackageName().equals(incoming.packageName)) {
+                throw new Exception("Package ID does not match the installed Fanatika app");
+            }
+            android.content.pm.PackageInfo existing = pm.getPackageInfo(getPackageName(), flags);
+            long newer = Build.VERSION.SDK_INT >= 28 ? incoming.getLongVersionCode() : incoming.versionCode;
+            long current = Build.VERSION.SDK_INT >= 28 ? existing.getLongVersionCode() : existing.versionCode;
+            if (newer <= current) throw new Exception("APK version code is not newer than installed version");
+            android.content.pm.Signature[] candidate;
+            android.content.pm.Signature[] installed;
+            if (Build.VERSION.SDK_INT >= 28) {
+                candidate = incoming.signingInfo == null ? null : incoming.signingInfo.getApkContentsSigners();
+                installed = existing.signingInfo == null ? null : existing.signingInfo.getApkContentsSigners();
+            } else {
+                candidate = incoming.signatures;
+                installed = existing.signatures;
+            }
+            if (candidate == null || installed == null || candidate.length == 0 ||
+                    candidate.length != installed.length) throw new Exception("APK signatures unavailable or mismatch");
+            java.util.Set<String> expected = new java.util.HashSet<>();
+            java.util.Set<String> actual = new java.util.HashSet<>();
+            for (android.content.pm.Signature signature : installed) expected.add(signature.toCharsString());
+            for (android.content.pm.Signature signature : candidate) actual.add(signature.toCharsString());
+            if (!expected.equals(actual)) throw new Exception("Signing certificate does not match installed Fanatika");
+            outcome.put("ok", true);
+            outcome.put("detail", "Validated package, newer version and matching signing certificate");
+            outcome.put("versionCode", newer);
+        } catch (Exception e) {
+            outcome.put("detail", "Update rejected: " + e.getMessage());
+        }
+        return outcome;
+    }
+
+    private Map<String, Object> fanatikaInstallVerifiedReleaseApk(String apkPath) {
+        Map<String, Object> outcome = fanatikaCheckReleaseApk(apkPath);
+        if (!Boolean.TRUE.equals(outcome.get("ok"))) return outcome;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                !getPackageManager().canRequestPackageInstalls()) {
+            outcome.put("ok", false);
+            outcome.put("detail", "Allow installs from Fanatika in Android Settings, then retry");
+            outcome.put("needsPermission", true);
+            return outcome;
+        }
+        try {
+            if (!installApk(apkPath)) throw new Exception("No Android package installer available");
+            outcome.put("detail", "Android package installer opened. Confirm on TV to update.");
+        } catch (Exception e) {
+            outcome.put("ok", false);
+            outcome.put("detail", "Unable to open installer: " + e.getMessage());
+        }
+        return outcome;
     }
 
     private boolean installApk(String apkPath) {

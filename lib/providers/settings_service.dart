@@ -157,6 +157,20 @@ class SettingsService extends ChangeNotifier {
 
   // Opt-in public GitHub release checks. Checks run when the app launches/resumes,
   // not as a privileged background service. Off by default.
+  static const String fanatikaDefaultReleaseRepo = 'FanatikaTM/Fanatika-TV-Launcher-Releases';
+  String get fanatikaReleaseRepo =>
+      _sharedPreferences.getString('fanatika_v26_release_repo') ?? fanatikaDefaultReleaseRepo;
+  Future<void> setFanatikaReleaseRepo(String repo) async {
+    if (!RegExp(r'^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$').hasMatch(repo) ||
+        repo.contains('..') || repo.length > 150) {
+      throw ArgumentError('Use owner/repository for a public GitHub release repository');
+    }
+    await _sharedPreferences.setString('fanatika_v26_release_repo', repo);
+    await _sharedPreferences.remove('fanatika_v2_update_success_ms');
+    await _sharedPreferences.remove('fanatika_v2_update_attempt_ms');
+    await _sharedPreferences.remove('fanatika_v2_update_alerted_tag');
+    notifyListeners();
+  }
   static const List<int> fanatikaUpdateCadenceChoices = [0, 15, 30];
   int get fanatikaUpdateCheckDays =>
       fanatikaUpdateCadenceChoices.contains(_sharedPreferences.getInt('fanatika_v2_update_days'))

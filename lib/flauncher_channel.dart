@@ -27,6 +27,13 @@ class FLauncherChannel {
 
   static const _watchNextMaxItems = 10;
 
+  Future<Map<String, dynamic>> fanatikaVerifyReleaseApk(String path) async =>
+      (await _methodChannel.invokeMapMethod<String, dynamic>('fanatikaVerifyReleaseApk', {'path': path})) ?? {};
+  Future<Map<String, dynamic>> fanatikaInstallVerifiedReleaseApk(String path) async =>
+      (await _methodChannel.invokeMapMethod<String, dynamic>('fanatikaInstallVerifiedReleaseApk', {'path': path})) ?? {};
+  Future<bool> fanatikaOpenUnknownSources() async =>
+      await _methodChannel.invokeMethod<bool>('fanatikaOpenUnknownSources') ?? false;
+
   // Fanatika v2 sleep controls. Permission is always approved on the TV.
   Future<bool> fanatikaOpenDisplaySleepSettings() async =>
       await _methodChannel.invokeMethod<bool>('fanatikaOpenDisplaySleepSettings') ?? false;

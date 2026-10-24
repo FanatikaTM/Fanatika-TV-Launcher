@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flauncher/providers/settings_service.dart';
 import 'package:flauncher/providers/fanatika_release_checker.dart';
+import 'package:flauncher/widgets/fanatika_update_dialog.dart';
 
 class FanatikaAutoUpdateObserver extends StatefulWidget {
   final Widget child;
@@ -49,25 +50,14 @@ class _FanatikaAutoUpdateObserverState extends State<FanatikaAutoUpdateObserver>
     if (lastAttempt > 0 && now >= lastAttempt && now - lastAttempt < oneDay) return;
     _checking = true;
     try {
-      final result = await FanatikaReleaseChecker.check();
+      final result = await FanatikaReleaseChecker.check(releaseRepo: settings.fanatikaReleaseRepo);
       if (!mounted) return;
       await settings.markFanatikaUpdateAttempt(now, success: result.checked);
       if (!mounted || !result.updateAvailable ||
           settings.fanatikaUpdateLastAlertedTag == result.latestVersion) return;
       await settings.markFanatikaUpdateAlerted(result.latestVersion);
       if (!mounted) return;
-      await showDialog<void>(context: context, builder: (dialogContext) => AlertDialog(
-        title: const Text('Fanatika update available'),
-        content: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(result.message), const SizedBox(height: 12),
-            SelectableText(result.releaseUrl, style: const TextStyle(fontSize: 12)),
-            const SizedBox(height: 10),
-            const Text('No APK was downloaded or installed. Review the release and its signing certificate first.'),
-          ])),
-        actions: [TextButton(onPressed: () => Navigator.pop(dialogContext),
-          child: const Text('OK'))],
-      ));
+      await FanatikaUpdateDialogs.offer(context, result);
     } catch (_) {
       if (mounted) await settings.markFanatikaUpdateAttempt(now, success: false);
     } finally {
