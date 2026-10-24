@@ -360,7 +360,7 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
             () => guard(() => native.launchActivityFromAction('android.settings.DISPLAY_SETTINGS'))),
           tile(Icons.settings, 'Android system settings', () => guard(native.openSettings)),
         ], widget.sections),
-      )),
+      ))),
       if (working) const LinearProgressIndicator(),
       if (status.isNotEmpty) Padding(padding: const EdgeInsets.all(12), child: Text(status)),
     ]);
