@@ -200,6 +200,16 @@ class SettingsService extends ChangeNotifier {
   int get fanatikaForecastDays => (_sharedPreferences.getInt('fanatika_v2_forecast_days') ?? 3).clamp(1, 5).toInt();
   int get fanatikaWeatherRefresh => (_sharedPreferences.getInt('fanatika_v2_weather_refresh') ?? 60).clamp(30, 180).toInt();
   bool get fanatikaPerformance => _sharedPreferences.getBool('fanatika_v2_performance') ?? false;
+  // Fanatika v2.5: all additional appearance controls are opt-in and reversible.
+  bool get fanatikaCenterSections => _sharedPreferences.getBool('fanatika_v2_center_sections') ?? false;
+  bool get fanatikaFocusGrow => _sharedPreferences.getBool('fanatika_v2_focus_grow') ?? true;
+  bool get fanatikaFocusGlow => _sharedPreferences.getBool('fanatika_v2_focus_glow') ?? true;
+  bool get fanatikaFixedTitle => _sharedPreferences.getBool('fanatika_v2_fixed_title') ?? true;
+  String get fanatikaStatusBarStyle => _sharedPreferences.getString('fanatika_v2_bar_style') ?? 'Transparent';
+  bool get fanatikaStatusApps => _sharedPreferences.getBool('fanatika_v2_status_apps') ?? false;
+  bool get fanatikaStatusSleep => _sharedPreferences.getBool('fanatika_v2_status_sleep') ?? false;
+  bool get fanatikaStatusTools => _sharedPreferences.getBool('fanatika_v2_status_tools') ?? false;
+  bool get fanatikaStatusWeather => _sharedPreferences.getBool('fanatika_v2_status_weather') ?? false;
   bool get fanatikaFocusAnimations => _sharedPreferences.getBool('fanatika_v2_focus_animations') ?? true;
   bool get fanatikaSmartMountains => _sharedPreferences.getBool('fanatika_v2_smart_mountains') ?? false;
   String get fanatikaLayoutPreset => _sharedPreferences.getString('fanatika_v2_layout_preset') ?? 'Custom';
@@ -240,7 +250,10 @@ class SettingsService extends ChangeNotifier {
   Map<String, dynamic> fanatikaExportPreferences() {
     final values = <String, dynamic>{};
     for (final key in _sharedPreferences.getKeys()) {
-      // SharedPreferences internal metadata must never be included.
+      // Do not export credentials or a settings PIN into public Downloads.
+      final lower = key.toLowerCase();
+      if (['password', 'token', 'secret', 'apikey', 'api_key',
+            'credential', 'clientid', 'pin', 'auth'].any(lower.contains)) continue;
       final value = _sharedPreferences.get(key);
       if (value is bool || value is int || value is double || value is String || value is List<String>) {
         values[key] = value;
@@ -252,6 +265,10 @@ class SettingsService extends ChangeNotifier {
     if (prefs.length > 500) throw const FormatException('Too many preferences');
     for (final entry in prefs.entries) {
       if (entry.key.length > 160) continue;
+      // Never restore a PIN or arbitrary credentials from imported JSON.
+      final lower = entry.key.toLowerCase();
+      if (['password', 'token', 'secret', 'apikey', 'api_key',
+            'credential', 'clientid', 'pin', 'auth'].any(lower.contains)) continue;
       final v = entry.value;
       if (v is bool) { await _sharedPreferences.setBool(entry.key, v); }
       else if (v is int) { await _sharedPreferences.setInt(entry.key, v); }

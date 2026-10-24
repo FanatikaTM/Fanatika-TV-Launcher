@@ -141,10 +141,21 @@ class _FanatikaSleepPageState extends State<FanatikaSleepPage> with WidgetsBindi
         _tile(adminActive ? Icons.check_circle : Icons.security,
           adminActive ? 'Sleep permission enabled' : 'Enable sleep permission on TV',
           () => _perform(_native.fanatikaRequestSleepAdmin),
-          subtitle: !adminSupported ? 'Not supported by this TV firmware' :
+          subtitle: !adminSupported ? 'Device-policy service unavailable; use Xiaomi system sleep settings' :
             adminActive ? 'You can revoke it in Android security settings' : 'Required for timer and shortcut',
           autofocus: true,
         ),
+        _tile(Icons.settings_outlined, 'Open Xiaomi display and sleep settings',
+          () => _perform(() async {
+            final opened = await _native.fanatikaOpenDisplaySleepSettings();
+            return {'message': opened ? 'Check TV sleep / standby settings.'
+              : 'Xiaomi settings are unavailable through this action.'};
+          }), subtitle: 'Firmware-controlled fallback. This does not bypass permission.'),
+        if (!adminActive) const Padding(padding: EdgeInsets.all(12), child: Text(
+          'This Xiaomi firmware has not granted Fanatika Device Administrator permission. '
+          'Sleep Now and the automatic timer cannot force standby. You can still configure '
+          'your TV’s own sleep settings. Do not disable system apps to work around this.',
+          style: TextStyle(color: Colors.amberAccent))),
         const Divider(),
         const ListTile(title: Text('Configurable remote button')),
         _tile(Icons.settings_remote, 'Shortcut: ${_remoteKeys[key] ?? 'Unknown'}', _selectKey,
@@ -159,13 +170,13 @@ class _FanatikaSleepPageState extends State<FanatikaSleepPage> with WidgetsBindi
         const Divider(),
         const ListTile(title: Text('Sleep timer')),
         for (final m in _durations)
-          _tile(Icons.timer_outlined, 'Sleep after $m minutes', () => _schedule(m)),
+          if (adminActive) _tile(Icons.timer_outlined, 'Sleep after $m minutes', () => _schedule(m)),
         if (remain > 0)
           ListTile(title: Text('Time remaining: approximately ${(remain / 60).ceil()} minutes')),
         _tile(Icons.timer_off_outlined, 'Cancel sleep timer',
           () => _perform(_native.fanatikaCancelSleepTimer)),
         const Divider(),
-        _tile(Icons.bedtime, 'Try sleep now', _sleepNow,
+        if (adminActive) _tile(Icons.bedtime, 'Try sleep now', _sleepNow,
           subtitle: 'Requires confirmation. May lock rather than turn the TV off.'),
         _tile(Icons.refresh, 'Refresh permission and timer status', _refresh),
         const Padding(padding: EdgeInsets.all(12), child: Text(

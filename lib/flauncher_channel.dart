@@ -28,6 +28,8 @@ class FLauncherChannel {
   static const _watchNextMaxItems = 10;
 
   // Fanatika v2 sleep controls. Permission is always approved on the TV.
+  Future<bool> fanatikaOpenDisplaySleepSettings() async =>
+      await _methodChannel.invokeMethod<bool>('fanatikaOpenDisplaySleepSettings') ?? false;
   Future<Map<String, dynamic>> fanatikaSleepStatus() async =>
       (await _methodChannel.invokeMapMethod<String, dynamic>('fanatikaSleepStatus')) ?? {};
   Future<Map<String, dynamic>> fanatikaRequestSleepAdmin() async =>

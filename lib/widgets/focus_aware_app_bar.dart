@@ -1,5 +1,8 @@
 import 'package:flauncher/widgets/settings/settings_panel.dart';
 import 'package:flauncher/widgets/settings/tv_inputs_panel_page.dart';
+import 'package:flauncher/widgets/settings/fanatika_v2_page.dart';
+import 'package:flauncher/widgets/settings/fanatika_sleep_page.dart';
+import 'package:flauncher/widgets/settings/applications_panel_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -93,7 +96,15 @@ class FocusAwareAppBarState extends State<FocusAwareAppBar>
         child: AppBar(
           elevation: 0,
           scrolledUnderElevation: 0,
-          backgroundColor: Colors.transparent,
+          backgroundColor: context.watch<SettingsService>().fanatikaStatusBarStyle == 'Solid'
+            ? const Color(0xFF11283A)
+            : context.watch<SettingsService>().fanatikaStatusBarStyle == 'Glass'
+              ? const Color(0xBB13243D)
+              : context.watch<SettingsService>().fanatikaStatusBarStyle == 'Compact'
+                ? const Color(0x99141C2B) : Colors.transparent,
+          shape: context.watch<SettingsService>().fanatikaStatusBarStyle == 'Glass'
+            ? const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)))
+            : null,
           // Left side: Settings, Network indicator, WiFi usage
           title: Row(
             mainAxisSize: MainAxisSize.min,
@@ -121,6 +132,30 @@ class FocusAwareAppBarState extends State<FocusAwareAppBar>
                 semanticLabel: 'TV Sources / Inputs',
                 child: const Icon(Icons.settings_input_hdmi, size: 20, color: Colors.white),
               ),
+              if (context.watch<SettingsService>().fanatikaStatusApps) ...[
+                const SizedBox(width: 8),
+                AppBarFocusRing(
+                  onPressed: () => showDialog(context: context, builder: (_) => const SettingsPanel(initialRoute: ApplicationsPanelPage.routeName)),
+                  semanticLabel: 'Applications', child: const Icon(Icons.apps, size: 20, color: Colors.white)),
+              ],
+              if (context.watch<SettingsService>().fanatikaStatusTools) ...[
+                const SizedBox(width: 8),
+                AppBarFocusRing(
+                  onPressed: () => showDialog(context: context, builder: (_) => const SettingsPanel(initialRoute: FanatikaV2Page.routeName)),
+                  semanticLabel: 'Fanatika tools', child: const Icon(Icons.tune, size: 20, color: Colors.white)),
+              ],
+              if (context.watch<SettingsService>().fanatikaStatusSleep) ...[
+                const SizedBox(width: 8),
+                AppBarFocusRing(
+                  onPressed: () => showDialog(context: context, builder: (_) => const SettingsPanel(initialRoute: FanatikaSleepPage.routeName)),
+                  semanticLabel: 'Sleep and standby settings', child: const Icon(Icons.bedtime_outlined, size: 20, color: Colors.white)),
+              ],
+              if (context.watch<SettingsService>().fanatikaStatusWeather) ...[
+                const SizedBox(width: 8),
+                AppBarFocusRing(
+                  onPressed: () => showDialog(context: context, builder: (_) => const SettingsPanel(initialRoute: FanatikaV2Page.routeName)),
+                  semanticLabel: 'Weather options', child: const Icon(Icons.cloud_outlined, size: 20, color: Colors.white)),
+              ],
               const SizedBox(width: 8),
               // Network indicator (conditionally shown)
               Selector<SettingsService, bool>(
@@ -162,11 +197,12 @@ class FocusAwareAppBarState extends State<FocusAwareAppBar>
                 timeFormat: service.timeFormat),
                 builder: (context, dateTimeSettings, _) {
                   // Define standard text style
-                  const textStyle = TextStyle(
-                    fontSize: 20,
+                  final textStyle = TextStyle(
+                    fontSize: context.watch<SettingsService>().fanatikaStatusBarStyle == 'Compact'
+                      ? 16 : 20,
                     fontWeight: FontWeight.w400,
                     color: Colors.white,
-                    shadows: [
+                    shadows: const [
                       Shadow(color: Colors.black54, offset: Offset(0, 2), blurRadius: 4)
                     ],
                   );

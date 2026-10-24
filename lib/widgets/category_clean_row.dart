@@ -64,9 +64,13 @@ class CategoryCleanRow extends StatelessWidget
           return SizedBox(
             height: rowHeight,
             child: Row(
-              children: List.generate(Category.ColumnsCount, (index) {
+              mainAxisAlignment: settings.fanatikaCenterSections
+                ? MainAxisAlignment.center : MainAxisAlignment.start,
+              children: List.generate(settings.fanatikaCenterSections
+                ? applications.length.clamp(0, Category.ColumnsCount) : Category.ColumnsCount, (index) {
                 if (index < applications.length) {
-                  return Expanded(
+                  return SizedBox(
+                    width: constraints.maxWidth / Category.ColumnsCount,
                     child: Padding(
                       key: ValueKey(applications[index].packageName),
                       padding: const EdgeInsets.symmetric(
@@ -90,7 +94,7 @@ class CategoryCleanRow extends StatelessWidget
                     ),
                   );
                 } else {
-                  return const Expanded(child: SizedBox.shrink());
+                  return SizedBox(width: constraints.maxWidth / Category.ColumnsCount);
                 }
               }),
             ),

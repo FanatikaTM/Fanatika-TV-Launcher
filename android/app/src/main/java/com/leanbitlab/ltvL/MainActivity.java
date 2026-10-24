@@ -31,6 +31,8 @@ import android.net.NetworkCapabilities;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
+import android.content.ContentValues;
+import android.os.Environment;
 import android.provider.Settings;
 import android.util.Pair;
 import android.media.tv.TvContract;
@@ -104,9 +106,23 @@ public class MainActivity extends FlutterActivity {
 
         new MethodChannel(messenger, METHOD_CHANNEL).setMethodCallHandler((call, result) -> {
             switch (call.method) {
-                case "fanatikaSaveBackup" -> fanatikaChooseDocument(result, false, (String)call.arguments());
-                case "fanatikaReadBackup" -> fanatikaChooseDocument(result, true, null);
+                // No Android document-provider app is required on Xiaomi TV.
+                case "fanatikaSaveBackup" -> {
+                    try { result.success(fanatikaSaveLocalBackup((String)call.arguments())); }
+                    catch (Exception e) { result.error("BACKUP_SAVE", e.getMessage(), null); }
+                }
+                case "fanatikaReadBackup" -> {
+                    try { result.success(fanatikaReadLocalBackup()); }
+                    catch (Exception e) { result.error("BACKUP_READ", e.getMessage(), null); }
+                }
                 case "fanatikaPickUpdateApk" -> fanatikaPickUpdate(result);
+                case "fanatikaOpenDisplaySleepSettings" -> {
+                    try { startActivity(new Intent(Settings.ACTION_DISPLAY_SETTINGS)); result.success(true); }
+                    catch (Exception e) {
+                        try { startActivity(new Intent(Settings.ACTION_SETTINGS)); result.success(true); }
+                        catch (Exception ignored) { result.success(false); }
+                    }
+                }
                 case "fanatikaSleepStatus" -> result.success(FanatikaSleepController.status(this));
                 case "fanatikaRequestSleepAdmin" -> result.success(FanatikaSleepController.requestAdmin(this));
                 case "fanatikaOpenSleepAccessibility" -> result.success(FanatikaSleepController.openAccessibility(this));
@@ -235,6 +251,75 @@ public class MainActivity extends FlutterActivity {
                 new NetworkEventStreamHandler(this));
     }
 
+
+    // Backup fallback using Android MediaStore (Android 10+) or app-scoped Downloads.
+    // Unique filenames prevent destructive overwrites. No privileged storage access.
+    private static final int MAX_FANATIKA_BACKUP = 2_000_000;
+    private String fanatikaSaveLocalBackup(String json) throws java.io.IOException {
+        if (json == null || json.length() > MAX_FANATIKA_BACKUP)
+            throw new java.io.IOException("Backup is empty or too large");
+        String filename = "fanatika-backup-" +
+            new java.text.SimpleDateFormat("yyyyMMdd-HHmmss", java.util.Locale.US)
+                .format(new java.util.Date()) + ".json";
+        byte[] bytes = json.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        if (Build.VERSION.SDK_INT >= 29) {
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.MediaColumns.DISPLAY_NAME, filename);
+            values.put(MediaStore.MediaColumns.MIME_TYPE, "application/json");
+            values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/Fanatika/");
+            Uri uri = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+            if (uri == null) throw new java.io.IOException("Downloads storage unavailable");
+            try (java.io.OutputStream out = getContentResolver().openOutputStream(uri)) {
+                if (out == null) throw new java.io.IOException("Cannot write Download");
+                out.write(bytes);
+            } catch (java.io.IOException | RuntimeException ex) { getContentResolver().delete(uri, null, null); throw ex; }
+            return "Download/Fanatika/" + filename;
+        }
+        File directory = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+        if (directory == null || (!directory.exists() && !directory.mkdirs()))
+            throw new java.io.IOException("App download storage unavailable");
+        try (java.io.FileOutputStream out = new java.io.FileOutputStream(new File(directory, filename))) {
+            out.write(bytes);
+        }
+        return "App-specific Downloads/" + filename;
+    }
+    private String fanatikaReadLocalBackup() throws java.io.IOException {
+        if (Build.VERSION.SDK_INT >= 29) {
+            String[] columns = {MediaStore.MediaColumns._ID, MediaStore.MediaColumns.DISPLAY_NAME};
+            try (Cursor cursor = getContentResolver().query(MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                    columns, MediaStore.MediaColumns.DISPLAY_NAME + " LIKE ?",
+                    new String[]{"fanatika-backup-%.json"},
+                    MediaStore.MediaColumns.DATE_ADDED + " DESC")) {
+                if (cursor != null) while (cursor.moveToNext()) {
+                    String name = cursor.getString(1);
+                    if (name == null || !name.matches("fanatika-backup-[0-9]{8}-[0-9]{6}\\.json")) continue;
+                    Uri uri = android.content.ContentUris.withAppendedId(
+                        MediaStore.Downloads.EXTERNAL_CONTENT_URI, cursor.getLong(0));
+                    try (java.io.InputStream in = getContentResolver().openInputStream(uri)) {
+                        if (in != null) return fanatikaReadLimited(in);
+                    } catch (SecurityException ignored) { /* Only app-owned Downloads are readable. */ }
+                }
+            }
+            throw new java.io.IOException("No readable Fanatika backup found in Downloads/Fanatika. If migrating debug to release, export from the old app and use the ADB migration guide.");
+        }
+        File dir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+        File[] files = dir == null ? null : dir.listFiles((d, name) ->
+            name.matches("fanatika-backup-[0-9]{8}-[0-9]{6}\\.json"));
+        if (files == null || files.length == 0) throw new java.io.IOException("No backup in app Downloads");
+        java.util.Arrays.sort(files, (a, b) -> Long.compare(b.lastModified(), a.lastModified()));
+        try (java.io.InputStream in = new java.io.FileInputStream(files[0])) {
+            return fanatikaReadLimited(in);
+        }
+    }
+    private String fanatikaReadLimited(java.io.InputStream in) throws java.io.IOException {
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        byte[] buf = new byte[8192]; int n;
+        while ((n = in.read(buf)) >= 0) {
+            if (out.size() + n > MAX_FANATIKA_BACKUP) throw new java.io.IOException("Backup too large");
+            out.write(buf, 0, n);
+        }
+        return out.toString("UTF-8");
+    }
 
     // Android Storage Access Framework: the user decides where backups are saved.
     private void fanatikaChooseDocument(MethodChannel.Result result, boolean read, String content) {

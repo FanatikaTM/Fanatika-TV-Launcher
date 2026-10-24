@@ -28,7 +28,7 @@ class _FanatikaThemePreviewState extends State<FanatikaThemePreview> {
 
   Future<void> _chooseStyle() async {
     final selected = await FanatikaTvControls.choose<String>(context,
-      title: 'Title style preview', values: const ['Classic','Bold','Cinema','Glass','Glow'],
+      title: 'Title style preview', values: const ['Classic','Bold','Cinema','Glass','Glow','Neon','Minimal','Wide','Shadow'],
       label: (v) => v, current: _style);
     if (selected != null && mounted) setState(() => _style = selected);
   }
@@ -56,35 +56,53 @@ class _FanatikaThemePreviewState extends State<FanatikaThemePreview> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Preview title appearance'),
-    content: SizedBox(width: 470, height: 440, child: Column(children: [
-      Container(
-        height: 175, padding: const EdgeInsets.all(14),
-        alignment: _position == 'center' ? Alignment.center : Alignment.centerLeft,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [Color(0xFF061127), Color(0xFF273F5B)]),
-          borderRadius: BorderRadius.circular(18)),
-        child: Text('Plex', maxLines: 1, overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontSize: _size, fontWeight: _style == 'Classic' ? FontWeight.w600 : FontWeight.w800,
-            letterSpacing: _style == 'Bold' ? 1.4 : 0.3,
-            color: Colors.white.withValues(alpha: _opacity),
-            shadows: _style == 'Glow'
-              ? const [Shadow(color: Colors.lightBlueAccent, blurRadius: 18), Shadow(color: Colors.black, blurRadius: 30)]
-              : const [Shadow(color: Colors.black87, blurRadius: 14)])),
+  Widget build(BuildContext context) {
+    final media = MediaQuery.sizeOf(context);
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+      child: SizedBox(
+        width: media.width.clamp(440.0, 790.0) * 0.78,
+        height: media.height.clamp(420.0, 790.0) * 0.82,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(children: [
+            const Text('Live title preview', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 10),
+            Expanded(child: ListView(children: [
+              Container(
+                height: 140, alignment: _position == 'center' ? Alignment.center : Alignment.centerLeft,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(colors: [Color(0xFF061127), Color(0xFF273F5B)]),
+                  borderRadius: BorderRadius.circular(18)),
+                child: Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Text(
+                  'Plex', maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: _size, fontWeight: _style == 'Minimal' ? FontWeight.w300 : FontWeight.w800,
+                    letterSpacing: _style == 'Wide' ? 2.5 : 0.3,
+                    color: Colors.white.withValues(alpha: _opacity),
+                    shadows: _style == 'Glow' || _style == 'Neon'
+                      ? const [Shadow(color: Colors.lightBlueAccent, blurRadius: 18), Shadow(color: Colors.black, blurRadius: 30)]
+                      : const [Shadow(color: Colors.black87, blurRadius: 14)])))),
+              const SizedBox(height: 8),
+              FanatikaTvControls.action(icon: Icons.palette, title: 'Style: $_style', onPressed: _chooseStyle, autofocus: true),
+              FanatikaTvControls.action(icon: Icons.format_size, title: 'Size: ${_size.toInt()} px', onPressed: _chooseSize),
+              FanatikaTvControls.action(icon: Icons.format_align_left, title: 'Alignment: $_position', onPressed: _choosePosition),
+              FanatikaTvControls.action(icon: Icons.opacity, title: 'Opacity: ${(_opacity*100).round()}%', onPressed: () async {
+                final o = await FanatikaTvControls.choose<double>(context, title: 'Preview opacity',
+                  values: const [0.4,0.5,0.6,0.7,0.8,0.9,1.0],
+                  label: (v) => '${(v*100).round()}%', current: _opacity);
+                if (o != null && mounted) setState(() => _opacity = o);
+              }),
+            ])),
+            const Divider(),
+            Row(children: [
+              Expanded(child: FanatikaTvControls.action(icon: Icons.close, title: 'Cancel',
+                onPressed: () => Navigator.of(context).pop(false))),
+              Expanded(child: FanatikaTvControls.action(icon: Icons.check, title: 'Apply changes',
+                onPressed: _apply)),
+            ]),
+          ]),
+        ),
       ),
-      const SizedBox(height: 14),
-      FanatikaTvControls.action(icon: Icons.palette, title: 'Style: $_style', onPressed: _chooseStyle),
-      FanatikaTvControls.action(icon: Icons.format_size, title: 'Size: ${_size.toInt()} px', onPressed: _chooseSize),
-      FanatikaTvControls.action(icon: Icons.format_align_left, title: 'Alignment: $_position', onPressed: _choosePosition),
-      FanatikaTvControls.action(icon: Icons.opacity, title: 'Opacity: ${(_opacity*100).round()}%', onPressed: () async {
-        final o = await FanatikaTvControls.choose<double>(context, title: 'Preview opacity',
-          values: const [0.4,0.5,0.6,0.7,0.8,0.9,1.0],
-          label: (v) => '${(v*100).round()}%', current: _opacity);
-        if (o != null && mounted) setState(() => _opacity = o);
-      }),
-    ])),
-    actions: [TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-      FilledButton(onPressed: _apply, child: const Text('Apply changes'))],
-  );
+    );
+  }
 }

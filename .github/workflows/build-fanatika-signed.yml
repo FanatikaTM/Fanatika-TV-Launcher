@@ -17,6 +17,8 @@ jobs:
           flutter-version: '3.41.9'
           channel: stable
           cache: true
+      - name: Fanatika source checks
+        run: python3 -m unittest tests_sleep_source tests_fanatika_remote_ui tests_fanatika_v23 tests_fanatika_v24 tests_fanatika_v25
       - name: Verify signing secrets (no secrets are logged)
         env:
           KEY_B64: ${{ secrets.FANATIKA_KEYSTORE_B64 }}
@@ -31,8 +33,6 @@ jobs:
           fi
           printf '%s' "$KEY_B64" | base64 --decode > android/app/upload-keystore.jks
           chmod 600 android/app/upload-keystore.jks
-      - name: Fanatika source checks
-        run: python3 -m unittest tests_sleep_source tests_fanatika_remote_ui tests_fanatika_v23 tests_fanatika_v24
       - name: Resolve Flutter packages
         run: flutter pub get
       - name: Analyze source
@@ -50,3 +50,6 @@ jobs:
           path: build/app/outputs/flutter-apk/*release.apk
           if-no-files-found: error
           retention-days: 14
+      - name: Clean temporary signing key
+        if: ${{ always() }}
+        run: rm -f android/app/upload-keystore.jks

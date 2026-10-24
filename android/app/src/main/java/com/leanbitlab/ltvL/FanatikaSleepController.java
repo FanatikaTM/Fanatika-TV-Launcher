@@ -44,7 +44,9 @@ public final class FanatikaSleepController {
     }
 
     public static boolean supportsAdmin(Context context) {
-        return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_DEVICE_ADMIN);
+        // OEMs sometimes omit FEATURE_DEVICE_ADMIN even if the DPM service exists.
+        // Actual enablement is determined by the system approval activity.
+        return context.getSystemService(Context.DEVICE_POLICY_SERVICE) != null;
     }
 
     public static boolean adminActive(Context context) {

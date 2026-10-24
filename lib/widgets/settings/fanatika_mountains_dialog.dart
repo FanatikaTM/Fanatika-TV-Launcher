@@ -10,6 +10,11 @@ const mountainWallpapers = [
   ('04_Amber_Peaks.jpg', 'Amber Peaks'),
   ('05_Midnight_Blue.jpg', 'Midnight Blue'),
   ('06_Soft_Mountain_Dusk.jpg', 'Soft Mountain Dusk'),
+  ('07_Bansko_Pirin.jpg', 'Pirin Panorama (illustration)'),
+  ('08_Pirin_River.jpg', 'Pirin Mountain River (illustration)'),
+  ('09_Mountain_River.jpg', 'Autumn Mountain River (illustration)'),
+  ('10_Bansko_Winter.jpg', 'Bansko-inspired Winter (illustration)'),
+  ('11_Pirin_Alpine_Lake.jpg', 'Pirin Alpine Lake (illustration)'),
 ];
 
 class FanatikaMountainsDialog extends StatefulWidget {
@@ -24,8 +29,8 @@ class _FanatikaMountainsDialogState extends State<FanatikaMountainsDialog> {
   @override
   Widget build(BuildContext context) => Dialog(
     child: SizedBox(
-      width: 850,
-      height: 565,
+      width: 950,
+      height: 590,
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(children: [
@@ -33,7 +38,7 @@ class _FanatikaMountainsDialogState extends State<FanatikaMountainsDialog> {
             const Expanded(child: Text('Mountain wallpapers', style: TextStyle(fontSize: 24))),
             IconButton(onPressed: _busy ? null : () => Navigator.of(context).pop(), icon: const Icon(Icons.close)),
           ]),
-          const Text('Choose a wallpaper to apply it directly. Arc’s other wallpaper settings are unchanged.'),
+          const Text('Choose a wallpaper to apply. The Pirin/Bansko-themed illustrations are artistic interpretations, not location photographs. Other Arc wallpaper settings are unchanged.'),
           if (_error != null) Text(_error!, style: const TextStyle(color: Colors.redAccent)),
           const SizedBox(height: 16),
           Expanded(child: GridView.builder(

@@ -67,7 +67,7 @@ class SettingsPanelPage extends StatelessWidget {
                 ),
                 FocusableSettingsTile(
                   leading: const Icon(Icons.tune),
-                  title: const Text('Fanatika v2 tools'),
+                  title: const Text('Fanatika tools'),
                   subtitle: const Text('Backup, editor, weather, HDMI, presets, updater, PIN'),
                   onPressed: () => Navigator.of(context).pushNamed(FanatikaV2Page.routeName),
                 ),

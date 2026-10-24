@@ -23,11 +23,13 @@ class FanatikaBackupService {
   }
 
   static Future<bool> export(SettingsService settings, AppsService apps) async {
-    return await _files.invokeMethod<bool>(
+    final path = await _files.invokeMethod<String>(
       'fanatikaSaveBackup', const JsonEncoder.withIndent('  ').convert(snapshot(settings, apps)),
-    ) ?? false;
+    );
+    return path != null && path.isNotEmpty;
   }
 
+  // Reads newest app-owned backup in Downloads/Fanatika; no external picker needed.
   static Future<Map<String, dynamic>?> selectImport() async {
     final contents = await _files.invokeMethod<String>('fanatikaReadBackup');
     if (contents == null) return null;

@@ -45,7 +45,7 @@ class V24Checks(unittest.TestCase):
   self.assertIn('workflow_dispatch',wf)
   self.assertFalse((ROOT/'android/app/upload-keystore.jks').exists())
  def test_version_and_favorites(self):
-  self.assertIn('version: 2.4.0+4128',self.read('pubspec.yaml'))
+  self.assertRegex(self.read('pubspec.yaml'), r'version: 2\.[4-9]\.\d+\+41\d+')
   self.assertIn('addToFavorites',self.read('lib/providers/apps_service.dart'))
   self.assertIn('removeFromFavorites',self.read('lib/providers/apps_service.dart'))
 if __name__=='__main__':unittest.main()

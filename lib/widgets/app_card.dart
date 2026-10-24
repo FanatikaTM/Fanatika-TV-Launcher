@@ -193,6 +193,8 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
     }
     final appImageWidget = _appImage();
     final bool shouldHighlight = _shouldHighlight();
+    final bool fanatikaGlowEnabled = context.watch<SettingsService>().fanatikaFocusGlow;
+    final bool fanatikaGrowEnabled = context.watch<SettingsService>().fanatikaFocusGrow;
 
     return FocusKeyboardListener(
       onPressed: _onPressed,
@@ -211,18 +213,29 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
                 child: _wrapAspectRatio(
                   RepaintBoundary(
                     child: AnimatedScale(
-                      scale: !_moving && shouldHighlight ? _focusedScale : 1.0,
+                      scale: !_moving && shouldHighlight && fanatikaGrowEnabled ? 1.11 : 1.0,
                       duration: (context.read<SettingsService>().fanatikaFocusAnimations && !context.read<SettingsService>().fanatikaPerformance) ? _focusAnimationDuration : Duration.zero,
                       alignment: Alignment.center,
                       curve: Curves.easeOutCubic,
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
+                          if (shouldHighlight && !_moving && fanatikaGlowEnabled)
+                            Positioned.fill(child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(13),
+                                boxShadow: const [
+                                  BoxShadow(color: Color(0xBB4BCFFF), blurRadius: 22, spreadRadius: 2),
+                                  BoxShadow(color: Color(0x88E6E94C), blurRadius: 9, spreadRadius: 1),
+                                ],
+                              ),
+                            )),
                           Material(
                             borderRadius: BorderRadius.circular(12),
                             clipBehavior: Clip.antiAlias,
-                            elevation: shouldHighlight ? 7 : 4,
-                            shadowColor: Colors.black,
+                            elevation: shouldHighlight ? 12 : 4,
+                            shadowColor: shouldHighlight && fanatikaGlowEnabled
+                              ? const Color(0xFF55D7FF) : Colors.black,
                             child: Stack(
                               fit: StackFit.expand,
                               children: [

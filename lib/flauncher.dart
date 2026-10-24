@@ -153,6 +153,8 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
               const available = <String>{
                 '01_Violet_Sunset.jpg', '02_Starlit_Alps.jpg', '03_Golden_Lake.jpg',
                 '04_Amber_Peaks.jpg', '05_Midnight_Blue.jpg', '06_Soft_Mountain_Dusk.jpg',
+                '07_Bansko_Pirin.jpg', '08_Pirin_River.jpg', '09_Mountain_River.jpg',
+                '10_Bansko_Winter.jpg', '11_Pirin_Alpine_Lake.jpg',
               };
               if (image == null || !available.contains(image)) return const SizedBox.shrink();
               return Positioned.fill(child: IgnorePointer(child: AnimatedSwitcher(
@@ -254,10 +256,10 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
           SliverToBoxAdapter(
             child: SizedBox(
               height:
-                  MediaQuery.of(context).size.height -
+                  (MediaQuery.of(context).size.height -
                   MediaQuery.of(context).padding.top -
                   kToolbarHeight -
-                  (reserveWatchNextSpace ? 410 : 150),
+                  (reserveWatchNextSpace ? 340 : 150)).clamp(365.0, 1200.0).toDouble(),
               child: (heroEnabled || weatherEnabled)
                   ? Padding(
                       padding: const EdgeInsets.fromLTRB(54, 12, 54, 50),
@@ -270,11 +272,14 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 crossAxisAlignment: fanatikaSettings.fanatikaHeroPlacement == 'center' ? CrossAxisAlignment.center : CrossAxisAlignment.start,
                                 children: [
-                                AnimatedSwitcher(
-                                  duration: fanatikaSettings.fanatikaFocusAnimations && !fanatikaSettings.fanatikaPerformance
-                                    ? const Duration(milliseconds: 220) : Duration.zero,
+                                SizedBox(height: fanatikaSettings.fanatikaFixedTitle ? 116 : 130,
+                                  width: double.infinity, child: Align(
+                                    alignment: fanatikaSettings.fanatikaHeroPlacement == 'center'
+                                      ? Alignment.bottomCenter : Alignment.bottomLeft,
+                                  child: SizedBox(width: double.infinity,
                                   child: Container(
                                     key: ValueKey(_focusedFavoritePackage ?? 'first-favorite'),
+                                    constraints: const BoxConstraints(minWidth: 300),
                                     padding: fanatikaSettings.fanatikaTitleStyle == 'Glass'
                                       ? const EdgeInsets.symmetric(horizontal: 18, vertical: 8)
                                       : EdgeInsets.zero,
@@ -287,17 +292,19 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                                     child: Text(
                                       _focusedFavoriteAppName ??
                                         (favoriteApps.isNotEmpty ? favoriteApps.first.name : ''),
-                                      maxLines: 2, overflow: TextOverflow.ellipsis,
+                                      maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis,
                                       textAlign: fanatikaSettings.fanatikaHeroPlacement == 'center'
                                         ? TextAlign.center : TextAlign.left,
                                       style: TextStyle(
                                         color: Colors.white.withValues(alpha: fanatikaSettings.fanatikaHeroOpacity),
                                         fontSize: fanatikaSettings.fanatikaHeroSize,
                                         fontWeight: fanatikaSettings.fanatikaTitleStyle == 'Classic'
-                                          ? FontWeight.w600 : FontWeight.w800,
-                                        letterSpacing: fanatikaSettings.fanatikaTitleStyle == 'Bold' ? 1.3 : 0.35,
+                                          ? FontWeight.w600 : fanatikaSettings.fanatikaTitleStyle == 'Minimal'
+                                          ? FontWeight.w300 : FontWeight.w800,
+                                        letterSpacing: fanatikaSettings.fanatikaTitleStyle == 'Bold' ? 1.3
+                                          : fanatikaSettings.fanatikaTitleStyle == 'Wide' ? 2.7 : 0.35,
                                         height: 1.04,
-                                        shadows: fanatikaSettings.fanatikaTitleStyle == 'Glow'
+                                        shadows: fanatikaSettings.fanatikaTitleStyle == 'Glow' || fanatikaSettings.fanatikaTitleStyle == 'Neon'
                                           ? const [Shadow(color: Colors.lightBlueAccent, blurRadius: 22), Shadow(color: Colors.black87, blurRadius: 28)]
                                           : fanatikaSettings.fanatikaTitleStyle == 'Classic'
                                           ? const [Shadow(color: Colors.black87, blurRadius: 10)]
@@ -308,10 +315,14 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                                       ),
                                     ),
                                   ),
-                                ),
-                                if (_focusedFavoritePackage != null &&
+                                  ),
+                                )),
+                                SizedBox(height: 47, child: Align(
+                                  alignment: fanatikaSettings.fanatikaHeroPlacement == 'center'
+                                    ? Alignment.topCenter : Alignment.topLeft,
+                                  child: (_focusedFavoritePackage != null &&
                                     fanatikaSettings.fanatikaDescriptions.containsKey(_focusedFavoritePackage))
-                                  Text(
+                                  ? Text(
                                     fanatikaSettings.fanatikaDescriptions[_focusedFavoritePackage]!,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
@@ -320,7 +331,8 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                                       fontWeight: FontWeight.w500, height: 1.3,
                                       shadows: [Shadow(color: Colors.black87, blurRadius: 10)],
                                     ),
-                                  ),
+                                  ) : const SizedBox.shrink(),
+                                )),
                                 ],
                               ),
                             )
@@ -442,13 +454,22 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                   right: kLauncherSectionHorizontalPadding,
                   bottom: 8,
                 ),
-                child: CategoryRow(
-                  key: sectionKey,
-                  category: category,
-                  applications: filteredApps,
-                  isFirstSection: isFirstSection,
-                  showTitle: false,
-                  onAppFocused: onAppFocused,
+                child: Align(
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                    width: context.watch<SettingsService>().fanatikaCenterSections &&
+                      filteredApps.length < category.columnsCount
+                      ? (filteredApps.length * (category.rowHeight.toDouble() * kAppCardAspectRatio + 16.0))
+                      : double.infinity,
+                    child: CategoryRow(
+                      key: sectionKey,
+                      category: category,
+                      applications: filteredApps,
+                      isFirstSection: isFirstSection,
+                      showTitle: false,
+                      onAppFocused: onAppFocused,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -459,17 +480,23 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
           final gridAspectRatio = showAppNames
               ? appCardGridAspectRatio(gridContentWidth, category.columnsCount)
               : kAppCardAspectRatio;
+          final centerShortGrid = context.watch<SettingsService>().fanatikaCenterSections &&
+              filteredApps.length < category.columnsCount;
+          final gridInset = centerShortGrid
+              ? ((gridContentWidth / category.columnsCount) *
+                  (category.columnsCount - filteredApps.length) / 2)
+              : 0.0;
           slivers.add(
             SliverPadding(
-              padding: const EdgeInsets.only(
-                left: kLauncherSectionHorizontalPadding,
-                right: kLauncherSectionHorizontalPadding,
+              padding: EdgeInsets.only(
+                left: kLauncherSectionHorizontalPadding + gridInset,
+                right: kLauncherSectionHorizontalPadding + gridInset,
                 bottom: 8,
               ),
               sliver: SliverGrid(
                 key: sectionKey,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: category.columnsCount,
+                  crossAxisCount: centerShortGrid ? filteredApps.length : category.columnsCount,
                   childAspectRatio: gridAspectRatio,
                   mainAxisSpacing: 12,
                   crossAxisSpacing: 0,

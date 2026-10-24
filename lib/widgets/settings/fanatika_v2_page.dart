@@ -91,10 +91,15 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
   }
 
   Future<void> exportBackup() => guard(() async {
+    final okToExport = await confirm('Export settings and Favorites?',
+      'Fanatika will save a JSON file in Downloads/Fanatika. Other people with access '
+      'to your TV files may be able to read the preferences. Signing keys, passwords, '
+      'PINs and API credentials are not included. Continue?');
+    if (!okToExport || !mounted) return;
     final settings = context.read<SettingsService>();
     final apps = context.read<AppsService>();
     final ok = await FanatikaBackupService.export(settings, apps);
-    if (mounted) setState(() => status = ok ? 'Backup exported to selected location' : 'Backup cancelled');
+    if (mounted) setState(() => status = ok ? 'Backup saved in Downloads/Fanatika (no file picker required)' : 'Backup was not saved');
   });
 
   Future<void> importBackup() => guard(() async {
@@ -102,7 +107,7 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
     if (data == null || !mounted) return;
     final count = (data['favorites'] as List).length;
     final ok = await confirm('Restore Fanatika settings?',
-      'Restore preferences and $count Favorites from this backup? Current Favorites and appearance settings will change. Apps not installed on this TV are skipped. Home system settings are not changed.');
+      'Restore preferences and $count Favorites from the newest Fanatika backup in Downloads/Fanatika? Current Favorites and appearance settings will change. Apps not installed are skipped. Home settings stay unchanged.');
     if (!ok || !mounted) return;
     // Before overwriting anything save a separate recovery copy through SAF.
     final saved = await FanatikaBackupService.export(context.read<SettingsService>(), context.read<AppsService>());
@@ -176,7 +181,9 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
     if (id == null || !mounted) return;
     const options = <String>['', '01_Violet_Sunset.jpg','02_Starlit_Alps.jpg',
       '03_Golden_Lake.jpg','04_Amber_Peaks.jpg','05_Midnight_Blue.jpg',
-      '06_Soft_Mountain_Dusk.jpg'];
+      '06_Soft_Mountain_Dusk.jpg', '07_Bansko_Pirin.jpg',
+      '08_Pirin_River.jpg', '09_Mountain_River.jpg',
+      '10_Bansko_Winter.jpg', '11_Pirin_Alpine_Lake.jpg'];
     final selected = await FanatikaTvControls.choose<String>(context,
       title: 'Background for selected favorite', values: options,
       label: (name) => name.isEmpty ? 'None — use regular wallpaper' :
@@ -284,7 +291,29 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
             icon: Icons.bookmark_outline),
           tile(Icons.wallpaper_outlined, 'Background per favorite app', chooseAppBackground,
             subtitle: 'Optional mountain photo when you highlight a Favorite'),
+          FanatikaTvControls.section('Favorites and section layout'),
+          switcher('Center short app rows (all sections)', s.fanatikaCenterSections,
+            (v) => s.setFanatikaOption('fanatika_v2_center_sections', v), icon: Icons.align_horizontal_center),
+          switcher('Enlarge selected app', s.fanatikaFocusGrow,
+            (v) => s.setFanatikaOption('fanatika_v2_focus_grow', v), icon: Icons.zoom_out_map),
+          switcher('Glow around selected app', s.fanatikaFocusGlow,
+            (v) => s.setFanatikaOption('fanatika_v2_focus_glow', v), icon: Icons.flare),
+          FanatikaTvControls.section('Status bar customization'),
+          tile(Icons.view_stream_outlined, 'Status bar style', () => chooseSetting<String>(
+            s, 'Status bar style', 'fanatika_v2_bar_style',
+            ['Transparent', 'Glass', 'Solid', 'Compact'], (v) => v, s.fanatikaStatusBarStyle),
+            subtitle: s.fanatikaStatusBarStyle),
+          switcher('Applications shortcut in status bar', s.fanatikaStatusApps,
+            (v) => s.setFanatikaOption('fanatika_v2_status_apps', v), icon: Icons.apps),
+          switcher('Fanatika tools shortcut in status bar', s.fanatikaStatusTools,
+            (v) => s.setFanatikaOption('fanatika_v2_status_tools', v), icon: Icons.tune),
+          switcher('Sleep settings shortcut in status bar', s.fanatikaStatusSleep,
+            (v) => s.setFanatikaOption('fanatika_v2_status_sleep', v), icon: Icons.bedtime),
+          switcher('Weather settings shortcut in status bar', s.fanatikaStatusWeather,
+            (v) => s.setFanatikaOption('fanatika_v2_status_weather', v), icon: Icons.cloud_outlined),
           FanatikaTvControls.section('Large selected-app title'),
+          switcher('Lock title to fixed position', s.fanatikaFixedTitle,
+            (v) => s.setFanatikaOption('fanatika_v2_fixed_title', v), icon: Icons.push_pin_outlined),
           switcher('Show large app title', s.showFanatikaHero, s.setShowFanatikaHero, icon: Icons.title),
           tile(Icons.format_size, 'Title size', () => chooseSetting<double>(s, 'Title size',
             'fanatika_v2_hero_size', [28, 36, 44, 52, 60, 72, 84, 96].map((n) => n.toDouble()).toList(),
@@ -298,7 +327,7 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
             (v) => '${(v*100).round()}%', s.fanatikaHeroOpacity),
             subtitle: '${(s.fanatikaHeroOpacity * 100).round()}%'),
           tile(Icons.auto_awesome, 'Text style', () => chooseSetting<String>(s, 'App title text style',
-            'fanatika_v2_title_style', ['Classic','Bold','Cinema','Glass','Glow'], (v) => v,
+            'fanatika_v2_title_style', ['Classic','Bold','Cinema','Glass','Glow','Neon','Minimal','Wide','Shadow'], (v) => v,
             s.fanatikaTitleStyle), subtitle: s.fanatikaTitleStyle),
           tile(Icons.edit_note, 'Custom app descriptions', editDescription),
           FanatikaTvControls.section('Weather'),
