@@ -43,7 +43,7 @@ class SleepSourceTests(unittest.TestCase):
 
     def test_timer_duration_allowlist(self):
         s=(JAVA/'FanatikaSleepController.java').read_text()
-        self.assertIn('minutes != 15 && minutes != 30 && minutes != 60 && minutes != 90 && minutes != 120',s)
+        self.assertIn('minutes != 15 && minutes != 30 && minutes != 45 && minutes != 60 && minutes != 90 && minutes != 120 && minutes != 180',s)
         self.assertIn('ELAPSED_REALTIME, deadline',s)
         self.assertIn('AlarmManager',s)
         self.assertIn('alarm.cancel(',s)

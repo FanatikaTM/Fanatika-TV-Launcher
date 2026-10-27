@@ -1,4 +1,5 @@
 import 'package:flauncher/widgets/settings/settings_panel.dart';
+import 'package:flauncher/widgets/fanatika_quick_settings_dialog.dart';
 import 'package:flauncher/widgets/settings/tv_inputs_panel_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_v2_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_tools_hub.dart';
@@ -110,6 +111,14 @@ class FocusAwareAppBarState extends State<FocusAwareAppBar>
           title: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // TV-friendly Quick Settings inspired by the MiTV-M0EU0 panel.
+              AppBarFocusRing(
+                onPressed: () => showDialog<void>(
+                  context: context, builder: (_) => const FanatikaQuickSettingsDialog()),
+                semanticLabel: 'Quick Settings',
+                child: const Icon(Icons.dashboard_customize_outlined, size: 21, color: Colors.white),
+              ),
+              const SizedBox(width: 8),
               // Settings button
               AppBarFocusRing(
                 focusNode: _settingsFocusNode,

@@ -28,7 +28,7 @@ class _FanatikaSleepPageState extends State<FanatikaSleepPage> with WidgetsBindi
     185: 'YELLOW — hold for 1 second',
     186: 'BLUE — hold for 1 second',
   };
-  static const _durations = [15, 30, 60, 90, 120];
+  static const _durations = [15, 30, 45, 60, 90, 120, 180];
 
   @override
   void initState() {

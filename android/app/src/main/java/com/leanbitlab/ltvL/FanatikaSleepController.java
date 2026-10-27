@@ -140,8 +140,8 @@ public final class FanatikaSleepController {
     }
 
     public static Map<String, Object> schedule(Context context, int minutes) {
-        if (minutes != 15 && minutes != 30 && minutes != 60 && minutes != 90 && minutes != 120) {
-            return answer(false, "Unsupported timer. Select 15, 30, 60, 90 or 120 minutes.");
+        if (minutes != 15 && minutes != 30 && minutes != 45 && minutes != 60 && minutes != 90 && minutes != 120 && minutes != 180) {
+            return answer(false, "Unsupported timer. Select 15, 30, 45, 60, 90, 120 or 180 minutes.");
         }
         if (!adminActive(context)) return answer(false, "Enable Device Administrator before setting a sleep timer.");
         AlarmManager alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);

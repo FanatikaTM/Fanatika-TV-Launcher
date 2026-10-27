@@ -26,6 +26,7 @@ import 'package:flauncher/widgets/settings/update_dialogs.dart';
 import 'package:flauncher/widgets/settings/general_settings_page.dart';
 import 'package:flauncher/widgets/settings/tv_inputs_panel_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_tools_hub.dart';
+import 'package:flauncher/widgets/fanatika_quick_settings_dialog.dart';
 import 'package:flauncher/widgets/settings/fanatika_updates_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_usb_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_sleep_page.dart';
@@ -66,6 +67,13 @@ class SettingsPanelPage extends StatelessWidget {
                   leading: const Icon(Icons.settings_suggest_outlined),
                   title: Text(localizations.system, style: Theme.of(context).textTheme.bodyMedium),
                   onPressed: () => Navigator.of(context).pushNamed(GeneralSettingsPage.routeName),
+                ),
+                FocusableSettingsTile(
+                  leading: const Icon(Icons.dashboard_customize_outlined),
+                  title: const Text('Quick Settings'),
+                  subtitle: const Text('MiTV-M0EU0 style shortcuts, inputs and sleep timer'),
+                  onPressed: () => showDialog<void>(context: context,
+                      builder: (_) => const FanatikaQuickSettingsDialog()),
                 ),
                 FocusableSettingsTile(
                   leading: const Icon(Icons.tune),
