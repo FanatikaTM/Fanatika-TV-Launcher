@@ -63,7 +63,7 @@ class _FanatikaUpdatesPageState extends State<FanatikaUpdatesPage> {
   @override Widget build(BuildContext context) {
     final s = context.watch<SettingsService>();
     return Column(children: [
-      const Padding(padding: EdgeInsets.all(12), child: Text('Fanatika updates', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
+      const Padding(padding: EdgeInsets.all(12), child: Text('Updates', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
       const Divider(height: 1),
       Expanded(child: ListView(children: [
         FanatikaTvControls.action(icon: Icons.update, title: 'Automatic update checks',

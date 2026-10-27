@@ -197,7 +197,12 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                 ),
             child: Scaffold(
               backgroundColor: Colors.transparent,
-              appBar: FocusAwareAppBar(key: _appBarKey),
+              appBar: FocusAwareAppBar(key: _appBarKey, onHomeRequested: () {
+                if (_scrollController.hasClients) {
+                  _scrollController.animateTo(0.0,
+                    duration: const Duration(milliseconds: 220), curve: Curves.easeOutCubic);
+                }
+              }),
               // (initialized (data.$1), layoutVersion (data.$2), showAppNamesBelowIcons (data.$3))
               body: Selector2<AppsService, SettingsService, (bool, int, bool)>(
                 selector: (_, appsService, settingsService) =>

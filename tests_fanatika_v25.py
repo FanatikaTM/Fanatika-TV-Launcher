@@ -10,7 +10,7 @@ def src(p):return (ROOT/p).read_text(encoding='utf-8')
 class V25Checks(unittest.TestCase):
  def test_new_version(self): self.assertRegex(src('pubspec.yaml'), r'version: 2\.[5-9]\.\d+\+41\d+')
  def test_tools_renamed(self):
-  self.assertIn("'Fanatika tools'",src('lib/widgets/settings/settings_panel_page.dart'))
+  self.assertIn("'Tools'",src('lib/widgets/settings/settings_panel_page.dart'))
   self.assertNotIn("'Fanatika v2 tools'",src('lib/widgets/settings/settings_panel_page.dart'))
  def test_hidden_accent_ui_only(self):
   self.assertNotIn('AccentColorPage.routeName',src('lib/widgets/settings/interface_settings_page.dart'))

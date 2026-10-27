@@ -4,7 +4,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 class FanatikaV271Tests(unittest.TestCase):
     def test_version_bump(self):
-        self.assertIn('version: 2.8.0+4133', (ROOT/'pubspec.yaml').read_text())
+        self.assertIn('version: 2.8.1+4134', (ROOT/'pubspec.yaml').read_text())
     def test_verified_update_still_requires_same_package_newer_code_same_certificate(self):
         src=(ROOT/'android/app/src/main/java/com/leanbitlab/ltvL/MainActivity.java').read_text()
         self.assertIn('!expected.equals(actual)',src)

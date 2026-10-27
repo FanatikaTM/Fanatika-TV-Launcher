@@ -1,0 +1,2 @@
+# Fanatika v2.8.1 — MiTV-M0EU0
+Google TV-inspired dark slate Quick Settings and top Home/Apps/Tools tabs. Tools and Updates are renamed in menus. Native Xiaomi Sleep Timer shortcut opens TV Settings; navigate System > Power & Energy > Power > Sleep Timer. The OEM sleep timer cannot be set via a public third-party Android API. Long-press HOME is not overridden; OEM Google TV is preserved. No stock launcher packages are disabled. Signed APK build and MiTV-M0EU0 hardware testing pending.
