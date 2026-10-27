@@ -7,7 +7,7 @@ def read(p): return (ROOT/p).read_text(encoding='utf-8')
 
 class FanatikaV282Tests(unittest.TestCase):
     def test_version(self):
-        self.assertIn('version: 2.8.2+4135', read('pubspec.yaml'))
+        self.assertIn('version: 2.8.3+4136', read('pubspec.yaml'))
     def test_watch_next_left_of_weather(self):
         source=read('lib/flauncher.dart')
         self.assertIn('FanatikaWatchNextPanel(',source)

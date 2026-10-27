@@ -1,4 +1,4 @@
-// Fanatika Quick Settings — Google TV-inspired, independently implemented UI.
+// Quick Settings — Google TV-inspired, independently implemented UI.
 // Uses only public Android settings intents / user-approved Fanatika actions.
 // Tested target: Xiaomi MiTV-M0EU0. The OEM's exact Quick Settings activity
 // and native Sleep Timer aren't public third-party APIs.
@@ -22,8 +22,8 @@ class FanatikaQuickSettingsDialog extends StatefulWidget {
 }
 
 class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialog> {
-  static const Color base = Color(0xFF253D5C);
-  static const Color tileBlue = Color(0xFF476685);
+  static const Color base = Color(0xFF344962);
+  static const Color tileBlue = Color(0xFF465C76);
   final FLauncherChannel _channel = FLauncherChannel();
   Timer? _clockTimer;
   DateTime _now = DateTime.now();
@@ -78,14 +78,14 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
       if (!mounted) return;
       if (result['opened'] != true) {
         setState(() => _notice = result['detail']?.toString() ??
-            'The Xiaomi input picker was unavailable; choose a source from Fanatika.');
+            'The native input picker is unavailable; opening the available TV inputs.');
         await _openPanel(TvInputsPanelPage.routeName);
       }
     });
   }
 
   Future<void> _openNativeSleepSettings() => _perform(() async {
-    // The native Xiaomi timer is controlled by the firmware, not by Fanatika.
+    // The native Xiaomi timer is controlled by the firmware, not by the launcher.
     // A public third-party intent to select its exact timer is not available.
     // Opening Settings is a reliable, non-privileged starting point.
     if (mounted) setState(() => _notice =
@@ -157,7 +157,7 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
           borderRadius: BorderRadius.circular(30),
           border: Border.all(color: const Color(0x449EC9F4), width: 1),
           gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-            colors: [Color(0xF9577191), base, Color(0xF7213450)]),
+            colors: [Color(0xF9536882), base, Color(0xF72C405B)]),
           boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 30, offset: Offset(0, 8))],
         ),
         child: Padding(
@@ -252,7 +252,7 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
       padding: EdgeInsets.only(bottom: 8),
       child: Text('The Xiaomi timer is controlled by TV firmware. In TV Settings open '
           'System > Power & Energy > Power > Sleep Timer. The durations below '
-          'are Fanatika timers, available only with Device Administrator sleep permission.',
+          'are App timers, available only with Device Administrator sleep permission.',
         style: TextStyle(fontSize: 12, color: Color(0xFFFFE1AD)))),
     Expanded(child: GridView.count(crossAxisCount: 1, childAspectRatio: 8.5,
       mainAxisSpacing: 6,
@@ -304,7 +304,7 @@ class _QuickTile extends StatefulWidget {
 class _QuickTileState extends State<_QuickTile> {
   bool focused = false;
   @override Widget build(BuildContext context) => Material(
-    color: focused ? const Color(0xFFEDF2F8) : _FanatikaQuickSettingsDialogState.tileBlue,
+    color: focused ? const Color(0xFFF3F6F9) : _FanatikaQuickSettingsDialogState.tileBlue,
     borderRadius: BorderRadius.circular(19),
     child: InkWell(
       borderRadius: BorderRadius.circular(19),
@@ -313,13 +313,13 @@ class _QuickTileState extends State<_QuickTile> {
       onTap: widget.onPressed,
       child: Padding(padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 6),
         child: Row(children: [
-          Icon(widget.icon, color: focused ? const Color(0xFF253D5C) : Colors.white,
+          Icon(widget.icon, color: focused ? const Color(0xFF2E4157) : Colors.white,
             size: widget.compact ? 18 : 22),
           const SizedBox(width: 10),
           Expanded(child: Text(widget.text,
             maxLines: 2, overflow: TextOverflow.ellipsis,
             style: TextStyle(fontWeight: FontWeight.w700,
-              color: focused ? const Color(0xFF253D5C) : Colors.white,
+              color: focused ? const Color(0xFF2E4157) : Colors.white,
               fontSize: widget.compact ? 13 : 15))),
         ]),
       ),

@@ -109,7 +109,9 @@ class FocusAwareAppBarState extends State<FocusAwareAppBar>
             ? const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)))
             : null,
           // Left side: Settings, Network indicator, WiFi usage
-          title: Row(
+          title: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               // TV-friendly Quick Settings inspired by the MiTV-M0EU0 panel.
@@ -122,10 +124,10 @@ class FocusAwareAppBarState extends State<FocusAwareAppBar>
               const SizedBox(width: 8),
               // Google TV-inspired pill navigation. These are Fanatika routes,
               // not a replacement for the TV's protected OEM HOME handler.
-              if (MediaQuery.sizeOf(context).width >= 980) ...[
+              ...[
                 Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xD43D536F),
+                    color: const Color(0xE1394A61),
                     borderRadius: BorderRadius.circular(32)),
                   padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -224,7 +226,8 @@ class FocusAwareAppBarState extends State<FocusAwareAppBar>
                   ? const DailyWifiUsageWidget()
                   : const SizedBox.shrink(),
               ),
-            ],
+              ],
+            ),
           ),
           // Right side: Date/Time only
           actions: [

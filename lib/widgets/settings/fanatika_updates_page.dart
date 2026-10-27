@@ -1,4 +1,4 @@
-// Fanatika updates are separate from customization. User-approved installation only.
+// Updates are separate from customization. User-approved installation only.
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flauncher/providers/settings_service.dart';
@@ -50,7 +50,7 @@ class _FanatikaUpdatesPageState extends State<FanatikaUpdatesPage> {
     final file = await FanatikaBackupService.selectReviewedUpdate();
     if (file == null || !mounted) return;
     final ok = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
-      title: const Text('Install selected Fanatika APK?'),
+      title: const Text('Install selected update APK?'),
       content: const Text('Android verifies signing compatibility. Review before installation; your HOME selection will not be changed.'),
       actions: [TextButton(onPressed: () => Navigator.pop(ctx,false),child: const Text('Cancel')),
         TextButton(onPressed: () => Navigator.pop(ctx,true),child: const Text('Continue'))],
@@ -75,7 +75,7 @@ class _FanatikaUpdatesPageState extends State<FanatikaUpdatesPage> {
             if (days != null) await s.setFanatikaUpdateCheckDays(days);
           }),
         FanatikaTvControls.action(icon: Icons.public, title: 'Public release source',
-          subtitle: s.fanatikaReleaseRepo, onPressed: configureRepo),
+          subtitle: 'GitHub Releases · Configure source', onPressed: configureRepo),
         FanatikaTvControls.action(icon: Icons.new_releases, title: 'Check / download / install update',
           subtitle: 'Verify APK signature and approve installation', onPressed: checkNow),
         FanatikaTvControls.action(icon: Icons.file_open, title: 'Install local update APK',

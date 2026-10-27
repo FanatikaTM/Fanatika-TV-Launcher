@@ -29,7 +29,7 @@ class FanatikaReleaseChecker {
   static String normalizedRepo(String input) {
     final trimmed = input.trim();
     if (!_repoPattern.hasMatch(trimmed) || trimmed.contains('..') || trimmed.length > 150) {
-      throw const FormatException('Use GitHub owner/repository, for example FanatikaTM/Fanatika-TV-Launcher-Releases');
+      throw const FormatException('Use GitHub owner/repository, for example owner/releases');
     }
     return trimmed;
   }
@@ -96,7 +96,7 @@ class FanatikaReleaseChecker {
         return FanatikaReleaseResult(checked: false, updateAvailable: false,
           currentVersion: current.version, latestVersion: '', releaseUrl: pageFor(repo).toString(),
           message: response.statusCode == 404
-            ? 'No public Fanatika APK release found at $repo. Create a public GitHub Releases repository and publish a signed universal APK.'
+            ? 'No public APK release found at $repo. Create a public GitHub Releases repository and publish a signed universal APK.'
             : 'Could not check GitHub releases (HTTP ${response.statusCode}).');
       }
       final payload = jsonDecode(response.body);
@@ -118,8 +118,8 @@ class FanatikaReleaseChecker {
         assetSize: asset?['size'] as int? ?? 0,
         message: newer
           ? (asset == null ? 'New version $tag was found, but no universal signed APK was attached.'
-              : 'New Fanatika release $tag is available (installed: ${current.version}). Review before downloading.')
-          : 'Fanatika ${current.version} is up to date (latest public release: $tag).');
+              : 'New release $tag is available (installed: ${current.version}). Review before downloading.')
+          : 'Version ${current.version} is up to date (latest public release: $tag).');
     } catch (e) {
       return FanatikaReleaseResult(checked: false, updateAvailable: false,
         currentVersion: current.version, latestVersion: '', releaseUrl: pageFor(repo).toString(),

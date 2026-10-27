@@ -7,7 +7,7 @@ import 'package:flauncher/providers/fanatika_apk_downloader.dart';
 class FanatikaUpdateDialogs {
   static Future<void> showStatus(BuildContext context, String message) => showDialog<void>(
     context: context, builder: (ctx) => AlertDialog(
-      title: const Text('Fanatika updates'), content: Text(message),
+      title: const Text('Updates'), content: Text(message),
       actions: [TextButton(autofocus: true, onPressed: () => Navigator.pop(ctx),
           child: const Text('OK'))]));
 
@@ -18,7 +18,7 @@ class FanatikaUpdateDialogs {
       return;
     }
     final approved = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
-      title: Text('Fanatika ${release.latestVersion} available'),
+      title: Text('Version ${release.latestVersion} available'),
       content: SingleChildScrollView(child: Text(
         'Installed version: ${release.currentVersion}\n'
         'Release: ${release.latestVersion}\n'
@@ -47,7 +47,7 @@ class FanatikaUpdateDialogs {
         return;
       }
       final install = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
-        title: const Text('Install verified Fanatika update?'),
+        title: const Text('Install verified update?'),
         content: Text('Version ${release.latestVersion}\n'
           'Downloaded ${downloaded.bytes} bytes\n'
           'SHA-256: ${downloaded.sha256}\n\n'
@@ -65,7 +65,7 @@ class FanatikaUpdateDialogs {
       if (result['needsPermission'] == true) {
         final openSettings = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
           title: const Text('Allow installation permission'),
-          content: const Text('Android requires permission to install APKs from Fanatika. '
+          content: const Text('Android requires permission to install APKs from this launcher. '
               'Open Android settings, approve it if you trust this update, then check again.'),
           actions: [
             TextButton(autofocus: true, onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
@@ -114,7 +114,7 @@ class _UpdateDownloadDialogState extends State<_UpdateDownloadDialog> {
   @override Widget build(BuildContext context) => PopScope(
     canPop: error != null,
     child: AlertDialog(
-      title: const Text('Downloading Fanatika update'),
+      title: const Text('Downloading update'),
       content: Column(mainAxisSize: MainAxisSize.min, children: [
         if (error == null) LinearProgressIndicator(value: fraction),
         const SizedBox(height: 14),

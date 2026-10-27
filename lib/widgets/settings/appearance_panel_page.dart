@@ -26,7 +26,7 @@ class AppearancePanelPage extends StatelessWidget {
             children: [
               const Padding(
                 padding: EdgeInsets.only(top: 8, bottom: 8),
-                child: Text('Fanatika home screen', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                child: Text('Home screen', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
               ),
               RoundedSwitchListTile(
                 value: settingsService.showFanatikaHero,

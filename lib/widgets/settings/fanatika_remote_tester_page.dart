@@ -51,7 +51,7 @@ class _FanatikaRemoteTesterPageState extends State<FanatikaRemoteTesterPage> {
     child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       const Text('Remote Button Tester', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
       const SizedBox(height: 12),
-      const Text('Select Capture and press buttons. Only events Android delivers to Fanatika can appear. '
+      const Text('Select Capture and press buttons. Only events Android delivers to this app can appear. '
         'HOME, POWER and OEM-reserved keys may never arrive; this test does not remap them.'),
       const SizedBox(height: 16),
       KeyboardListener(

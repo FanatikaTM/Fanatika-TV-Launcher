@@ -57,7 +57,7 @@ class _FanatikaUsbPageState extends State<FanatikaUsbPage> {
     final safety = await FanatikaBackupService.export(settings, apps);
     if (!safety) { setState(() => status = 'Safety backup failed: no settings were overwritten.'); return; }
     await FanatikaBackupService.restore(data, settings, apps);
-    if (mounted) setState(() => status = 'Backup restored. Restart Fanatika to refresh the layout.');
+    if (mounted) setState(() => status = 'Backup restored. Restart the launcher to refresh the layout.');
   });
   @override Widget build(BuildContext context) => Column(children: [
     const Padding(padding: EdgeInsets.all(12), child: Text('USB storage', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
@@ -71,7 +71,7 @@ class _FanatikaUsbPageState extends State<FanatikaUsbPage> {
       FanatikaTvControls.action(icon: Icons.wallpaper, title: 'Import USB wallpaper',
         subtitle: 'Choose JPG/PNG/WEBP, up to 40 MB, then select in Wallpaper settings', onPressed: importImage),
       FanatikaTvControls.action(icon: Icons.settings_backup_restore, title: 'Restore backup from USB',
-        subtitle: 'Choose Fanatika backup JSON; confirmation and safety backup required', onPressed: importBackup),
+        subtitle: 'Choose settings backup JSON; confirmation and safety backup required', onPressed: importBackup),
       const Padding(padding: EdgeInsets.all(12), child: Text(
         'USB import uses the Android document picker. Some Xiaomi firmware does not provide one; '
         'in that case, install a trusted file manager or transfer with ADB. No root access is used.',

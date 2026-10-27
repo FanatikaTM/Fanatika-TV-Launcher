@@ -157,7 +157,7 @@ class _FanatikaSleepPageState extends State<FanatikaSleepPage> with WidgetsBindi
               : 'Xiaomi settings are unavailable through this action.'};
           }), subtitle: 'Firmware-controlled fallback. This does not bypass permission.'),
         if (!adminActive) const Padding(padding: EdgeInsets.all(12), child: Text(
-          'This Xiaomi firmware has not granted Fanatika Device Administrator permission. '
+          'This Xiaomi firmware has not granted Device Administrator permission. '
           'Sleep Now and the automatic timer cannot force standby. You can still configure '
           'your TV’s own sleep settings. Do not disable system apps to work around this.',
           style: TextStyle(color: Colors.amberAccent))),
@@ -168,7 +168,7 @@ class _FanatikaSleepPageState extends State<FanatikaSleepPage> with WidgetsBindi
         _tile(global ? Icons.check_circle : Icons.accessibility_new,
           global ? 'Global shortcut service enabled' : 'Enable global shortcut service (optional)',
           () => _perform(_native.fanatikaOpenSleepAccessibility),
-          subtitle: 'Without the service, shortcut detection works only while Fanatika is open. '
+          subtitle: 'Without the service, shortcut detection works only while the launcher is open. '
             'Accessibility permission is configured manually; it does not read screen content.'),
         const ListTile(title: Text('If a selected button is never received by Android, '
           'its shortcut cannot work. The original HOME and POWER keys are protected.')),

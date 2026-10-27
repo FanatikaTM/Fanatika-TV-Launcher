@@ -66,7 +66,7 @@
         android:banner="@drawable/banner"
         android:fullBackupContent="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="Fanatika TV Launcher"
+        android:label="TV Launcher"
         android:requestLegacyExternalStorage="true">
         <!--
           Disable Impeller and fall back to the Skia renderer.
@@ -103,7 +103,7 @@
         <service
             android:name=".ClockScreensaverService"
             android:exported="true"
-            android:label="Fanatika TV Launcher Clock"
+            android:label="TV Clock"
             android:permission="android.permission.BIND_DREAM_SERVICE">
             <intent-filter>
                 <action android:name="android.service.dreams.DreamService" />

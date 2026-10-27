@@ -21,11 +21,8 @@ class _FanatikaStartupSplashState extends State<FanatikaStartupSplash> {
         onEnd: () { if (mounted) setState(() => _show = false); },
         builder: (_, opacity, __) => Opacity(opacity: opacity, child: ColoredBox(
           color: Colors.black,
-          child: Center(child: Image.asset(
-            'assets/splash_fanatika_tv.png',
-            fit: BoxFit.contain,
-            width: double.infinity,
-            height: double.infinity,
+          child: const Center(child: Icon(
+            Icons.tv_rounded, color: Color(0xFFE4ECF5), size: 96,
           )),
         )),
       ),

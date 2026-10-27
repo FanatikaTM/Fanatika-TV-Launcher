@@ -99,22 +99,22 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
 
   Future<void> exportBackup() => guard(() async {
     final okToExport = await confirm('Export settings and Favorites?',
-      'Fanatika will save a JSON file in Downloads/Fanatika. Other people with access '
+      'The launcher will save a JSON file in Downloads backup folder. Other people with access '
       'to your TV files may be able to read the preferences. Signing keys, passwords, '
       'PINs and API credentials are not included. Continue?');
     if (!okToExport || !mounted) return;
     final settings = context.read<SettingsService>();
     final apps = context.read<AppsService>();
     final ok = await FanatikaBackupService.export(settings, apps);
-    if (mounted) setState(() => status = ok ? 'Backup saved in Downloads/Fanatika (no file picker required)' : 'Backup was not saved');
+    if (mounted) setState(() => status = ok ? 'Backup saved in Downloads backup folder (no file picker required)' : 'Backup was not saved');
   });
 
   Future<void> importBackup() => guard(() async {
     final data = await FanatikaBackupService.selectImport();
     if (data == null || !mounted) return;
     final count = (data['favorites'] as List).length;
-    final ok = await confirm('Restore Fanatika settings?',
-      'Restore preferences and $count Favorites from the newest Fanatika backup in Downloads/Fanatika? Current Favorites and appearance settings will change. Apps not installed are skipped. Home settings stay unchanged.');
+    final ok = await confirm('Restore launcher settings?',
+      'Restore preferences and $count Favorites from the newest launcher backup in Downloads backup folder? Current Favorites and appearance settings will change. Apps not installed are skipped. Home settings stay unchanged.');
     if (!ok || !mounted) return;
     // Before overwriting anything save a separate recovery copy through SAF.
     final saved = await FanatikaBackupService.export(context.read<SettingsService>(), context.read<AppsService>());
@@ -219,7 +219,7 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
     }
     return Column(children: [
       const Padding(padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-        child: Text('Fanatika customization',
+        child: Text('Customization',
           style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700))),
       const Divider(height: 1),
       Expanded(child: FocusTraversalGroup(
@@ -286,7 +286,7 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
             subtitle: s.fanatikaStatusBarStyle),
           switcher('Applications shortcut in status bar', s.fanatikaStatusApps,
             (v) => s.setFanatikaOption('fanatika_v2_status_apps', v), icon: Icons.apps),
-          switcher('Fanatika tools shortcut in status bar', s.fanatikaStatusTools,
+          switcher('Tools shortcut in status bar', s.fanatikaStatusTools,
             (v) => s.setFanatikaOption('fanatika_v2_status_tools', v), icon: Icons.tune),
           switcher('Sleep settings shortcut in status bar', s.fanatikaStatusSleep,
             (v) => s.setFanatikaOption('fanatika_v2_status_sleep', v), icon: Icons.bedtime),

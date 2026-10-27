@@ -8,7 +8,7 @@ def read(path): return (ROOT / path).read_text(encoding='utf8')
 
 class UpdateV26Tests(unittest.TestCase):
     def test_version_and_settings_options(self):
-        self.assertIn('version: 2.8.2+4135', read('pubspec.yaml'))
+        self.assertIn('version: 2.8.3+4136', read('pubspec.yaml'))
         settings = read('lib/providers/settings_service.dart')
         self.assertIn('fanatikaUpdateCadenceChoices = [0, 15, 30]', settings)
         self.assertIn('setFanatikaReleaseRepo', settings)
@@ -51,7 +51,7 @@ class UpdateV26Tests(unittest.TestCase):
     def test_prompt_before_download_and_install(self):
         ui=read('lib/widgets/fanatika_update_dialog.dart')
         self.assertIn('Download and verify', ui)
-        self.assertIn('Install verified Fanatika update?', ui)
+        self.assertIn('Install verified update?', ui)
         self.assertIn('Open Android installer', ui)
         self.assertIn('fanatikaVerifyReleaseApk',ui)
         self.assertIn('fanatikaInstallVerifiedReleaseApk',ui)

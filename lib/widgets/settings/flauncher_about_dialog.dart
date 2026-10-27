@@ -39,7 +39,7 @@ class LTvLauncherAboutDialog extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: Image.asset("assets/icon.png", height: 72),
       ),
-      applicationLegalese: "Fanatika customization of Arc Launcher by Meddouri Badis; based on FLauncher and LTvLauncher. Licensed under GPL-3.0-or-later.",
+      applicationLegalese: "Customization of Arc Launcher by Meddouri Badis; based on FLauncher and LTvLauncher. Licensed under GPL-3.0-or-later.",
       children: [
         SizedBox(height: 24),
         Text(localizations.textAboutDialog("https://github.com/meddouribadis/arclauncher"))

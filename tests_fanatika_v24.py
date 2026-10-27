@@ -37,7 +37,7 @@ class V24Checks(unittest.TestCase):
   self.assertEqual(struct.unpack('>II',icon[16:24]),(512,512))
   self.assertEqual(struct.unpack('>II',splash[16:24]),(1920,1080))
   self.assertNotIn('Fanatika TV Launcher',self.read('lib/flauncher.dart'))
-  self.assertIn('fanatika_splash_logo',self.read('android/app/src/main/res/drawable/launch_background.xml'))
+  self.assertNotIn('fanatika_splash_logo',self.read('android/app/src/main/res/drawable/launch_background.xml'))
  def test_signed_workflow(self):
   wf=self.read('.github/workflows/build-fanatika-signed.yml')
   for key in ['FANATIKA_KEYSTORE_B64','FANATIKA_STORE_PASSWORD','FANATIKA_KEY_ALIAS','FANATIKA_KEY_PASSWORD']:

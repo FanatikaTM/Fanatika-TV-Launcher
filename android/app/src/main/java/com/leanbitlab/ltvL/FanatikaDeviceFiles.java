@@ -111,7 +111,7 @@ public final class FanatikaDeviceFiles {
                 out.write(buffer,0,n);
             }
         } catch (Exception ex) { activity.getContentResolver().delete(outUri,null,null); throw ex; }
-        return outcome(true, "Wallpaper saved to Pictures/Fanatika. Select it from Arc wallpaper gallery.");
+        return outcome(true, "Wallpaper saved to the Pictures library. Select it from the wallpaper gallery.");
     }
     static Map<String, Object> readBackup(Activity activity, Uri uri) throws Exception {
         try (InputStream in = activity.getContentResolver().openInputStream(uri)) {

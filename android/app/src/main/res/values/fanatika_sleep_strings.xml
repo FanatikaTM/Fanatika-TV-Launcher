@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="fanatika_sleep_accessibility_description">Optional long-press sleep shortcut. Reads no screen text, only selected remote key events. Enable manually in Accessibility settings.</string>
-    <string name="fanatika_sleep_admin_label">Fanatika TV sleep permission</string>
-    <string name="fanatika_sleep_accessibility_label">Fanatika Sleep Shortcut</string>
+    <string name="fanatika_sleep_admin_label">TV sleep permission</string>
+    <string name="fanatika_sleep_accessibility_label">TV Sleep Shortcut</string>
 </resources>

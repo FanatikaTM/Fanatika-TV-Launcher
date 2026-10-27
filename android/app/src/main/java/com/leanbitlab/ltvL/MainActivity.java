@@ -326,7 +326,7 @@ public class MainActivity extends FlutterActivity {
                     } catch (SecurityException ignored) { /* Only app-owned Downloads are readable. */ }
                 }
             }
-            throw new java.io.IOException("No readable Fanatika backup found in Downloads/Fanatika. If migrating debug to release, export from the old app and use the ADB migration guide.");
+            throw new java.io.IOException("No readable settings backup found in the backup folder. If migrating debug to release, export from the old app and use the ADB migration guide.");
         }
         File dir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
         File[] files = dir == null ? null : dir.listFiles((d, name) ->
@@ -465,7 +465,7 @@ public class MainActivity extends FlutterActivity {
                 PackageInfo apkInfo = getPackageManager().getPackageArchiveInfo(cache.getAbsolutePath(), 0);
                 if (apkInfo == null || !getPackageName().equals(apkInfo.packageName)) {
                     cache.delete();
-                    throw new SecurityException("This APK is not Fanatika TV Launcher");
+                    throw new SecurityException("This APK is not for this launcher");
                 }
                 callback.success(cache.getAbsolutePath());
             }
@@ -533,20 +533,29 @@ public class MainActivity extends FlutterActivity {
     private Map<String, Object> openTvSourcePicker() {
         Map<String, Object> response = new HashMap<>();
         response.put("opened", false);
-        String[] actions = {"android.intent.action.TV_INPUT", "android.settings.TV_INPUT_SETTINGS"};
+        // AOSP Live TV exposes VIEW_INPUTS on compatible builds. Xiaomi may
+        // reserve its own Quick Settings input picker to privileged components.
+        String[] actions = {
+            "com.android.tv.action.VIEW_INPUTS",
+            "android.intent.action.TV_INPUT",
+            "android.settings.TV_INPUT_SETTINGS"
+        };
         for (String action : actions) {
             try {
                 Intent intent = new Intent(action);
+                intent.addCategory(Intent.CATEGORY_DEFAULT);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                if (intent.resolveActivity(getPackageManager()) != null) {
-                    startActivity(intent);
-                    response.put("opened", true);
-                    response.put("detail", "Opened available TV input menu/settings");
-                    return response;
-                }
+                startActivity(intent);
+                response.put("opened", true);
+                response.put("detail", "Requested TV input picker via " + action);
+                return response;
+            } catch (ActivityNotFoundException ignored) {
+                // Try the next public input action.
+            } catch (SecurityException blocked) {
+                // Some OEM input menus cannot be launched by third-party apps.
             } catch (Exception ignored) { }
         }
-        response.put("detail", "This TV does not expose an input picker to third-party launchers. Use the remote INPUT button or TV settings.");
+        response.put("detail", "The native input picker is not exposed to this launcher. Use the TV INPUT button or the available input list.");
         return response;
     }
 
@@ -828,14 +837,14 @@ public class MainActivity extends FlutterActivity {
             File allowed = new File(getFilesDir(), "fanatika_updates").getCanonicalFile();
             if (!apk.getParentFile().equals(allowed) || !apk.getName().equals("fanatika-reviewed-release.apk") ||
                     !apk.isFile() || apk.length() == 0 || apk.length() > 250L * 1024L * 1024L) {
-                throw new Exception("APK is not a downloaded Fanatika release");
+                throw new Exception("APK is not an authorized downloaded release");
             }
             PackageManager pm = getPackageManager();
             final int flags = Build.VERSION.SDK_INT >= 28
                     ? PackageManager.GET_SIGNING_CERTIFICATES : PackageManager.GET_SIGNATURES;
             android.content.pm.PackageInfo incoming = pm.getPackageArchiveInfo(apk.getAbsolutePath(), flags);
             if (incoming == null || !getPackageName().equals(incoming.packageName)) {
-                throw new Exception("Package ID does not match the installed Fanatika app");
+                throw new Exception("Package ID does not match the installed launcher");
             }
             android.content.pm.PackageInfo existing = pm.getPackageInfo(getPackageName(), flags);
             long newer = Build.VERSION.SDK_INT >= 28 ? incoming.getLongVersionCode() : incoming.versionCode;
@@ -856,7 +865,7 @@ public class MainActivity extends FlutterActivity {
             java.util.Set<String> actual = new java.util.HashSet<>();
             for (android.content.pm.Signature signature : installed) expected.add(signature.toCharsString());
             for (android.content.pm.Signature signature : candidate) actual.add(signature.toCharsString());
-            if (!expected.equals(actual)) throw new Exception("Signing certificate does not match installed Fanatika");
+            if (!expected.equals(actual)) throw new Exception("Signing certificate does not match installed launcher");
             outcome.put("ok", true);
             outcome.put("detail", "Validated package, newer version and matching signing certificate");
             outcome.put("versionCode", newer);
@@ -910,7 +919,7 @@ public class MainActivity extends FlutterActivity {
         Uri apkUri = FileProvider.getUriForFile(
                 this, getPackageName() + ".fileprovider", apkFile);
         int grants = Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK;
-        android.content.ClipData uriGrant = android.content.ClipData.newRawUri("Fanatika APK", apkUri);
+        android.content.ClipData uriGrant = android.content.ClipData.newRawUri("Update APK", apkUri);
         Intent installIntent = new Intent(Intent.ACTION_INSTALL_PACKAGE)
                 .setData(apkUri)
                 .addFlags(grants);

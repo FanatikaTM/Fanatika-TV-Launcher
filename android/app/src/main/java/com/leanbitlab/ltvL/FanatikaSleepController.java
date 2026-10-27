@@ -92,7 +92,7 @@ public final class FanatikaSleepController {
         Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
         intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, admin(activity));
         intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-                "Optional: permit Fanatika to lock/sleep the display after your chosen long-press shortcut or sleep timer. You can revoke access in Android settings.");
+                "Optional: permit the launcher to lock/sleep the display after your chosen long-press shortcut or sleep timer. You can revoke access in Android settings.");
         try {
             activity.startActivity(intent);
             return answer(true, "Approve the permission on your TV, then return and refresh status.");
@@ -104,7 +104,7 @@ public final class FanatikaSleepController {
     public static Map<String, Object> openAccessibility(Activity activity) {
         try {
             activity.startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
-            return answer(true, "Enable Fanatika Sleep Shortcut in Android Accessibility settings only if you want global remote key handling.");
+            return answer(true, "Enable TV Sleep Shortcut in Android Accessibility settings only if you want global remote key handling.");
         } catch (Exception e) {
             return answer(false, "Android TV does not expose Accessibility settings on this device.");
         }
