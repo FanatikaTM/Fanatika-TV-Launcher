@@ -30,7 +30,7 @@ class QuickSettingsChecks(unittest.TestCase):
         source = read('lib/providers/apps_service.dart')
         for method in ['getOrCreateFavoritesCategory','addToFavorites','removeFromFavorites','reorderApplication']:
             self.assertIn(method,source)
-    def test_new_version(self): self.assertIn('version: 2.8.1+4134', read('pubspec.yaml'))
+    def test_new_version(self): self.assertIn('version: 2.8.2+4135', read('pubspec.yaml'))
     def test_workflow(self): self.assertIn('tests_fanatika_v28',read('.github/workflows/build-fanatika-signed.yml'))
 
 if __name__ == '__main__': unittest.main()

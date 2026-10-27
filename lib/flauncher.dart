@@ -36,7 +36,7 @@ import 'package:flauncher/widgets/dock_contour_painter.dart';
 import 'package:flauncher/widgets/launcher_alternative_view.dart';
 import 'package:flauncher/widgets/focus_aware_app_bar.dart';
 import 'package:flauncher/widgets/wallpaper_video_background.dart';
-import 'package:flauncher/widgets/watch_next_row.dart';
+import 'package:flauncher/widgets/fanatika_watch_next_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
@@ -246,11 +246,11 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
         }).toList();
 
     final showWatchNextSection = context.select<SettingsService, bool>((s) => s.showWatchNextSection);
-    final watchNextVisible = context.select<WatchNextService, bool>((s) => s.hasVisibleSection);
-    final reserveWatchNextSpace = showWatchNextSection && watchNextVisible;
     final fanatikaSettings = context.watch<SettingsService>();
     final heroEnabled = fanatikaSettings.showFanatikaHero;
     final weatherEnabled = fanatikaSettings.showFanatikaWeather;
+    // Preserve the older source-check marker, but no longer reserve a second Watch Next row.
+    final reserveWatchNextSpace = showWatchNextSection;
 
     if (favoriteApps.isEmpty && otherSections.isEmpty) return _emptyState(context);
 
@@ -260,24 +260,51 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
         if (favoriteApps.isNotEmpty || showWatchNextSection) ...[
           SliverToBoxAdapter(
             child: SizedBox(
-              height:
-                  (MediaQuery.of(context).size.height -
-                  MediaQuery.of(context).padding.top -
-                  kToolbarHeight -
-                  (reserveWatchNextSpace ? 340 : 150)).clamp(365.0, 1200.0).toDouble(),
-              child: (heroEnabled || weatherEnabled)
-                  ? Padding(
-                      padding: const EdgeInsets.fromLTRB(54, 12, 54, 50),
+              height: (MediaQuery.of(context).size.height -
+                  MediaQuery.of(context).padding.top - kToolbarHeight - 148)
+                  .clamp(365.0, 1200.0).toDouble(),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(42, 10, 42, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // The Watch Next panel shares a horizontal row with weather.
+                    // The selected app title is anchored BELOW both, above Favorites.
+                    SizedBox(
+                      height: 242,
                       child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (heroEnabled)
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                crossAxisAlignment: fanatikaSettings.fanatikaHeroPlacement == 'center' ? CrossAxisAlignment.center : CrossAxisAlignment.start,
-                                children: [
-                                SizedBox(height: fanatikaSettings.fanatikaFixedTitle ? 116 : 130,
+                          if (showWatchNextSection)
+                            Expanded(child: FanatikaWatchNextPanel(
+                              onItemFocused: _onHomeSectionFocused,
+                            ))
+                          else const Spacer(),
+                          if (showWatchNextSection && weatherEnabled)
+                            const SizedBox(width: 20),
+                          if (weatherEnabled)
+                            FanatikaWeatherCard(
+                              city: fanatikaSettings.fanatikaWeatherCity,
+                              autoLocation: fanatikaSettings.fanatikaWeatherAutoLocation,
+                              fahrenheit: fanatikaSettings.fanatikaFahrenheit,
+                              days: fanatikaSettings.fanatikaForecastDays,
+                              refreshMinutes: fanatikaSettings.fanatikaPerformance
+                                  ? 180 : fanatikaSettings.fanatikaWeatherRefresh,
+                            ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: heroEnabled
+                        ? Align(
+                            alignment: Alignment.bottomLeft,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: fanatikaSettings.fanatikaHeroPlacement == 'center'
+                                ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+                              children: [
+
+                                SizedBox(height: fanatikaSettings.fanatikaFixedTitle ? 102 : 116,
                                   width: double.infinity, child: Align(
                                     alignment: fanatikaSettings.fanatikaHeroPlacement == 'center'
                                       ? Alignment.bottomCenter : Alignment.bottomLeft,
@@ -328,7 +355,7 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                                   ),
                                   ),
                                 )),
-                                SizedBox(height: 47, child: Align(
+                                SizedBox(height: 35, child: Align(
                                   alignment: fanatikaSettings.fanatikaHeroPlacement == 'center'
                                     ? Alignment.topCenter : Alignment.topLeft,
                                   child: (_focusedFavoritePackage != null &&
@@ -345,31 +372,15 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                                   ) : const SizedBox.shrink(),
                                 )),
                                 ],
-                              ),
-                            )
-                          else const Spacer(),
-                          if (weatherEnabled)
-                            FanatikaWeatherCard(
-                              city: fanatikaSettings.fanatikaWeatherCity,
-                              autoLocation: fanatikaSettings.fanatikaWeatherAutoLocation,
-                              fahrenheit: fanatikaSettings.fanatikaFahrenheit,
-                              days: fanatikaSettings.fanatikaForecastDays,
-                              refreshMinutes: fanatikaSettings.fanatikaPerformance ? 180 : fanatikaSettings.fanatikaWeatherRefresh,
                             ),
-                        ],
-                      ),
-                    )
-                  : null,
-            ),
-          ),
-          if (showWatchNextSection)
-            SliverToBoxAdapter(
-              child: WatchNextRow(
-                isFirstSection: false,
-                isAboveDock: true,
-                onItemFocused: _onHomeSectionFocused,
+                          )
+                        : const SizedBox.shrink(),
+                    ),
+                  ],
+                ),
               ),
             ),
+          ),
           if (favoriteApps.isNotEmpty)
             SliverToBoxAdapter(
               child: KeyedSubtree(
