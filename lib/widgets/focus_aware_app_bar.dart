@@ -18,7 +18,8 @@ import 'network_widget.dart';
 
 class FocusAwareAppBar extends StatefulWidget implements PreferredSizeWidget
 {
-  const FocusAwareAppBar({Key? key}) : super(key: key);
+  final VoidCallback? onHomeRequested;
+  const FocusAwareAppBar({Key? key, this.onHomeRequested}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -119,6 +120,41 @@ class FocusAwareAppBarState extends State<FocusAwareAppBar>
                 child: const Icon(Icons.dashboard_customize_outlined, size: 21, color: Colors.white),
               ),
               const SizedBox(width: 8),
+              // Google TV-inspired pill navigation. These are Fanatika routes,
+              // not a replacement for the TV's protected OEM HOME handler.
+              if (MediaQuery.sizeOf(context).width >= 980) ...[
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xD43D536F),
+                    borderRadius: BorderRadius.circular(32)),
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    AppBarFocusRing(
+                      onPressed: widget.onHomeRequested ?? () {},
+                      semanticLabel: 'Home – scroll to top',
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        decoration: BoxDecoration(color: const Color(0xFFE8F1F9),
+                          borderRadius: BorderRadius.circular(18)),
+                        child: const Text('Home', style: TextStyle(fontSize: 13,
+                          fontWeight: FontWeight.w700, color: Color(0xFF253D5C))),
+                      )),
+                    AppBarFocusRing(
+                      onPressed: () => showDialog(context: context,
+                        builder: (_) => const SettingsPanel(initialRoute: ApplicationsPanelPage.routeName)),
+                      semanticLabel: 'Apps',
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      child: const Text('Apps', style: TextStyle(fontSize: 13, color: Colors.white))),
+                    AppBarFocusRing(
+                      onPressed: () => showDialog(context: context,
+                        builder: (_) => const SettingsPanel(initialRoute: FanatikaToolsHub.routeName)),
+                      semanticLabel: 'Tools',
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      child: const Text('Tools', style: TextStyle(fontSize: 13, color: Colors.white))),
+                  ])),
+                const SizedBox(width: 10),
+              ],
               // Settings button
               AppBarFocusRing(
                 focusNode: _settingsFocusNode,
@@ -151,8 +187,8 @@ class FocusAwareAppBarState extends State<FocusAwareAppBar>
               if (context.watch<SettingsService>().fanatikaStatusTools) ...[
                 const SizedBox(width: 8),
                 AppBarFocusRing(
-                  onPressed: () => showDialog(context: context, builder: (_) => const SettingsPanel(initialRoute: FanatikaV2Page.routeName)),
-                  semanticLabel: 'Fanatika tools', child: const Icon(Icons.tune, size: 20, color: Colors.white)),
+                  onPressed: () => showDialog(context: context, builder: (_) => const SettingsPanel(initialRoute: FanatikaToolsHub.routeName)),
+                  semanticLabel: 'Tools', child: const Icon(Icons.tune, size: 20, color: Colors.white)),
               ],
               if (context.watch<SettingsService>().fanatikaStatusSleep) ...[
                 const SizedBox(width: 8),

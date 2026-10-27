@@ -16,7 +16,7 @@ class FanatikaToolsHub extends StatelessWidget {
     (title: 'Sleep & standby', icon: Icons.bedtime_outlined, sections: ['Sleep and standby']),
   ];
   @override Widget build(BuildContext context) => Column(children: [
-    const Padding(padding: EdgeInsets.all(12), child: Text('Fanatika tools', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
+    const Padding(padding: EdgeInsets.all(12), child: Text('Tools', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
     const Divider(height: 1),
     Expanded(child: ListView.builder(itemCount: categories.length, itemBuilder: (context, index) {
       final item = categories[index];

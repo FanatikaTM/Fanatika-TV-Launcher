@@ -145,6 +145,11 @@ class _FanatikaSleepPageState extends State<FanatikaSleepPage> with WidgetsBindi
             adminActive ? 'You can revoke it in Android security settings' : 'Required for timer and shortcut',
           autofocus: true,
         ),
+        _tile(Icons.tv_outlined, 'Open TV native Sleep Timer settings',
+          () => _perform(() async {
+            await _native.openSettings();
+            return {'message': 'TV Settings > System > Power & Energy > Power > Sleep Timer. Native Xiaomi timer is not controlled by Fanatika.'};
+          }), subtitle: 'Recommended for MiTV-M0EU0; uses the original TV timer'),
         _tile(Icons.settings_outlined, 'Open Xiaomi display and sleep settings',
           () => _perform(() async {
             final opened = await _native.fanatikaOpenDisplaySleepSettings();

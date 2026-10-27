@@ -22,8 +22,8 @@ class FanatikaQuickSettingsDialog extends StatefulWidget {
 }
 
 class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialog> {
-  static const Color base = Color(0xFF173960);
-  static const Color tileBlue = Color(0xFF326EA6);
+  static const Color base = Color(0xFF253D5C);
+  static const Color tileBlue = Color(0xFF476685);
   final FLauncherChannel _channel = FLauncherChannel();
   Timer? _clockTimer;
   DateTime _now = DateTime.now();
@@ -84,6 +84,15 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
     });
   }
 
+  Future<void> _openNativeSleepSettings() => _perform(() async {
+    // The native Xiaomi timer is controlled by the firmware, not by Fanatika.
+    // A public third-party intent to select its exact timer is not available.
+    // Opening Settings is a reliable, non-privileged starting point.
+    if (mounted) setState(() => _notice =
+      'In TV Settings: System > Power & Energy > Power > Sleep Timer.');
+    await _channel.openSettings();
+  });
+
   Future<void> _showSleep() async {
     setState(() { _sleepOptions = true; _notice = ''; });
     try {
@@ -99,8 +108,7 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
 
   Future<void> _scheduleSleep(int minutes) async {
     if (!_deviceAdminEnabled) {
-      setState(() => _notice = 'Fanatika needs optional sleep permission. '
-          'The Xiaomi native timer is separate; open Sleep & Standby settings.');
+      await _openNativeSleepSettings();
       return;
     }
     final accepted = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
@@ -149,7 +157,7 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
           borderRadius: BorderRadius.circular(30),
           border: Border.all(color: const Color(0x449EC9F4), width: 1),
           gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-            colors: [Color(0xF72E6498), base, Color(0xF70C254B)]),
+            colors: [Color(0xF9577191), base, Color(0xF7213450)]),
           boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 30, offset: Offset(0, 8))],
         ),
         child: Padding(
@@ -219,7 +227,7 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
     crossAxisCount: 2, childAspectRatio: 2.5,
     mainAxisSpacing: 9, crossAxisSpacing: 9,
     children: [
-      _QuickTile(icon: Icons.tune, text: 'Fanatika tools', autofocus: true,
+      _QuickTile(icon: Icons.tune, text: 'Tools', autofocus: true,
         onPressed: () => _openPanel(FanatikaToolsHub.routeName)),
       _QuickTile(icon: Icons.system_update, text: 'Updates',
         onPressed: () => _openPanel(FanatikaUpdatesPage.routeName)),
@@ -237,11 +245,14 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
   Widget _sleepBody() => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     const Text('Sleep timer', style: TextStyle(fontSize: 23, fontWeight: FontWeight.w800)),
     const SizedBox(height: 8),
+    FilledButton.icon(onPressed: _openNativeSleepSettings,
+      icon: const Icon(Icons.tv), label: const Text('TV native Sleep Timer settings')),
+    const SizedBox(height: 8),
     if (!_deviceAdminEnabled) const Padding(
       padding: EdgeInsets.only(bottom: 8),
-      child: Text('Fanatika cannot yet schedule Android sleep on this TV. '
-          'Enable optional Device Administrator permission in Sleep & Standby, '
-          'or use Xiaomi’s native Sleep Timer from the TV’s own menu.',
+      child: Text('The Xiaomi timer is controlled by TV firmware. In TV Settings open '
+          'System > Power & Energy > Power > Sleep Timer. The durations below '
+          'are Fanatika timers, available only with Device Administrator sleep permission.',
         style: TextStyle(fontSize: 12, color: Color(0xFFFFE1AD)))),
     Expanded(child: GridView.count(crossAxisCount: 1, childAspectRatio: 8.5,
       mainAxisSpacing: 6,
@@ -265,7 +276,7 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
   ]);
 
   Widget _bottomNavigation() => Row(children: [
-    const Text('Fanatika Quick Settings', style: TextStyle(fontSize: 11, color: Colors.white60)),
+    const Text('Quick Settings', style: TextStyle(fontSize: 11, color: Colors.white60)),
     const Spacer(),
     if (!_sleepOptions) ...[
       IconButton(onPressed: () => setState(() => _page = 0),
@@ -293,7 +304,7 @@ class _QuickTile extends StatefulWidget {
 class _QuickTileState extends State<_QuickTile> {
   bool focused = false;
   @override Widget build(BuildContext context) => Material(
-    color: focused ? const Color(0xFFEDF5FF) : _FanatikaQuickSettingsDialogState.tileBlue,
+    color: focused ? const Color(0xFFEDF2F8) : _FanatikaQuickSettingsDialogState.tileBlue,
     borderRadius: BorderRadius.circular(19),
     child: InkWell(
       borderRadius: BorderRadius.circular(19),
@@ -302,13 +313,13 @@ class _QuickTileState extends State<_QuickTile> {
       onTap: widget.onPressed,
       child: Padding(padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 6),
         child: Row(children: [
-          Icon(widget.icon, color: focused ? const Color(0xFF173960) : Colors.white,
+          Icon(widget.icon, color: focused ? const Color(0xFF253D5C) : Colors.white,
             size: widget.compact ? 18 : 22),
           const SizedBox(width: 10),
           Expanded(child: Text(widget.text,
             maxLines: 2, overflow: TextOverflow.ellipsis,
             style: TextStyle(fontWeight: FontWeight.w700,
-              color: focused ? const Color(0xFF173960) : Colors.white,
+              color: focused ? const Color(0xFF253D5C) : Colors.white,
               fontSize: widget.compact ? 13 : 15))),
         ]),
       ),
