@@ -7,7 +7,7 @@ def read(p): return (ROOT/p).read_text(encoding='utf-8')
 
 class FanatikaV282Tests(unittest.TestCase):
     def test_version(self):
-        self.assertIn('version: 2.8.3+4136', read('pubspec.yaml'))
+        self.assertIn('version: 2.8.4+4137', read('pubspec.yaml'))
     def test_watch_next_left_of_weather(self):
         source=read('lib/flauncher.dart')
         self.assertIn('FanatikaWatchNextPanel(',source)
@@ -15,7 +15,7 @@ class FanatikaV282Tests(unittest.TestCase):
         self.assertNotIn('child: WatchNextRow(',source)
     def test_hero_is_below_both_panels(self):
         source=read('lib/flauncher.dart')
-        self.assertLess(source.index('FanatikaWeatherCard('),source.index('child: heroEnabled'))
+        self.assertLess(source.index('FanatikaWeatherCard('),source.index('if (heroEnabled) Expanded('))
         self.assertIn('key: ValueKey(_focusedFavoritePackage',source)
     def test_empty_state_and_permission_recovery(self):
         source=read('lib/widgets/fanatika_watch_next_panel.dart')

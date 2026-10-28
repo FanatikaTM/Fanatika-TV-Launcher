@@ -252,6 +252,31 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
     // Preserve the older source-check marker, but no longer reserve a second Watch Next row.
     final reserveWatchNextSpace = showWatchNextSection;
 
+    final topPanels = Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (showWatchNextSection)
+                            Expanded(child: FanatikaWatchNextPanel(
+                              onItemFocused: _onHomeSectionFocused,
+                              onNavigateUp: () => _appBarKey.currentState?.focusSettings(),
+                              expandVertical: !heroEnabled,
+                            ))
+                          else const Spacer(),
+                          if (showWatchNextSection && weatherEnabled)
+                            const SizedBox(width: 20),
+                          if (weatherEnabled)
+                            FanatikaWeatherCard(
+                              expandVertical: !heroEnabled,
+                              city: fanatikaSettings.fanatikaWeatherCity,
+                              autoLocation: fanatikaSettings.fanatikaWeatherAutoLocation,
+                              fahrenheit: fanatikaSettings.fanatikaFahrenheit,
+                              days: fanatikaSettings.fanatikaForecastDays,
+                              refreshMinutes: fanatikaSettings.fanatikaPerformance
+                                  ? 180 : fanatikaSettings.fanatikaWeatherRefresh,
+                            ),
+                        ],
+                      );
+
     if (favoriteApps.isEmpty && otherSections.isEmpty) return _emptyState(context);
 
     return CustomScrollView(
@@ -270,33 +295,11 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                   children: [
                     // The Watch Next panel shares a horizontal row with weather.
                     // The selected app title is anchored BELOW both, above Favorites.
-                    SizedBox(
-                      height: 242,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (showWatchNextSection)
-                            Expanded(child: FanatikaWatchNextPanel(
-                              onItemFocused: _onHomeSectionFocused,
-                            ))
-                          else const Spacer(),
-                          if (showWatchNextSection && weatherEnabled)
-                            const SizedBox(width: 20),
-                          if (weatherEnabled)
-                            FanatikaWeatherCard(
-                              city: fanatikaSettings.fanatikaWeatherCity,
-                              autoLocation: fanatikaSettings.fanatikaWeatherAutoLocation,
-                              fahrenheit: fanatikaSettings.fanatikaFahrenheit,
-                              days: fanatikaSettings.fanatikaForecastDays,
-                              refreshMinutes: fanatikaSettings.fanatikaPerformance
-                                  ? 180 : fanatikaSettings.fanatikaWeatherRefresh,
-                            ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: heroEnabled
-                        ? Align(
+                    heroEnabled
+                      ? SizedBox(height: 242, child: topPanels)
+                      : Expanded(child: topPanels),
+                    if (heroEnabled) Expanded(
+                      child: Align(
                             alignment: Alignment.bottomLeft,
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.end,
@@ -373,8 +376,7 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                                 )),
                                 ],
                             ),
-                          )
-                        : const SizedBox.shrink(),
+                          ),
                     ),
                   ],
                 ),

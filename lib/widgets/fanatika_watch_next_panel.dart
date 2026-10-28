@@ -1,19 +1,33 @@
 // Fanatika compact Watch Next: placed beside Weather, above the selected app title.
 // Content comes from Android's TV Provider. It is never fabricated by the launcher.
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flauncher/models/watch_next_item.dart';
 import 'package:flauncher/providers/watch_next_service.dart';
 
 class FanatikaWatchNextPanel extends StatelessWidget {
   final VoidCallback? onItemFocused;
-  const FanatikaWatchNextPanel({super.key, this.onItemFocused});
+  final VoidCallback? onNavigateUp;
+  final bool expandVertical;
+  const FanatikaWatchNextPanel({super.key, this.onItemFocused,
+    this.onNavigateUp, this.expandVertical = false});
 
   @override
   Widget build(BuildContext context) {
     return Consumer<WatchNextService>(builder: (context, service, _) {
-      return Container(
-        height: 242,
+      return Focus(
+        canRequestFocus: false,
+        onKeyEvent: (node, event) {
+          if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.arrowUp
+              && onNavigateUp != null) {
+            onNavigateUp!();
+            return KeyEventResult.handled;
+          }
+          return KeyEventResult.ignored;
+        },
+        child: Container(
+        height: expandVertical ? double.infinity : 242,
         padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
         decoration: BoxDecoration(
           color: const Color(0xA5101F38),
@@ -36,7 +50,7 @@ class FanatikaWatchNextPanel extends StatelessWidget {
           const SizedBox(height: 4),
           Expanded(child: _body(context, service)),
         ]),
-      );
+      ));
     });
   }
 

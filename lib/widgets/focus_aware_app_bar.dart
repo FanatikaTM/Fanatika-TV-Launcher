@@ -1,5 +1,6 @@
 import 'package:flauncher/widgets/settings/settings_panel.dart';
 import 'package:flauncher/widgets/fanatika_quick_settings_dialog.dart';
+import 'package:flauncher/widgets/tv_top_navigation_dialog.dart';
 import 'package:flauncher/widgets/settings/tv_inputs_panel_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_v2_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_tools_hub.dart';
@@ -132,8 +133,10 @@ class FocusAwareAppBarState extends State<FocusAwareAppBar>
                   padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     AppBarFocusRing(
-                      onPressed: widget.onHomeRequested ?? () {},
-                      semanticLabel: 'Home – scroll to top',
+                      onPressed: () => showDialog<void>(context: context,
+                        builder: (_) => TvTopNavigationDialog(
+                          tab: TvTopTab.home, onGoHome: widget.onHomeRequested)),
+                      semanticLabel: 'Home menu',
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
@@ -143,15 +146,15 @@ class FocusAwareAppBarState extends State<FocusAwareAppBar>
                           fontWeight: FontWeight.w700, color: Color(0xFF253D5C))),
                       )),
                     AppBarFocusRing(
-                      onPressed: () => showDialog(context: context,
-                        builder: (_) => const SettingsPanel(initialRoute: ApplicationsPanelPage.routeName)),
-                      semanticLabel: 'Apps',
+                      onPressed: () => showDialog<void>(context: context,
+                        builder: (_) => const TvTopNavigationDialog(tab: TvTopTab.apps)),
+                      semanticLabel: 'Apps menu',
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       child: const Text('Apps', style: TextStyle(fontSize: 13, color: Colors.white))),
                     AppBarFocusRing(
-                      onPressed: () => showDialog(context: context,
-                        builder: (_) => const SettingsPanel(initialRoute: FanatikaToolsHub.routeName)),
-                      semanticLabel: 'Tools',
+                      onPressed: () => showDialog<void>(context: context,
+                        builder: (_) => const TvTopNavigationDialog(tab: TvTopTab.tools)),
+                      semanticLabel: 'Tools menu',
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       child: const Text('Tools', style: TextStyle(fontSize: 13, color: Colors.white))),
                   ])),

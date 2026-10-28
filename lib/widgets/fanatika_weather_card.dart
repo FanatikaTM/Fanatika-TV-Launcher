@@ -14,7 +14,10 @@ class FanatikaWeatherCard extends StatefulWidget {
   final bool autoLocation;
   final int days;
   final int refreshMinutes;
-  const FanatikaWeatherCard({super.key, required this.city, required this.fahrenheit, this.autoLocation = false, this.days = 3, this.refreshMinutes = 60});
+  final bool expandVertical;
+  const FanatikaWeatherCard({super.key, required this.city, required this.fahrenheit,
+    this.autoLocation = false, this.days = 3, this.refreshMinutes = 60,
+    this.expandVertical = false});
   @override
   State<FanatikaWeatherCard> createState() => _FanatikaWeatherCardState();
 }
@@ -120,13 +123,16 @@ class _FanatikaWeatherCardState extends State<FanatikaWeatherCard> {
     final unit = widget.fahrenheit ? '°F' : '°C';
     return Container(
       width: 268,
+      height: widget.expandVertical ? double.infinity : null,
       padding: const EdgeInsets.all(17),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.58),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.white24),
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: widget.expandVertical ? MainAxisSize.max : MainAxisSize.min,
+        children: [
         Text(_autoLocationLabel ?? widget.city, maxLines: 1, overflow: TextOverflow.ellipsis,
           style: const TextStyle(color: Colors.white70, fontSize: 16)),
         const SizedBox(height: 7),
@@ -142,6 +148,7 @@ class _FanatikaWeatherCardState extends State<FanatikaWeatherCard> {
           Text('H ${w.maximum.round()}°  ·  L ${w.minimum.round()}°',
             style: const TextStyle(color: Colors.white70, fontSize: 13)),
           if (w.forecast.isNotEmpty) ...[
+            if (widget.expandVertical) const Spacer(),
             const Divider(color: Colors.white24, height: 20),
             Wrap(spacing: 12, runSpacing: 6, alignment: WrapAlignment.center,
               children: w.forecast.map((day) => SizedBox(width: 58, child: Column(children: [
