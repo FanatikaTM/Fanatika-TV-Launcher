@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:flauncher/providers/settings_service.dart';
 import 'package:flauncher/providers/watch_next_service.dart';
 import 'package:flauncher/providers/plex_continue_watching_client.dart';
+import 'package:flauncher/providers/fanatika_plex_setup.dart';
 
 class PlexContinueWatchingPage extends StatefulWidget {
   static const routeName = 'fanatika_plex_continue_watching';
@@ -20,6 +21,71 @@ class _PlexContinueWatchingPageState extends State<PlexContinueWatchingPage> {
   bool _allowHttp = false;
   bool _busy = false;
   String _status = '';
+  FanatikaPlexPin? _pin;
+  List<FanatikaPlexServer> _discovered = [];
+
+  Future<void> _runSetup(Future<void> Function() action) async {
+    if (_busy) return;
+    setState(() { _busy = true; _status = ''; });
+    try { await action(); }
+    catch (e) {
+      if (mounted) setState(() => _status = e.toString().replaceFirst('Bad state: ', ''));
+    } finally { if (mounted) setState(() => _busy = false); }
+  }
+
+  // Option 1: Use the Android TV feed already exported by installed apps.
+  Future<void> _checkAndroidFeed() async => _runSetup(() async {
+    final feed = context.read<WatchNextService>();
+    await feed.refreshPermissionAndItems();
+    if (!mounted) return;
+    final count = feed.items.where((item) => item.packageName == 'com.plexapp.android' && item.source != 'plex').length;
+    setState(() => _status = feed.hasPermission
+      ? 'Android TV is publishing $count Plex Watch Next entries. '
+        '${count == 0 ? 'Plex may not publish recommendations on this TV. Try Plex pairing.' : 'These entries are shown without a Plex token.'}'
+      : 'Android Watch Next permission is unavailable. Grant permission in TV settings or use Plex sign-in.');
+  });
+
+  // Option 2: Probe LAN with Plex GDM. No credentials leave the device.
+  Future<void> _discover() async => _runSetup(() async {
+    final servers = await FanatikaPlexSetup.discoverLocal();
+    if (!mounted) return;
+    setState(() { _discovered = servers; _status = servers.isEmpty
+      ? 'No Plex servers detected by LAN broadcast. You can still sign in to Plex or enter a server address.'
+      : '${servers.length} Plex server(s) found. Select one below, then pair your account.'; });
+  });
+
+  // Option 3: PIN sign-in, never reading another app's private storage.
+  Future<void> _pair() async => _runSetup(() async {
+    final pin = await FanatikaPlexSetup.startPairing();
+    if (mounted) setState(() { _pin = pin; _status = 'Go to plex.tv/link on your phone and enter the displayed code.'; });
+  });
+
+  Future<void> _checkPin() async => _runSetup(() async {
+    final pin = _pin;
+    if (pin == null) return;
+    final accountToken = await FanatikaPlexSetup.checkPairing(pin);
+    if (!mounted) return;
+    if (accountToken == null) {
+      setState(() => _status = 'Not approved yet. Approve the code at plex.tv/link, then check again.');
+      return;
+    }
+    final servers = await FanatikaPlexSetup.accountServers(accountToken);
+    if (!mounted) return;
+    // Keep the account token only for this pairing step; never save it to disk.
+    if (servers.isEmpty) { setState(() => _status = 'Signed in, but the account returned no accessible Plex Media Servers.'); return; }
+    final chosen = await showDialog<FanatikaPlexServer>(context: context,
+      builder: (ctx) => SimpleDialog(title: const Text('Choose your Plex server'), children: [
+        for (final server in servers) SimpleDialogOption(
+          onPressed: () => Navigator.pop(ctx, server),
+          child: Text('${server.name}  •  ${Uri.parse(server.url).host}')),
+      ]));
+    if (!mounted || chosen == null) return;
+    _server.text = chosen.url;
+    _token.text = chosen.token;
+    setState(() { _allowHttp = chosen.allowHttp; _enabled = true; _pin = null;
+      _status = 'Server selected. Press Test Plex, then Save to enable the row.'; });
+  });
+
 
   @override
   void initState() {
@@ -92,6 +158,35 @@ class _PlexContinueWatchingPageState extends State<PlexContinueWatchingPage> {
         title: const Text('Enable Plex Watch Next'),
         value: _enabled, onChanged: _busy ? null : (value) => setState(() => _enabled = value),
       ),
+      const SizedBox(height: 14),
+      const Text('OPTION 1 — Android TV Watch Next (installed Plex app)',
+        style: TextStyle(fontWeight: FontWeight.bold)),
+      OutlinedButton.icon(onPressed: _busy ? null : _checkAndroidFeed,
+        icon: const Icon(Icons.tv), label: const Text('Check Plex entries from Android TV')),
+      const SizedBox(height: 12),
+      const Text('OPTION 2 — Find Plex servers on your local network',
+        style: TextStyle(fontWeight: FontWeight.bold)),
+      OutlinedButton.icon(onPressed: _busy ? null : _discover,
+        icon: const Icon(Icons.wifi_find), label: const Text('Discover Plex servers')),
+      for (final server in _discovered) ListTile(
+        title: Text(server.name), subtitle: Text(server.url),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: _busy ? null : () => setState(() { _server.text = server.url;
+          _allowHttp = server.allowHttp;
+          _status = 'Found server selected. Sign in to Plex to authorize access.'; }),
+      ),
+      const SizedBox(height: 12),
+      const Text('OPTION 3 — Sign in to Plex (recommended)',
+        style: TextStyle(fontWeight: FontWeight.bold)),
+      OutlinedButton.icon(onPressed: _busy ? null : _pair,
+        icon: const Icon(Icons.login), label: const Text('Start Plex pairing')),
+      if (_pin != null) ...[
+        const Text('On a phone or computer open https://plex.tv/link', style: TextStyle(fontSize: 14)),
+        SelectableText(_pin!.code, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+        OutlinedButton(onPressed: _busy ? null : _checkPin, child: const Text('I approved Plex — Check sign-in')),
+      ],
+      const SizedBox(height: 12),
+      const Text('Advanced — Manual connection', style: TextStyle(fontWeight: FontWeight.bold)),
       const SizedBox(height: 8),
       TextField(
         controller: _server, autocorrect: false,

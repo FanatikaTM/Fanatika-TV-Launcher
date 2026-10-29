@@ -10,8 +10,9 @@ class FanatikaWatchNextPanel extends StatelessWidget {
   final VoidCallback? onItemFocused;
   final VoidCallback? onNavigateUp;
   final bool expandVertical;
+  final FocusNode? firstItemFocusNode;
   const FanatikaWatchNextPanel({super.key, this.onItemFocused,
-    this.onNavigateUp, this.expandVertical = false});
+    this.onNavigateUp, this.expandVertical = false, this.firstItemFocusNode});
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +69,7 @@ class FanatikaWatchNextPanel extends StatelessWidget {
         key: ValueKey('${service.items[index].id}_${service.items[index].packageName}'),
         item: service.items[index],
         service: service,
+        focusNode: index == 0 ? firstItemFocusNode : null,
         onItemFocused: onItemFocused,
       ),
     );
@@ -78,8 +80,9 @@ class _WatchNextCompactCard extends StatefulWidget {
   final WatchNextItem item;
   final WatchNextService service;
   final VoidCallback? onItemFocused;
+  final FocusNode? focusNode;
   const _WatchNextCompactCard({super.key, required this.item, required this.service,
-    this.onItemFocused});
+    this.onItemFocused, this.focusNode});
 
   @override
   State<_WatchNextCompactCard> createState() => _WatchNextCompactCardState();
@@ -114,6 +117,7 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard> {
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
+        focusNode: widget.focusNode,
         onFocusChange: (focused) {
           if (mounted) setState(() => _focused = focused);
           if (focused) widget.onItemFocused?.call();

@@ -58,6 +58,7 @@ class AppCard extends StatefulWidget {
   final App application;
   final Category category;
   final bool autofocus;
+  final FocusNode? externalFocusNode;
   final void Function(AxisDirection) onMove;
   final VoidCallback onMoveEnd;
   final bool handleUpNavigationToSettings;
@@ -72,6 +73,7 @@ class AppCard extends StatefulWidget {
     required this.application,
     required this.category,
     required this.autofocus,
+    this.externalFocusNode,
     required this.onMove,
     required this.onMoveEnd,
     this.handleUpNavigationToSettings = false,
@@ -113,7 +115,7 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
     super.initState();
     _animation = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
     _curvedAnimation = CurvedAnimation(parent: _animation, curve: Curves.easeInOut);
-    _focusNode = FocusNode();
+    _focusNode = widget.externalFocusNode ?? FocusNode();
     _isTraditionalHighlightMode = FocusManager.instance.highlightMode == FocusHighlightMode.traditional;
 
     FocusManager.instance.addHighlightModeListener(_focusHighlightModeChanged);
@@ -137,6 +139,14 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
   @override
   void didUpdateWidget(AppCard oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.externalFocusNode != widget.externalFocusNode) {
+      final oldFocus = _focusNode;
+      _focusNode = widget.externalFocusNode ?? FocusNode();
+      if (oldWidget.externalFocusNode == null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => oldFocus.dispose());
+      }
+    }
 
     final appsService = Provider.of<AppsService>(context, listen: false);
 
@@ -170,7 +180,7 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
     FocusManager.instance.removeHighlightModeListener(_focusHighlightModeChanged);
     _curvedAnimation.dispose();
     _animation.dispose();
-    _focusNode.dispose();
+    if (widget.externalFocusNode == null) _focusNode.dispose();
 
     super.dispose();
   }

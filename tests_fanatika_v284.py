@@ -5,7 +5,7 @@ R=Path(__file__).resolve().parent
 read=lambda p:(R/p).read_text(encoding='utf-8')
 class LayoutFocusNav284(unittest.TestCase):
  def test_version_and_ci(self):
-  self.assertIn('version: 2.8.8+4141',read('pubspec.yaml'))
+  self.assertIn('version: 2.8.9+4142',read('pubspec.yaml'))
   self.assertIn('tests_fanatika_v284',read('.github/workflows/build-fanatika-signed.yml'))
  def test_focus_up_from_watch_next(self):
   panel=read('lib/widgets/fanatika_watch_next_panel.dart')

@@ -1,6 +1,7 @@
 // Configurable, D-pad-friendly text-only top navigation. Uses original
 // Arc launcher FocusRing decoration and the existing pill background.
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flauncher/flauncher_channel.dart';
 import 'package:flauncher/providers/network_service.dart';
@@ -17,7 +18,8 @@ import 'package:flauncher/widgets/settings/status_bar_panel_page.dart';
 class FanatikaTopBarTabs extends StatelessWidget {
   final FocusNode settingsFocusNode;
   final VoidCallback? onGoHome;
-  const FanatikaTopBarTabs({super.key, required this.settingsFocusNode, this.onGoHome});
+  final VoidCallback? onNavigateDown;
+  const FanatikaTopBarTabs({super.key, required this.settingsFocusNode, this.onGoHome, this.onNavigateDown});
 
   @override Widget build(BuildContext context) {
     final names = context.watch<SettingsService>().fanatikaTopBarTabs;
@@ -27,7 +29,14 @@ class FanatikaTopBarTabs extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         for (final name in names)
-          AppBarFocusRing(
+          Focus(canRequestFocus: false,
+            onKeyEvent: (node, event) {
+              if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.arrowDown && onNavigateDown != null) {
+                onNavigateDown!();
+                return KeyEventResult.handled;
+              }
+              return KeyEventResult.ignored;
+            }, child: AppBarFocusRing(
             focusNode: name == 'Settings' ? settingsFocusNode : null,
             onPressed: () => _open(context, name),
             semanticLabel: name,
@@ -37,10 +46,11 @@ class FanatikaTopBarTabs extends StatelessWidget {
               decoration: BoxDecoration(
                 color: name == 'Home' ? const Color(0xFFE8F1F9) : Colors.transparent,
                 borderRadius: BorderRadius.circular(18)),
-              child: Text(name, style: TextStyle(fontSize: 13,
+              child: name == 'Quick' ? const Icon(Icons.grid_view_rounded,
+                  size: 22, color: Colors.white) : Text(name, style: TextStyle(fontSize: 13,
                 fontWeight: name == 'Home' ? FontWeight.w700 : FontWeight.w500,
                 color: name == 'Home' ? const Color(0xFF253D5C) : Colors.white))),
-          ),
+          )),
       ]),
     );
   }

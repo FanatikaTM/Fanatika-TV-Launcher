@@ -18,7 +18,7 @@ jobs:
           channel: stable
           cache: true
       - name: Fanatika source checks
-        run: python3 -m unittest tests_sleep_source tests_fanatika_remote_ui tests_fanatika_v23 tests_fanatika_v24 tests_fanatika_v25 tests_fanatika_v26 tests_fanatika_v27 tests_fanatika_v271 tests_fanatika_v28 tests_fanatika_v281 tests_fanatika_v282 tests_fanatika_v283 tests_fanatika_v284 tests_fanatika_v285 tests_fanatika_v286 tests_fanatika_v287 tests_fanatika_v288
+        run: python3 -m unittest tests_sleep_source tests_fanatika_remote_ui tests_fanatika_v23 tests_fanatika_v24 tests_fanatika_v25 tests_fanatika_v26 tests_fanatika_v27 tests_fanatika_v271 tests_fanatika_v28 tests_fanatika_v281 tests_fanatika_v282 tests_fanatika_v283 tests_fanatika_v284 tests_fanatika_v285 tests_fanatika_v286 tests_fanatika_v287 tests_fanatika_v288 tests_fanatika_v289
       - name: Verify signing secrets (no secrets are logged)
         env:
           KEY_B64: ${{ secrets.FANATIKA_KEYSTORE_B64 }}

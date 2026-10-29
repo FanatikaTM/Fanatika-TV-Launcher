@@ -100,7 +100,7 @@ class _FanatikaSleepTimerDialogState extends State<FanatikaSleepTimerDialog> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(32),
           gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-            colors: [Color(0xFF3973A9), Color(0xFF244C83)]),
+            colors: [Color(0xFF3C4A62), Color(0xFF27334C)]),
           boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 24)]),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           const Text('Sleep timer', style: TextStyle(color: Colors.white,
@@ -169,7 +169,7 @@ class _TimerOption extends StatefulWidget {
 class _TimerOptionState extends State<_TimerOption> {
   bool _focused = false;
   @override Widget build(BuildContext context) => Material(
-    color: _focused ? Colors.white : const Color(0x554E95C7),
+    color: _focused ? Colors.white : const Color(0x553E546E),
     borderRadius: BorderRadius.circular(23),
     child: InkWell(
       autofocus: widget.autofocus,
@@ -179,7 +179,7 @@ class _TimerOptionState extends State<_TimerOption> {
       child: Padding(padding: const EdgeInsets.symmetric(horizontal: 21, vertical: 19),
         child: Text(widget.label, style: TextStyle(fontSize: 16,
           fontWeight: _focused ? FontWeight.w600 : FontWeight.w400,
-          color: _focused ? const Color(0xFF286394) : Colors.white),
+          color: _focused ? const Color(0xFF273D59) : Colors.white),
           textAlign: TextAlign.left)),
     ),
   );

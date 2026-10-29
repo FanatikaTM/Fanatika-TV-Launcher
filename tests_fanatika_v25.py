@@ -66,11 +66,11 @@ class V25Checks(unittest.TestCase):
   self.assertIn('FanatikaTopBarTabs(',b)
  def test_wallpapers(self):
   dialog=src('lib/widgets/settings/fanatika_mountains_dialog.dart')
-  names=['07_Bansko_Pirin.jpg','08_Pirin_River.jpg','09_Mountain_River.jpg','10_Bansko_Winter.jpg','11_Pirin_Alpine_Lake.jpg']
+  names=['07_Alpine_Lake_Photoreal.jpg','08_Winter_Twilight_Photoreal.jpg']
   for name in names:
    self.assertIn(name,dialog)
    self.assertTrue((ROOT/'assets/mountains'/name).read_bytes().startswith(b'\xff\xd8\xff'))
-  self.assertIn('illustrations', dialog)
+  self.assertIn('digitally generated', dialog)
  def test_manifest_valid(self): ElementTree.parse(ROOT/'android/app/src/main/AndroidManifest.xml')
  def test_signed_ci_order(self):
   wf=src('.github/workflows/build-fanatika-signed.yml')

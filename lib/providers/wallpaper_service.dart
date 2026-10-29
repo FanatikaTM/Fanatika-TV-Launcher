@@ -107,6 +107,8 @@ class WallpaperService extends ChangeNotifier {
     'assets/mountains/04_Amber_Peaks.jpg',
     'assets/mountains/05_Midnight_Blue.jpg',
     'assets/mountains/06_Soft_Mountain_Dusk.jpg',
+    'assets/mountains/07_Alpine_Lake_Photoreal.jpg',
+    'assets/mountains/08_Winter_Twilight_Photoreal.jpg',
   ];
 
   // Slideshow settings that require restarting its timer when they change.

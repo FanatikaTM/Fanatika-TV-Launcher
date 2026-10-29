@@ -5,7 +5,7 @@ from xml.etree import ElementTree as ET
 R=Path(__file__).resolve().parent
 def read(p): return (R/p).read_text(encoding='utf-8')
 class FanatikaV27Checks(unittest.TestCase):
- def test_version(self): self.assertIn('version: 2.8.8+4141',read('pubspec.yaml'))
+ def test_version(self): self.assertIn('version: 2.8.9+4142',read('pubspec.yaml'))
  def test_favorites_intact(self):
   a=read('lib/providers/apps_service.dart')
   for method in ['getOrCreateFavoritesCategory','addToFavorites','removeFromFavorites','reorderApplication']:

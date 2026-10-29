@@ -10,7 +10,8 @@ import 'date_time_widget.dart';
 class FocusAwareAppBar extends StatefulWidget implements PreferredSizeWidget
 {
   final VoidCallback? onHomeRequested;
-  const FocusAwareAppBar({Key? key, this.onHomeRequested}) : super(key: key);
+  final VoidCallback? onNavigateDown;
+  const FocusAwareAppBar({Key? key, this.onHomeRequested, this.onNavigateDown}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -107,7 +108,8 @@ class FocusAwareAppBarState extends State<FocusAwareAppBar>
             children: [
               // Every actionable shortcut now lives inside the ONE text-only pill.
               FanatikaTopBarTabs(settingsFocusNode: _settingsFocusNode,
-                onGoHome: widget.onHomeRequested),
+                onGoHome: widget.onHomeRequested,
+                onNavigateDown: widget.onNavigateDown),
               const SizedBox(width: 10),
               // WiFi usage widget
               Selector<SettingsService, bool>(

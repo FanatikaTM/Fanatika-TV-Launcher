@@ -63,6 +63,8 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
   final GlobalKey<FocusAwareAppBarState> _appBarKey = GlobalKey();
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _dockKey = GlobalKey();
+  final FocusNode _firstWatchNextFocusNode = FocusNode(debugLabel: 'First Watch Next');
+  final FocusNode _firstFavoriteFocusNode = FocusNode(debugLabel: 'First Favorite');
   String? _focusedFavoriteAppName;
   String? _focusedFavoritePackage;
 
@@ -75,6 +77,8 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _firstWatchNextFocusNode.dispose();
+    _firstFavoriteFocusNode.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -153,8 +157,7 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
               const available = <String>{
                 '01_Violet_Sunset.jpg', '02_Starlit_Alps.jpg', '03_Golden_Lake.jpg',
                 '04_Amber_Peaks.jpg', '05_Midnight_Blue.jpg', '06_Soft_Mountain_Dusk.jpg',
-                '07_Bansko_Pirin.jpg', '08_Pirin_River.jpg', '09_Mountain_River.jpg',
-                '10_Bansko_Winter.jpg', '11_Pirin_Alpine_Lake.jpg',
+                '07_Alpine_Lake_Photoreal.jpg', '08_Winter_Twilight_Photoreal.jpg',
               };
               if (image == null || !available.contains(image)) return const SizedBox.shrink();
               return Positioned.fill(child: IgnorePointer(child: AnimatedSwitcher(
@@ -197,7 +200,7 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                 ),
             child: Scaffold(
               backgroundColor: Colors.transparent,
-              appBar: FocusAwareAppBar(key: _appBarKey, onHomeRequested: () {
+              appBar: FocusAwareAppBar(key: _appBarKey, onNavigateDown: _focusFirstHomeItem, onHomeRequested: () {
                 if (_scrollController.hasClients) {
                   _scrollController.animateTo(0.0,
                     duration: const Duration(milliseconds: 220), curve: Curves.easeOutCubic);
@@ -221,6 +224,20 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
       ),
     ),
   );
+
+  void _focusFirstHomeItem() {
+    // D-pad Down from ANY tab starts at the left-most home item, regardless
+    // of remembered focus on the last item in either row.
+    final feed = context.read<WatchNextService>();
+    final settings = context.read<SettingsService>();
+    final target = settings.showWatchNextSection && feed.hasItems
+      ? _firstWatchNextFocusNode : _firstFavoriteFocusNode;
+    if (target.canRequestFocus && target.context != null) {
+      target.requestFocus();
+    } else if (_firstFavoriteFocusNode.context != null) {
+      _firstFavoriteFocusNode.requestFocus();
+    }
+  }
 
   void _setAppGridFocused(bool focused) {
     context.read<LauncherState>().setAppGridFocused(focused);
@@ -258,6 +275,7 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                           if (showWatchNextSection)
                             Expanded(child: FanatikaWatchNextPanel(
                               onItemFocused: _onHomeSectionFocused,
+                              firstItemFocusNode: _firstWatchNextFocusNode,
                               onNavigateUp: () => _appBarKey.currentState?.focusSettings(),
                               expandVertical: !heroEnabled,
                             ))
@@ -671,6 +689,7 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
           isFirstSection: handleUpNavigationToSettings,
           scrollAlignment: 1.0,
           onAppFocused: _onHomeSectionFocused,
+          firstFavoriteFocusNode: _firstFavoriteFocusNode,
           onFavoriteFocused: (app) {
             if (!mounted || _focusedFavoritePackage == app.packageName) return;
             setState(() { _focusedFavoriteAppName = app.name; _focusedFavoritePackage = app.packageName; });

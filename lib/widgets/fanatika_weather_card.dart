@@ -92,17 +92,34 @@ class _FanatikaWeatherCardState extends State<FanatikaWeatherCard> {
     try {
       WeatherInfo data;
       if (widget.autoLocation) {
-        // Read location only when the user opted in. A denied/unsupported fix
-        // falls back to the manually selected city without guessing from IP.
-        final fix = await FLauncherChannel().fanatikaApproximateLocation();
-        final lat = fix['latitude'];
-        final lon = fix['longitude'];
+        // User opt-in: Android approximate location -> public IP geolocation
+        // -> manually saved city. Never use the precise TV address.
+        Map<String, dynamic> fix = {};
+        try { fix = await FLauncherChannel().fanatikaApproximateLocation(); }
+        catch (_) { /* No location service on many Android TVs. */ }
+        var lat = fix['latitude'];
+        var lon = fix['longitude'];
         if (fix['ok'] == true && lat is num && lon is num) {
           data = await fetchWeatherByCoordinates(lat.toDouble(), lon.toDouble(), widget.fahrenheit, widget.days);
-          _autoLocationLabel = 'Current location (approximate)';
+          _autoLocationLabel = 'TV location (approximate)';
         } else {
-          data = await fetchWeather(widget.city, widget.fahrenheit, widget.days);
-          _autoLocationLabel = null;
+          try {
+            // The IP geolocation provider sees the TV's public IP address.
+            // This request only runs when Auto location has been enabled.
+            final response = await http.get(Uri.parse('https://ipwho.is/'))
+                .timeout(const Duration(seconds: 7));
+            if (response.statusCode != 200) throw const FormatException('IP geolocation offline');
+            final result = jsonDecode(response.body) as Map<String, dynamic>;
+            lat = result['latitude']; lon = result['longitude'];
+            if (result['success'] != true || lat is! num || lon is! num) {
+              throw const FormatException('Approximate IP position unavailable');
+            }
+            data = await fetchWeatherByCoordinates(lat.toDouble(), lon.toDouble(), widget.fahrenheit, widget.days);
+            _autoLocationLabel = '${result['city'] ?? 'Nearby'} (approximate IP)';
+          } catch (_) {
+            data = await fetchWeather(widget.city, widget.fahrenheit, widget.days);
+            _autoLocationLabel = '${widget.city} (saved city fallback)';
+          }
         }
       } else {
         _autoLocationLabel = null;
