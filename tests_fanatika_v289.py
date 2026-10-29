@@ -27,7 +27,16 @@ class V289(unittest.TestCase):
   p=ROOT/'assets/mountains'
   for name in ['07_Alpine_Lake_Photoreal.jpg','08_Winter_Twilight_Photoreal.jpg']:
    self.assertGreater((p/name).stat().st_size,25000)
-  self.assertFalse((p/'07_Bansko_Pirin.jpg').exists())
+  retired = ['07_Bansko_Pirin.jpg', '08_Pirin_River.jpg',
+             '09_Mountain_River.jpg', '10_Bansko_Winter.jpg',
+             '11_Pirin_Alpine_Lake.jpg']
+  picker=read('lib/widgets/settings/fanatika_v2_page.dart')
+  for name in retired:
+   self.assertFalse((p/name).exists(), f'Obsolete wallpaper still included: {name}')
+   self.assertNotIn(name,picker)
+  for name in ['07_Alpine_Lake_Photoreal.jpg','08_Winter_Twilight_Photoreal.jpg']:
+   self.assertIn(name,picker)
+  self.assertIn('cleanup_v289_wallpapers.py', read('.github/workflows/build-fanatika-signed.yml'))
  def test_sleep_color_and_icon(self):
   timer=read('lib/widgets/fanatika_sleep_timer_dialog.dart')
   self.assertIn('0xFF3C4A62',timer)

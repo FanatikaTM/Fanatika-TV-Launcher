@@ -23,3 +23,28 @@ A manual server/token setup is still available as an advanced fallback. Fanatika
 ## Source verification
 
 Run `python3 -m unittest discover -p 'tests_*.py' -q` and `flutter analyze --no-fatal-infos --no-fatal-warnings`. Then build and sign using the existing CI workflow. The source checks are not a Flutter/Android build substitute. Test on the real Xiaomi MiTV-M0EU0 before relying on sleep or remote behavior.
+
+## v2.8.9 wallpaper migration / GitHub Actions fix
+
+The v2.8.9 patch ZIP adds new images but cannot itself delete five old tracked images
+when copied over an existing v2.8.8 Git checkout. Old `07_Bansko_Pirin.jpg`,
+`08_Pirin_River.jpg`, `09_Mountain_River.jpg`, `10_Bansko_Winter.jpg`, and
+`11_Pirin_Alpine_Lake.jpg` must be retired. Otherwise the v2.8.9 wallpaper
+source test fails, and old illustration files can remain bundled in the APK.
+
+The corrected source includes `tools/cleanup_v289_wallpapers.py`. Both GitHub
+Actions workflows run this cleanup **before tests and builds**; no system or user
+app data is changed. This fixes the CI build even if a previous patch left the old
+JPGs tracked in the repository. For a permanent repository cleanup, run:
+
+```bash
+python3 tools/cleanup_v289_wallpapers.py
+git add -u assets/mountains
+git add tools/cleanup_v289_wallpapers.py .github/workflows/
+git commit -m "Migrate Fanatika v2.8.9 wallpapers"
+git push
+```
+
+The per-app background picker now lists only images present in v2.8.9, and
+previously saved legacy image choices are mapped to one of the new photo assets
+without modifying Favorites or overwriting saved settings.

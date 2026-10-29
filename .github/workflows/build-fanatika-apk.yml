@@ -19,6 +19,8 @@ jobs:
           flutter-version: '3.41.9'
           channel: stable
           cache: true
+      - name: Remove v2.8.8 retired wallpaper assets
+        run: python3 tools/cleanup_v289_wallpapers.py
       - name: Sleep source & safety checks
         run: python3 -m unittest tests_sleep_source tests_fanatika_remote_ui tests_fanatika_v23 tests_fanatika_v24 tests_fanatika_v25
       - name: Flutter environment

@@ -150,9 +150,8 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
     if (id == null || !mounted) return;
     const options = <String>['', '01_Violet_Sunset.jpg','02_Starlit_Alps.jpg',
       '03_Golden_Lake.jpg','04_Amber_Peaks.jpg','05_Midnight_Blue.jpg',
-      '06_Soft_Mountain_Dusk.jpg', '07_Bansko_Pirin.jpg',
-      '08_Pirin_River.jpg', '09_Mountain_River.jpg',
-      '10_Bansko_Winter.jpg', '11_Pirin_Alpine_Lake.jpg'];
+      '06_Soft_Mountain_Dusk.jpg', '07_Alpine_Lake_Photoreal.jpg',
+      '08_Winter_Twilight_Photoreal.jpg'];
     final selected = await FanatikaTvControls.choose<String>(context,
       title: 'Background for selected favorite', values: options,
       label: (name) => name.isEmpty ? 'None — use regular wallpaper' :

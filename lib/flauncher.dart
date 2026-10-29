@@ -152,8 +152,18 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
           // Optional per-app bundled backdrop. Does not modify Arc's Favorites or actual wallpaper.
           if (_focusedFavoritePackage != null)
             Builder(builder: (context) {
-              final image = context.watch<SettingsService>()
+              final storedImage = context.watch<SettingsService>()
                 .fanatikaAppBackgrounds[_focusedFavoritePackage];
+              // Existing app-background choices from earlier versions are migrated
+              // only for display; do not erase user preferences or Arc Favorites.
+              const legacyImages = <String, String>{
+                '07_Bansko_Pirin.jpg': '08_Winter_Twilight_Photoreal.jpg',
+                '08_Pirin_River.jpg': '07_Alpine_Lake_Photoreal.jpg',
+                '09_Mountain_River.jpg': '07_Alpine_Lake_Photoreal.jpg',
+                '10_Bansko_Winter.jpg': '08_Winter_Twilight_Photoreal.jpg',
+                '11_Pirin_Alpine_Lake.jpg': '07_Alpine_Lake_Photoreal.jpg',
+              };
+              final image = legacyImages[storedImage] ?? storedImage;
               const available = <String>{
                 '01_Violet_Sunset.jpg', '02_Starlit_Alps.jpg', '03_Golden_Lake.jpg',
                 '04_Amber_Peaks.jpg', '05_Midnight_Blue.jpg', '06_Soft_Mountain_Dusk.jpg',
