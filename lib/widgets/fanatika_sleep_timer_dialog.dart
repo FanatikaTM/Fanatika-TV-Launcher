@@ -144,7 +144,7 @@ class _FanatikaSleepTimerDialogState extends State<FanatikaSleepTimerDialog> {
                 if (mounted) setState(() => _error = 'TV sleep permission unavailable.');
               }
             }, child: const Text('Enable sleep permission',
-              style: TextStyle(color: Colors.white))),
+              style: TextStyle(color: Colors.white)))),
           if (_busy) const Padding(padding: EdgeInsets.only(top: 8),
             child: LinearProgressIndicator(minHeight: 2)),
           if (_error.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 10),
