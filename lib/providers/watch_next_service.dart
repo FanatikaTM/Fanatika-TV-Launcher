@@ -21,10 +21,23 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flauncher/flauncher_channel.dart';
 import 'package:flauncher/models/watch_next_item.dart';
+import 'package:flauncher/providers/settings_service.dart';
+import 'package:flauncher/providers/plex_continue_watching_client.dart';
 import 'package:http/http.dart' as http;
 
 class WatchNextService extends ChangeNotifier {
   final FLauncherChannel _fLauncherChannel;
+  final SettingsService _settings;
+  String? _plexError;
+  String? get plexError => _plexError;
+  bool get plexConfigured => _settings.plexConfigured;
+  bool get canShowItems => _hasPermission || plexConfigured;
+  PlexContinueWatchingClient? _plexClient;
+  String _plexConfigFingerprint = '';
+  bool _reloadAfterCurrentFetch = false;
+  List<WatchNextItem> _lastPlexItems = [];
+  DateTime? _lastPlexSuccess;
+  static const Duration _plexOfflineRetention = Duration(hours: 6);
 
   List<WatchNextItem> _items = [];
   bool _isLoading = false;
@@ -42,19 +55,46 @@ class WatchNextService extends ChangeNotifier {
   bool get hasItems => _items.isNotEmpty;
   bool get hasVisibleSection => !_isLoading && (!_hasPermission || _items.isNotEmpty);
 
-  WatchNextService(this._fLauncherChannel) {
+  WatchNextService(this._fLauncherChannel, this._settings) {
+    _plexConfigFingerprint = _currentPlexFingerprint();
+    _settings.addListener(_onPlexSettingsChanged);
     _init();
+  }
+
+  String _currentPlexFingerprint() => '${_settings.plexContinueWatchingEnabled}|'
+      '${_settings.plexServerUrl}|${_settings.plexAccessToken}|${_settings.plexAllowHttp}|${_settings.plexRefreshMinutes}';
+
+  void _onPlexSettingsChanged() {
+    final fingerprint = _currentPlexFingerprint();
+    if (_plexConfigFingerprint == fingerprint) return;
+    _plexConfigFingerprint = fingerprint;
+    if (_isLoading) {
+      _reloadAfterCurrentFetch = true;
+      return;
+    }
+    _plexClient?.dispose();
+    _plexClient = null;
+    _posterCache.clear();
+    _failedPosters.clear();
+    _lastPlexItems = [];
+    _lastPlexSuccess = null;
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(Duration(minutes: _settings.plexRefreshMinutes), (_) => unawaited(refreshPermissionAndItems()));
+    // Enabled/profile values may change during device usage.
+    unawaited(refreshPermissionAndItems());
   }
 
   void _init() async {
     await refreshPermissionAndItems();
-    _refreshTimer = Timer.periodic(const Duration(minutes: 5), (_) {
-      refreshPermissionAndItems();
+    _refreshTimer = Timer.periodic(Duration(minutes: _settings.plexRefreshMinutes), (_) {
+      unawaited(refreshPermissionAndItems());
     });
   }
 
   @override
   void dispose() {
+    _settings.removeListener(_onPlexSettingsChanged);
+    _plexClient?.dispose();
     _refreshTimer?.cancel();
     _posterNotifyDebounce?.cancel();
     super.dispose();
@@ -80,10 +120,11 @@ class WatchNextService extends ChangeNotifier {
 
   Future<void> refreshPermissionAndItems() async {
     await checkPermission();
-    if (_hasPermission) {
+    if (canShowItems) {
       await refreshItems();
     } else {
       _items = [];
+      _plexError = null;
       notifyListeners();
     }
   }
@@ -91,9 +132,9 @@ class WatchNextService extends ChangeNotifier {
   Future<void> refreshItems() async {
     if (_isLoading) return;
 
-    if (!_hasPermission) {
+    if (!canShowItems) {
       await checkPermission();
-      if (!_hasPermission) {
+      if (!canShowItems) {
         _items = [];
         notifyListeners();
         return;
@@ -104,9 +145,34 @@ class WatchNextService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final results = await _fLauncherChannel.getWatchNextItems();
-      _items = results.map((map) => WatchNextItem.fromMap(map)).toList();
-
+      final androidItems = _hasPermission
+        ? (await _fLauncherChannel.getWatchNextItems())
+            .map((map) => WatchNextItem.fromMap(map)).toList()
+        : <WatchNextItem>[];
+      var plexItems = <WatchNextItem>[];
+      _plexError = null;
+      if (plexConfigured) {
+        try {
+          _plexClient ??= PlexContinueWatchingClient(_settings.plexServerUrl,
+            _settings.plexAccessToken, allowHttp: _settings.plexAllowHttp);
+          plexItems = await _plexClient!.load(limit: 10);
+          _lastPlexItems = plexItems;
+          _lastPlexSuccess = DateTime.now();
+        } catch (e) {
+          // No token or server address in messages.
+          _plexError = e is PlexContinueWatchingException ? e.message :
+            'Cannot reach Plex. Check the TV network and server address.';
+          // Keep a short-lived non-sensitive in-memory list; never persist tokens.
+          if (_lastPlexSuccess != null && DateTime.now().difference(_lastPlexSuccess!) < _plexOfflineRetention) {
+            plexItems = _lastPlexItems;
+          }
+        }
+      }
+      // Plex-specific rows come first; suppress duplicate system rows from Plex.
+      _items = [
+        ...plexItems,
+        ...androidItems.where((item) => plexItems.isEmpty || item.packageName != 'com.plexapp.android'),
+      ].take(20).toList();
       unawaited(_preloadInitialPosters());
     } catch (e) {
       debugPrint('WatchNext: Error loading items: $e');
@@ -114,6 +180,14 @@ class WatchNextService extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+      if (_reloadAfterCurrentFetch) {
+        _reloadAfterCurrentFetch = false;
+        _plexClient?.dispose();
+        _plexClient = null;
+        _posterCache.clear();
+        _failedPosters.clear();
+        unawaited(refreshPermissionAndItems());
+      }
     }
   }
 
@@ -161,6 +235,9 @@ class WatchNextService extends ChangeNotifier {
 
       if (uri.startsWith('content://')) {
         imageBytes = await _fLauncherChannel.loadContentUriImage(uri);
+      } else if (_plexClient != null && _items.any((item) =>
+          item.source == 'plex' && item.posterUri == uri)) {
+        imageBytes = await _plexClient!.poster(uri);
       } else {
         final uriObj = Uri.parse(uri);
         final response = await http.get(uriObj).timeout(const Duration(seconds: 10));
@@ -204,7 +281,7 @@ class WatchNextService extends ChangeNotifier {
 
   Future<void> launchItem(WatchNextItem item) async {
     debugPrint('WatchNext: Launching item: ${item.title}');
-    debugPrint('WatchNext: packageName=${item.packageName}, contentId=${item.contentId}, intentUri=${item.intentUri}');
+    // Do not log Plex item IDs, deep links or tokens.
 
     if (item.packageName == null && item.intentUri == null) {
       debugPrint('WatchNext: Cannot launch - no package name or intent URI');

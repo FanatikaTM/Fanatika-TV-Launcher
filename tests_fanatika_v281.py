@@ -7,11 +7,11 @@ def read(p): return (R/p).read_text(encoding='utf-8')
 
 class QuickSettings281(unittest.TestCase):
     def test_version_and_workflow(self):
-        self.assertIn('version: 2.8.4+4137', read('pubspec.yaml'))
+        self.assertIn('version: 2.8.7+4140', read('pubspec.yaml'))
         self.assertIn('tests_fanatika_v281', read('.github/workflows/build-fanatika-signed.yml'))
     def test_visible_short_names(self):
-        self.assertIn("title: const Text('Tools')", read('lib/widgets/settings/settings_panel_page.dart'))
-        self.assertIn("title: const Text('Updates')", read('lib/widgets/settings/settings_panel_page.dart'))
+        self.assertIn("'TV & tools'", read('lib/widgets/settings/settings_panel_page.dart'))
+        self.assertIn("'Updates'", read('lib/widgets/settings/unified_settings_pages.dart'))
         self.assertIn("Text('Tools'", read('lib/widgets/settings/fanatika_tools_hub.dart'))
         self.assertIn("Text('Updates'", read('lib/widgets/settings/fanatika_updates_page.dart'))
     def test_top_pill_nav_does_not_override_home(self):

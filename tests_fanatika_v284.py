@@ -5,7 +5,7 @@ R=Path(__file__).resolve().parent
 read=lambda p:(R/p).read_text(encoding='utf-8')
 class LayoutFocusNav284(unittest.TestCase):
  def test_version_and_ci(self):
-  self.assertIn('version: 2.8.4+4137',read('pubspec.yaml'))
+  self.assertIn('version: 2.8.7+4140',read('pubspec.yaml'))
   self.assertIn('tests_fanatika_v284',read('.github/workflows/build-fanatika-signed.yml'))
  def test_focus_up_from_watch_next(self):
   panel=read('lib/widgets/fanatika_watch_next_panel.dart')
@@ -21,9 +21,12 @@ class LayoutFocusNav284(unittest.TestCase):
   self.assertIn('height: widget.expandVertical ? double.infinity : null',read('lib/widgets/fanatika_weather_card.dart'))
  def test_three_tabs_have_options(self):
   menu=read('lib/widgets/tv_top_navigation_dialog.dart')
-  for title in ['Go to Home','Watch Next','Weather','Large selected-app title','Installed applications','Favorites and sections','Updates','USB storage','Sleep and standby','TV inputs and HDMI','All Settings']:
-   self.assertIn(title,menu)
-  self.assertIn('settings.setShowAppNamesBelowIcons',menu)
+  for route in ['UnifiedHomePage.routeName','UnifiedAppsPage.routeName','UnifiedSystemPage.routeName']:
+   self.assertIn(route,menu)
+  sections=read('lib/widgets/settings/unified_settings_pages.dart')
+  for title in ['Plex Continue Watching', 'Show weather', 'Show large title', 'Installed applications', 'Favorites and sections', 'Updates', 'USB files', 'Sleep / standby', 'Native Input / Source menu']:
+   self.assertIn(title,sections)
+  self.assertIn('s.setShowAppNamesBelowIcons',sections)
   bar=read('lib/widgets/focus_aware_app_bar.dart')
   for key in ['TvTopTab.home','TvTopTab.apps','TvTopTab.tools']:
    self.assertIn(key,bar)

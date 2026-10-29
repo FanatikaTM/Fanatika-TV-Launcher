@@ -1,7 +1,8 @@
 import 'package:flauncher/widgets/settings/settings_panel.dart';
 import 'package:flauncher/widgets/fanatika_quick_settings_dialog.dart';
 import 'package:flauncher/widgets/tv_top_navigation_dialog.dart';
-import 'package:flauncher/widgets/settings/tv_inputs_panel_page.dart';
+import 'package:flauncher/flauncher_channel.dart';
+import 'package:flauncher/widgets/settings/unified_settings_pages.dart';
 import 'package:flauncher/widgets/settings/fanatika_v2_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_tools_hub.dart';
 import 'package:flauncher/widgets/settings/fanatika_sleep_page.dart';
@@ -176,10 +177,13 @@ class FocusAwareAppBarState extends State<FocusAwareAppBar>
               ),
               const SizedBox(width: 8),
               AppBarFocusRing(
-                onPressed: () => showDialog(
-                  context: context,
-                  builder: (_) => const SettingsPanel(initialRoute: TvInputsPanelPage.routeName),
-                ),
+                onPressed: () async {
+                  final result = await FLauncherChannel().openTvSourcePicker();
+                  if (context.mounted && result['opened'] != true) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('Native input picker not available. Use your TV INPUT/SOURCE button.')));
+                  }
+                },
                 semanticLabel: 'TV Sources / Inputs',
                 child: const Icon(Icons.settings_input_hdmi, size: 20, color: Colors.white),
               ),
@@ -192,7 +196,7 @@ class FocusAwareAppBarState extends State<FocusAwareAppBar>
               if (context.watch<SettingsService>().fanatikaStatusTools) ...[
                 const SizedBox(width: 8),
                 AppBarFocusRing(
-                  onPressed: () => showDialog(context: context, builder: (_) => const SettingsPanel(initialRoute: FanatikaToolsHub.routeName)),
+                  onPressed: () => showDialog(context: context, builder: (_) => const SettingsPanel(initialRoute: UnifiedSystemPage.routeName)),
                   semanticLabel: 'Tools', child: const Icon(Icons.tune, size: 20, color: Colors.white)),
               ],
               if (context.watch<SettingsService>().fanatikaStatusSleep) ...[

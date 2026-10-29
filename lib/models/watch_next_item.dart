@@ -30,6 +30,12 @@ class WatchNextItem {
   final String? intentUri;
   final int? watchNextType;
   final String? aspectRatio;
+  // Native Android TV vs authenticated Plex Media Server Continue Watching.
+  final String source;
+  final String? plexRatingKey;
+  final String? plexServerId;
+  final bool plexIsShow;
+  final int? plexViewOffset;
 
   WatchNextItem({
     required this.id,
@@ -45,6 +51,11 @@ class WatchNextItem {
     this.intentUri,
     this.watchNextType,
     this.aspectRatio,
+    this.source = 'android',
+    this.plexRatingKey,
+    this.plexServerId,
+    this.plexIsShow = false,
+    this.plexViewOffset,
   });
 
   factory WatchNextItem.fromMap(Map<dynamic, dynamic> map) {
@@ -64,6 +75,11 @@ class WatchNextItem {
       intentUri: map['intentUri'],
       watchNextType: map['watchNextType'],
       aspectRatio: map['aspectRatio'],
+      source: map['source'] ?? 'android',
+      plexRatingKey: map['plexRatingKey'],
+      plexServerId: map['plexServerId'],
+      plexIsShow: map['plexIsShow'] ?? false,
+      plexViewOffset: map['plexViewOffset'],
     );
   }
 
@@ -82,6 +98,11 @@ class WatchNextItem {
       'intentUri': intentUri,
       'watchNextType': watchNextType,
       'aspectRatio': aspectRatio,
+      'source': source,
+      'plexRatingKey': plexRatingKey,
+      'plexServerId': plexServerId,
+      'plexIsShow': plexIsShow,
+      'plexViewOffset': plexViewOffset,
     };
   }
 }

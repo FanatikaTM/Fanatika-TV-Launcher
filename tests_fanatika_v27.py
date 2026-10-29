@@ -5,14 +5,14 @@ from xml.etree import ElementTree as ET
 R=Path(__file__).resolve().parent
 def read(p): return (R/p).read_text(encoding='utf-8')
 class FanatikaV27Checks(unittest.TestCase):
- def test_version(self): self.assertIn('version: 2.8.4+4137',read('pubspec.yaml'))
+ def test_version(self): self.assertIn('version: 2.8.7+4140',read('pubspec.yaml'))
  def test_favorites_intact(self):
   a=read('lib/providers/apps_service.dart')
   for method in ['getOrCreateFavoritesCategory','addToFavorites','removeFromFavorites','reorderApplication']:
    self.assertIn(method,a)
  def test_separate_updates_and_submenus(self):
-  settings=read('lib/widgets/settings/settings_panel_page.dart')
-  for route in ['FanatikaUpdatesPage.routeName','FanatikaToolsHub.routeName','FanatikaUsbPage.routeName']:
+  settings=read('lib/widgets/settings/unified_settings_pages.dart')
+  for route in ['FanatikaUpdatesPage.routeName','FanatikaUsbPage.routeName','FanatikaV2Page.routeName']:
    self.assertIn(route,settings)
   hub=read('lib/widgets/settings/fanatika_tools_hub.dart')
   self.assertIn('FanatikaV2Page(sections: item.sections)',hub)

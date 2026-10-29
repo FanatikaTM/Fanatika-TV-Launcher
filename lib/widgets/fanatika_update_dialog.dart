@@ -1,10 +1,34 @@
 // Fanatika update UI. The user must approve download and Android installation.
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:flauncher/providers/settings_service.dart';
+import 'package:flauncher/providers/apps_service.dart';
+import 'package:flauncher/providers/fanatika_backup_service.dart';
 import 'package:flauncher/flauncher_channel.dart';
 import 'package:flauncher/providers/fanatika_release_checker.dart';
 import 'package:flauncher/providers/fanatika_apk_downloader.dart';
 
 class FanatikaUpdateDialogs {
+  static Future<bool> backupBeforeInstall(BuildContext context) async {
+    final backup = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
+      title: const Text('Back up before updating'),
+      content: const Text('Save the current settings and original Arc Favorites order to Downloads/Fanatika before installing the update? Plex tokens and PINs are excluded. A backup is strongly recommended.'),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel update')),
+        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Back up and continue')),
+      ],
+    )) ?? false;
+    if (!backup || !context.mounted) return false;
+    try {
+      final ok = await FanatikaBackupService.export(context.read<SettingsService>(), context.read<AppsService>());
+      if (ok) return true;
+      if (context.mounted) await showStatus(context, 'Backup was not saved; update cancelled. Check TV storage.');
+    } catch (_) {
+      if (context.mounted) await showStatus(context, 'Backup failed; update cancelled. Check TV storage and retry.');
+    }
+    return false;
+  }
+
   static Future<void> showStatus(BuildContext context, String message) => showDialog<void>(
     context: context, builder: (ctx) => AlertDialog(
       title: const Text('Updates'), content: Text(message),
@@ -60,6 +84,7 @@ class FanatikaUpdateDialogs {
         ],
       )) ?? false;
       if (!install || !context.mounted) return;
+      if (!await backupBeforeInstall(context) || !context.mounted) return;
       final result = await channel.fanatikaInstallVerifiedReleaseApk(downloaded.path);
       if (!context.mounted) return;
       if (result['needsPermission'] == true) {

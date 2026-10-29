@@ -333,25 +333,36 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                                       style: TextStyle(
                                         color: Colors.white.withValues(alpha: fanatikaSettings.fanatikaHeroOpacity),
                                         fontSize: fanatikaSettings.fanatikaHeroSize,
-                                        fontWeight: fanatikaSettings.fanatikaTitleStyle == 'Classic' || fanatikaSettings.fanatikaTitleStyle == 'Elegant' || fanatikaSettings.fanatikaTitleStyle == 'Soft'
+                                        fontWeight: fanatikaSettings.fanatikaTitleWeight >= 100
+                                          ? FontWeight.values[(fanatikaSettings.fanatikaTitleWeight ~/ 100 - 1).clamp(0, 8).toInt()]
+                                          : fanatikaSettings.fanatikaTitleStyle == 'Classic' || fanatikaSettings.fanatikaTitleStyle == 'Elegant' || fanatikaSettings.fanatikaTitleStyle == 'Soft'
                                           ? FontWeight.w500 : fanatikaSettings.fanatikaTitleStyle == 'Minimal'
                                           ? FontWeight.w300 : FontWeight.w800,
-                                        letterSpacing: fanatikaSettings.fanatikaTitleStyle == 'Bold' ? 1.3
-                                          : fanatikaSettings.fanatikaTitleStyle == 'Wide' ? 2.7 : fanatikaSettings.fanatikaTitleStyle == 'Mono' ? 1.5 : fanatikaSettings.fanatikaTitleStyle == 'Elegant' ? 1.8 : 0.35,
-                                        fontFamily: fanatikaSettings.fanatikaTitleStyle == 'Mono' ? 'monospace' : fanatikaSettings.fanatikaTitleStyle == 'Elegant' ? 'serif' : null,
+                                        letterSpacing: fanatikaSettings.fanatikaTitleSpacing + (fanatikaSettings.fanatikaTitleStyle == 'Bold' ? 1.3
+                                          : fanatikaSettings.fanatikaTitleStyle == 'Wide' ? 2.7 : fanatikaSettings.fanatikaTitleStyle == 'Mono' ? 1.5 : fanatikaSettings.fanatikaTitleStyle == 'Elegant' ? 1.8 : 0.0),
+                                        fontFamily: fanatikaSettings.fanatikaTitleFont == 'Automatic'
+                                          ? (fanatikaSettings.fanatikaTitleStyle == 'Mono' ? 'monospace'
+                                              : fanatikaSettings.fanatikaTitleStyle == 'Elegant' ? 'serif' : null)
+                                          : fanatikaSettings.fanatikaTitleFont,
                                         fontStyle: fanatikaSettings.fanatikaTitleStyle == 'Elegant' ? FontStyle.italic : FontStyle.normal,
                                         height: 1.04,
                                         shadows: fanatikaSettings.fanatikaTitleStyle == 'Outline' || fanatikaSettings.fanatikaTitleStyle == 'Steel'
-                                          ? const [Shadow(color: Colors.black, blurRadius: 1, offset: Offset(1, 1)), Shadow(color: Colors.white54, blurRadius: 4)]
+                                          ? [
+                                            Shadow(color: Colors.black87, blurRadius: 0, offset: Offset(fanatikaSettings.fanatikaTitleOutline, 0)),
+                                            Shadow(color: Colors.black87, blurRadius: 0, offset: Offset(-fanatikaSettings.fanatikaTitleOutline, 0)),
+                                            Shadow(color: Colors.black87, blurRadius: 0, offset: Offset(0, fanatikaSettings.fanatikaTitleOutline)),
+                                            Shadow(color: Colors.black87, blurRadius: 0, offset: Offset(0, -fanatikaSettings.fanatikaTitleOutline)),
+                                            Shadow(color: Colors.white54, blurRadius: 4 * fanatikaSettings.fanatikaTitleShadow),
+                                          ]
                                           : fanatikaSettings.fanatikaTitleStyle == 'Sunset'
                                           ? const [Shadow(color: Colors.deepOrangeAccent, blurRadius: 19), Shadow(color: Colors.black87, blurRadius: 28)]
                                           : fanatikaSettings.fanatikaTitleStyle == 'Glow' || fanatikaSettings.fanatikaTitleStyle == 'Neon'
                                           ? const [Shadow(color: Colors.lightBlueAccent, blurRadius: 22), Shadow(color: Colors.black87, blurRadius: 28)]
                                           : fanatikaSettings.fanatikaTitleStyle == 'Classic'
-                                          ? const [Shadow(color: Colors.black87, blurRadius: 10)]
-                                          : const [
-                                              Shadow(color: Color(0xEE07101B), blurRadius: 16, offset: Offset(0, 3)),
-                                              Shadow(color: Colors.black87, blurRadius: 26, offset: Offset(0, 6)),
+                                          ? [Shadow(color: Colors.black87, blurRadius: 10 * fanatikaSettings.fanatikaTitleShadow)]
+                                          : [
+                                              Shadow(color: Color(0xEE07101B), blurRadius: 16 * fanatikaSettings.fanatikaTitleShadow, offset: Offset(0, 3)),
+                                              Shadow(color: Colors.black87, blurRadius: 26 * fanatikaSettings.fanatikaTitleShadow, offset: Offset(0, 6)),
                                             ],
                                       ),
                                     ),

@@ -1,6 +1,7 @@
 
 import 'package:flauncher/providers/settings_service.dart';
 import 'package:flauncher/providers/watch_next_service.dart';
+import 'package:flauncher/widgets/settings/plex_continue_watching_page.dart';
 import 'package:flauncher/widgets/rounded_switch_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -69,10 +70,16 @@ class MiscPanelPage extends StatelessWidget {
                 title: Text(localizations.showWatchNextSection, style: Theme.of(context).textTheme.bodyMedium),
                 secondary: Icon(Icons.play_circle_outline),
               ),
+              ListTile(
+                leading: const Icon(Icons.movie_filter_outlined),
+                title: const Text('Plex Continue Watching'),
+                subtitle: const Text('Direct Plex Media Server source'),
+                onTap: () => Navigator.of(context).pushNamed(PlexContinueWatchingPage.routeName),
+              ),
               if (settingsService.showWatchNextSection)
                 Consumer<WatchNextService>(
                   builder: (context, watchNextService, _) {
-                    if (watchNextService.hasPermission) {
+                    if (watchNextService.hasPermission || watchNextService.plexConfigured) {
                       return const SizedBox.shrink();
                     }
                     return Padding(

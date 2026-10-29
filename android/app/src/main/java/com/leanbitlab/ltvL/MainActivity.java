@@ -108,6 +108,19 @@ public class MainActivity extends FlutterActivity {
 
         BinaryMessenger messenger = flutterEngine.getDartExecutor().getBinaryMessenger();
 
+        new MethodChannel(messenger, "com.fanatika.tvlauncher/remote_settings").setMethodCallHandler((call, result) -> {
+            if ("consume".equals(call.method)) result.success(FanatikaRemoteControlProvider.consume(this));
+            else if ("consumeBackup".equals(call.method)) result.success(FanatikaRemoteControlProvider.consumeBackup(this));
+            else if ("backupStatus".equals(call.method)) {
+                FanatikaRemoteControlProvider.backupStatus(this, (String) call.arguments());
+                result.success(true);
+            }
+            else if ("confirmed".equals(call.method)) {
+                FanatikaRemoteControlProvider.confirmed(this, (String) call.arguments());
+                result.success(true);
+            } else result.notImplemented();
+        });
+
         new MethodChannel(messenger, METHOD_CHANNEL).setMethodCallHandler((call, result) -> {
             switch (call.method) {
                 // No Android document-provider app is required on Xiaomi TV.
@@ -1363,6 +1376,9 @@ public class MainActivity extends FlutterActivity {
                 if (action.startsWith("intent://")) {
                     android.util.Log.d("MainActivity", "Parsing intent URI: " + action);
                     intent = Intent.parseUri(action, Intent.URI_INTENT_SCHEME);
+                } else if (action.startsWith("plex://")) {
+                    // Plex's current Android client accepts library detail deep links.
+                    intent = new Intent(Intent.ACTION_VIEW, Uri.parse(action));
                 } else if (action.startsWith("content://") || action.startsWith("http://") || action.startsWith("https://")) {
                     android.util.Log.d("MainActivity", "Creating VIEW intent for URI: " + action);
                     intent = new Intent(Intent.ACTION_VIEW, Uri.parse(action));

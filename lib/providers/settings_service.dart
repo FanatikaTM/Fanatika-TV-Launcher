@@ -18,11 +18,13 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flauncher/providers/reddit_slideshow.dart';
 import 'package:flauncher/providers/unsplash_slideshow.dart';
 import 'package:flauncher/widgets/settings/back_button_actions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -90,6 +92,81 @@ class SettingsService extends ChangeNotifier {
   static final defaultDateFormat = "EEEE d";
   static final defaultTimeFormat = "H:mm";
   final SharedPreferences _sharedPreferences;
+  static const MethodChannel _remoteChannel = MethodChannel('com.fanatika.tvlauncher/remote_settings');
+  Timer? _remoteTimer;
+  bool _remotePolling = false;
+  bool _remoteInitialPublished = false;
+  static const remoteFonts = <String>['Automatic','sans-serif','sans-serif-condensed',
+    'sans-serif-light','sans-serif-medium','sans-serif-black','serif','monospace','cursive','casual'];
+  static const remoteStyles = <String>['Classic','Bold','Cinema','Glass','Glow','Neon',
+    'Minimal','Wide','Shadow','Outline','Elegant','Sunset','Steel'];
+
+  Future<void> _publishRemoteStatus() async {
+    await _remoteChannel.invokeMethod('confirmed', jsonEncode({
+      'watch_next': showWatchNextSection, 'weather': showFanatikaWeather,
+      'app_title': showFanatikaHero, 'center_favorites': fanatikaCenterSections,
+      'focus_glow': fanatikaFocusGlow, 'title_font': fanatikaTitleFont,
+      'title_style': fanatikaTitleStyle, 'title_weight': fanatikaTitleWeight,
+      'title_spacing': fanatikaTitleSpacing, 'title_shadow': fanatikaTitleShadow,
+      'title_outline': fanatikaTitleOutline, 'plex_refresh_minutes': plexRefreshMinutes,
+    }));
+  }
+
+  Future<void> _pollRemoteSettings() async {
+    if (_remotePolling) return;
+    _remotePolling = true;
+    try {
+      final raw = await _remoteChannel.invokeMethod<String>('consume');
+      if (raw == null || raw == '{}') {
+        if (!_remoteInitialPublished) {
+          _remoteInitialPublished = true;
+          await _publishRemoteStatus();
+        }
+        return;
+      }
+      final values = jsonDecode(raw);
+      if (values is! Map) return;
+      for (final entry in values.entries) {
+        if (entry.key is! String || entry.value is! String) continue;
+        final key = entry.key as String, value = entry.value as String;
+        if (const ['watch_next', 'weather', 'app_title', 'center_favorites', 'focus_glow'].contains(key)) {
+          if (value != 'true' && value != 'false') continue;
+          final bool enabled = value == 'true';
+          switch (key) {
+            case 'watch_next': await setShowWatchNextSection(enabled); break;
+            case 'weather': await setShowFanatikaWeather(enabled); break;
+            case 'app_title': await setShowFanatikaHero(enabled); break;
+            case 'center_favorites': await setFanatikaOption('fanatika_v2_center_sections', enabled); break;
+            case 'focus_glow': await setFanatikaOption('fanatika_v2_focus_glow', enabled); break;
+          }
+        } else if (key == 'title_font' && remoteFonts.contains(value)) {
+          await setFanatikaOption('fanatika_v2_title_font', value);
+        } else if (key == 'title_style' && remoteStyles.contains(value)) {
+          await setFanatikaOption('fanatika_v2_title_style', value);
+        } else if (key == 'title_weight' && const ['0','300','400','500','600','700','800','900'].contains(value)) {
+          await setFanatikaOption('fanatika_v2_title_weight', int.parse(value));
+        } else if (key == 'title_spacing' && const ['-1.0','0.0','0.35','1.0','2.0','3.0','5.0'].contains(value)) {
+          await setFanatikaOption('fanatika_v2_title_spacing', double.parse(value));
+        } else if (key == 'title_shadow' && const ['0.0','0.5','1.0','1.5','2.0'].contains(value)) {
+          await setFanatikaOption('fanatika_v2_title_shadow', double.parse(value));
+        } else if (key == 'title_outline' && const ['0.0','0.5','1.0','1.5','2.0','3.0'].contains(value)) {
+          await setFanatikaOption('fanatika_v2_title_outline', double.parse(value));
+        } else if (key == 'plex_refresh_minutes' && const ['5','15','30','60'].contains(value)) {
+          await setPlexRefreshMinutes(int.parse(value));
+        }
+      }
+      await _publishRemoteStatus();
+    } on MissingPluginException { // Old build or a non-Android test target.
+    } catch (e) {
+      debugPrint('Fanatika ADB settings sync failed: ${e.runtimeType}');
+    } finally { _remotePolling = false; }
+  }
+
+  @override void dispose() {
+    _remoteTimer?.cancel();
+    super.dispose();
+  }
+
 
   bool get appHighlightAnimationEnabled =>
       showFocusBorders && (_sharedPreferences.getBool(_appHighlightAnimationEnabledKey) ?? false);
@@ -131,6 +208,52 @@ class SettingsService extends ChangeNotifier {
   bool get backgroundBlurDisabled => _sharedPreferences.getBool(_backgroundBlurDisabled) ?? false;
 
   bool get showWatchNextSection => _sharedPreferences.getBool(_showWatchNextSection) ?? false;
+
+  // Plex credentials are stored in Android private application preferences.
+  // The existing Fanatika backup exporter excludes any key containing "token".
+  bool get plexContinueWatchingEnabled => _sharedPreferences.getBool('fanatika_plex_enabled') ?? false;
+  String get plexServerUrl => _sharedPreferences.getString('fanatika_plex_server_url') ?? '';
+  String get plexAccessToken => _sharedPreferences.getString('fanatika_plex_token') ?? '';
+  bool get plexAllowHttp => _sharedPreferences.getBool('fanatika_plex_allow_http') ?? false;
+  int get plexRefreshMinutes => (_sharedPreferences.getInt('fanatika_plex_refresh_minutes') ?? 15).clamp(5, 60).toInt();
+  Future<void> setPlexRefreshMinutes(int minutes) async {
+    if (!const [5,15,30,60].contains(minutes)) throw ArgumentError('Invalid Plex refresh interval');
+    await _sharedPreferences.setInt('fanatika_plex_refresh_minutes', minutes);
+    notifyListeners();
+  }
+  bool get plexConfigured => plexContinueWatchingEnabled && plexServerUrl.isNotEmpty && plexAccessToken.isNotEmpty;
+
+  Future<void> setPlexContinueWatchingConfig({
+    required String url, required String token,
+    required bool enabled, required bool allowHttp,
+  }) async {
+    final parsed = Uri.tryParse(url.trim());
+    if (enabled && (parsed == null || !parsed.hasAuthority ||
+        (parsed.scheme != 'https' && parsed.scheme != 'http') ||
+        parsed.userInfo.isNotEmpty || parsed.hasQuery || parsed.hasFragment ||
+        (parsed.path.isNotEmpty && parsed.path != '/') ||
+        (parsed.scheme == 'http' && (!allowHttp || !_fanatikaPlexLocalHost(parsed.host))))) {
+      throw const FormatException('Enter a valid HTTPS Plex server URL, or explicitly allow HTTP on your trusted LAN.');
+    }
+    if (enabled && token.trim().isEmpty) {
+      throw const FormatException('A Plex access token is required.');
+    }
+    final normalized = (parsed == null ? url.trim() :
+      parsed.replace(path: '', query: null, fragment: null).toString()).replaceAll(RegExp(r'/$'), '');
+    await _sharedPreferences.setString('fanatika_plex_server_url', normalized);
+    await _sharedPreferences.setString('fanatika_plex_token', token.trim());
+    await _sharedPreferences.setBool('fanatika_plex_allow_http', allowHttp);
+    await _sharedPreferences.setBool('fanatika_plex_enabled', enabled);
+    notifyListeners();
+  }
+
+  Future<void> clearPlexContinueWatchingConfig() async {
+    await _sharedPreferences.remove('fanatika_plex_server_url');
+    await _sharedPreferences.remove('fanatika_plex_token');
+    await _sharedPreferences.remove('fanatika_plex_allow_http');
+    await _sharedPreferences.remove('fanatika_plex_enabled');
+    notifyListeners();
+  }
 
   bool get dockDarkBackground => _sharedPreferences.getBool(_dockDarkBackground) ?? false;
 
@@ -199,7 +322,12 @@ class SettingsService extends ChangeNotifier {
   // Fanatika v2 options are namespaced; original Arc preferences stay untouched.
   double get fanatikaHeroSize => (_sharedPreferences.getDouble('fanatika_v2_hero_size') ?? 58.0).clamp(28.0, 96.0).toDouble();
   String get fanatikaHeroPlacement => _sharedPreferences.getString('fanatika_v2_hero_position') ?? 'left';
+  String get fanatikaTitleFont => _sharedPreferences.getString('fanatika_v2_title_font') ?? 'Automatic';
   String get fanatikaTitleStyle => _sharedPreferences.getString('fanatika_v2_title_style') ?? 'Cinema';
+  double get fanatikaTitleSpacing => (_sharedPreferences.getDouble('fanatika_v2_title_spacing') ?? 0.35).clamp(-1.0, 5.0).toDouble();
+  double get fanatikaTitleShadow => (_sharedPreferences.getDouble('fanatika_v2_title_shadow') ?? 1.0).clamp(0.0, 2.0).toDouble();
+  double get fanatikaTitleOutline => (_sharedPreferences.getDouble('fanatika_v2_title_outline') ?? 1.0).clamp(0.0, 3.0).toDouble();
+  int get fanatikaTitleWeight => (_sharedPreferences.getInt('fanatika_v2_title_weight') ?? 0).clamp(0, 900).toInt();
   bool get fanatikaWeatherAutoLocation => _sharedPreferences.getBool('fanatika_v27_auto_weather_location') ?? false;
   bool get fanatikaRecoveryProfileActive => _sharedPreferences.containsKey('fanatika_v23_recovery_snapshot');
   String get fanatikaToolsLanguage => _sharedPreferences.getString('fanatika_v23_tools_language') ?? 'en';
@@ -368,7 +496,10 @@ class SettingsService extends ChangeNotifier {
     return Color(int.parse("0xFF$hex"));
   }
 
-  SettingsService(this._sharedPreferences);
+  SettingsService(this._sharedPreferences) {
+    _remoteTimer = Timer.periodic(const Duration(seconds: 3), (_) => unawaited(_pollRemoteSettings()));
+    unawaited(_pollRemoteSettings());
+  }
 
   Future<void> set(String key, bool value) async {
     await _sharedPreferences.setBool(key, value);
@@ -598,4 +729,18 @@ class SettingsService extends ChangeNotifier {
     await _sharedPreferences.setString("reddit_current_subreddit", subreddit);
     notifyListeners();
   }
+}
+
+// Restrict unencrypted credential transmission to explicit private LAN addresses.
+bool _fanatikaPlexLocalHost(String host) {
+  if (host.endsWith('.local')) return true;
+  final address = InternetAddress.tryParse(host);
+  if (address == null) return false;
+  final parts = address.rawAddress;
+  if (address.type == InternetAddressType.IPv4) {
+    return parts[0] == 10 ||
+      (parts[0] == 172 && parts[1] >= 16 && parts[1] <= 31) ||
+      (parts[0] == 192 && parts[1] == 168);
+  }
+  return parts.isNotEmpty && (parts[0] & 0xfe) == 0xfc;
 }

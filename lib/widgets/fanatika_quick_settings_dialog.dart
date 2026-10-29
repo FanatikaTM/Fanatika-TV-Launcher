@@ -8,10 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:flauncher/flauncher_channel.dart';
 import 'package:flauncher/widgets/settings/settings_panel.dart';
 import 'package:flauncher/widgets/settings/fanatika_sleep_page.dart';
-import 'package:flauncher/widgets/settings/fanatika_tools_hub.dart';
-import 'package:flauncher/widgets/settings/fanatika_updates_page.dart';
-import 'package:flauncher/widgets/settings/fanatika_usb_page.dart';
-import 'package:flauncher/widgets/settings/tv_inputs_panel_page.dart';
 
 // Displayed by a separate icon in Fanatika's status bar, without replacing
 // the existing Settings and HOME controls.
@@ -22,12 +18,11 @@ class FanatikaQuickSettingsDialog extends StatefulWidget {
 }
 
 class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialog> {
-  static const Color base = Color(0xFF344962);
-  static const Color tileBlue = Color(0xFF465C76);
+  static const Color base = Color(0xFF1E1E1E);
+  static const Color tileBlue = Color(0xFF303030);
   final FLauncherChannel _channel = FLauncherChannel();
   Timer? _clockTimer;
   DateTime _now = DateTime.now();
-  int _page = 0;
   bool _sleepOptions = false;
   bool _busy = false;
   String _notice = '';
@@ -78,8 +73,8 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
       if (!mounted) return;
       if (result['opened'] != true) {
         setState(() => _notice = result['detail']?.toString() ??
-            'The native input picker is unavailable; opening the available TV inputs.');
-        await _openPanel(TvInputsPanelPage.routeName);
+            'The native picker is unavailable. Use the TV remote INPUT/SOURCE button.');
+        // Never replace the manufacturer's picker with a custom inputs menu.
       }
     });
   }
@@ -155,9 +150,9 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
         height: panelHeight,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: const Color(0x449EC9F4), width: 1),
+          border: Border.all(color: Colors.white24, width: 1),
           gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-            colors: [Color(0xF9536882), base, Color(0xF72C405B)]),
+            colors: [Color(0xFF242424), base, Color(0xFF191919)]),
           boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 30, offset: Offset(0, 8))],
         ),
         child: Padding(
@@ -165,7 +160,7 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
           child: Column(children: [
             _header(),
             const SizedBox(height: 12),
-            Expanded(child: _sleepOptions ? _sleepBody() : _page == 0 ? _mainTiles() : _secondaryTiles()),
+            Expanded(child: _sleepOptions ? _sleepBody() : _mainTiles()),
             if (_busy) const Padding(
               padding: EdgeInsets.symmetric(vertical: 4),
               child: LinearProgressIndicator(minHeight: 3)),
@@ -191,11 +186,6 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
       Text(DateFormat('HH:mm').format(_now),
         style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 25)),
     ])),
-    Column(children: [
-      IconButton(tooltip: 'All settings', icon: const Icon(Icons.settings_outlined, color: Colors.white),
-        onPressed: () => _openPanel('settings_panel')),
-      const Text('All settings', style: TextStyle(fontSize: 10, color: Colors.white70)),
-    ]),
     IconButton(tooltip: 'Close Quick Settings',
       icon: const Icon(Icons.close_rounded, color: Colors.white70),
       onPressed: () => Navigator.pop(context)),
@@ -219,26 +209,6 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
       _QuickTile(icon: Icons.bluetooth, text: 'Bluetooth',
         onPressed: () => _openSystemAction('android.settings.BLUETOOTH_SETTINGS')),
       _QuickTile(icon: Icons.bedtime_outlined, text: 'Sleep timer', onPressed: _showSleep),
-    ],
-  );
-
-  Widget _secondaryTiles() => GridView.count(
-    physics: const NeverScrollableScrollPhysics(),
-    crossAxisCount: 2, childAspectRatio: 2.5,
-    mainAxisSpacing: 9, crossAxisSpacing: 9,
-    children: [
-      _QuickTile(icon: Icons.tune, text: 'Tools', autofocus: true,
-        onPressed: () => _openPanel(FanatikaToolsHub.routeName)),
-      _QuickTile(icon: Icons.system_update, text: 'Updates',
-        onPressed: () => _openPanel(FanatikaUpdatesPage.routeName)),
-      _QuickTile(icon: Icons.usb, text: 'USB storage',
-        onPressed: () => _openPanel(FanatikaUsbPage.routeName)),
-      _QuickTile(icon: Icons.bedtime, text: 'Sleep & standby',
-        onPressed: () => _openPanel(FanatikaSleepPage.routeName)),
-      _QuickTile(icon: Icons.settings_input_hdmi, text: 'TV inputs',
-        onPressed: () => _openPanel(TvInputsPanelPage.routeName)),
-      _QuickTile(icon: Icons.settings_outlined, text: 'System settings',
-        onPressed: () => _perform(_channel.openSettings)),
     ],
   );
 
@@ -275,20 +245,10 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
     ]),
   ]);
 
-  Widget _bottomNavigation() => Row(children: [
-    const Text('Quick Settings', style: TextStyle(fontSize: 11, color: Colors.white60)),
-    const Spacer(),
-    if (!_sleepOptions) ...[
-      IconButton(onPressed: () => setState(() => _page = 0),
-        icon: Icon(_page == 0 ? Icons.circle : Icons.circle_outlined, size: 13,
-          color: _page == 0 ? Colors.white : Colors.white54)),
-      IconButton(onPressed: () => setState(() => _page = 1),
-        icon: Icon(_page == 1 ? Icons.circle : Icons.circle_outlined, size: 13,
-          color: _page == 1 ? Colors.white : Colors.white54)),
-      IconButton(onPressed: () => setState(() => _page = 1 - _page),
-        icon: const Icon(Icons.chevron_right, size: 23)),
-    ],
-  ]);
+  Widget _bottomNavigation() => const Align(
+    alignment: Alignment.centerLeft,
+    child: Text('Quick controls', style: TextStyle(fontSize: 11, color: Colors.white60)),
+  );
 }
 
 class _QuickTile extends StatefulWidget {
@@ -304,7 +264,7 @@ class _QuickTile extends StatefulWidget {
 class _QuickTileState extends State<_QuickTile> {
   bool focused = false;
   @override Widget build(BuildContext context) => Material(
-    color: focused ? const Color(0xFFF3F6F9) : _FanatikaQuickSettingsDialogState.tileBlue,
+    color: focused ? Theme.of(context).colorScheme.surfaceContainerHigh : _FanatikaQuickSettingsDialogState.tileBlue,
     borderRadius: BorderRadius.circular(19),
     child: InkWell(
       borderRadius: BorderRadius.circular(19),
@@ -313,13 +273,13 @@ class _QuickTileState extends State<_QuickTile> {
       onTap: widget.onPressed,
       child: Padding(padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 6),
         child: Row(children: [
-          Icon(widget.icon, color: focused ? const Color(0xFF2E4157) : Colors.white,
+          Icon(widget.icon, color: Colors.white,
             size: widget.compact ? 18 : 22),
           const SizedBox(width: 10),
           Expanded(child: Text(widget.text,
             maxLines: 2, overflow: TextOverflow.ellipsis,
             style: TextStyle(fontWeight: FontWeight.w700,
-              color: focused ? const Color(0xFF2E4157) : Colors.white,
+              color: Colors.white,
               fontSize: widget.compact ? 13 : 15))),
         ]),
       ),

@@ -55,7 +55,7 @@ class FanatikaWatchNextPanel extends StatelessWidget {
   }
 
   Widget _body(BuildContext context, WatchNextService service) {
-    if (!service.hasPermission) {
+    if (!service.canShowItems) {
       return Column(crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center, children: [
           const Text('Allow TV listings access to display Watch Next.',
@@ -85,10 +85,11 @@ class FanatikaWatchNextPanel extends StatelessWidget {
         const Text('No Watch Next titles available',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
         const SizedBox(height: 5),
-        const Text('The TV or streaming apps have not provided Watch Next entries.\n'
-          'Try opening content in a supported app, then refresh.',
+        Text(service.plexError ?? (service.plexConfigured
+          ? 'No Plex Continue Watching entries. Watch part of a movie or episode, then refresh.'
+          : 'The TV or streaming apps have not provided Watch Next entries.\nTry playing content, then refresh.'),
           textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.white70, fontSize: 12)),
+          style: const TextStyle(color: Colors.white70, fontSize: 12)),
       ]));
     }
     return ListView.separated(
@@ -156,7 +157,7 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard> {
                 errorBuilder: (_, __, ___) => const Icon(Icons.movie_outlined, size: 35))
             : const Icon(Icons.movie_outlined, size: 35, color: Colors.white70)),
           Padding(padding: const EdgeInsets.all(8),
-            child: Text(widget.item.title, maxLines: 1, overflow: TextOverflow.ellipsis,
+            child: Text(widget.item.source == 'plex' ? 'Plex  •  ${widget.item.title}' : widget.item.title, maxLines: 1, overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: Colors.white,
                 fontWeight: FontWeight.w600, fontSize: 13))),
         ]),

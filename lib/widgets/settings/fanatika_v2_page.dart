@@ -9,9 +9,9 @@ import 'package:flauncher/providers/apps_service.dart';
 import 'package:flauncher/providers/fanatika_backup_service.dart';
 import 'package:flauncher/flauncher_channel.dart';
 import 'package:flauncher/widgets/settings/fanatika_tv_controls.dart';
-import 'package:flauncher/widgets/settings/tv_inputs_panel_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_sleep_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_theme_preview.dart';
+import 'package:flauncher/widgets/settings/fanatika_title_font_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_usb_page.dart';
 
 // Navigation marker also renders the section header, so each submenu stays independent.
@@ -23,8 +23,9 @@ class FanatikaToolSection extends StatelessWidget {
 
 class FanatikaV2Page extends StatefulWidget {
   static const routeName = 'fanatika_v2_settings';
-  const FanatikaV2Page({super.key, this.sections = const []});
+  const FanatikaV2Page({super.key, this.sections = const [], this.unlockedByParent = false});
   final List<String> sections;
+  final bool unlockedByParent;
   @override
   State<FanatikaV2Page> createState() => _FanatikaV2PageState();
 }
@@ -138,24 +139,6 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
     if (value != null) await settings.setFanatikaMapValue('fanatika_v2_descriptions', result, value);
   }
 
-  Future<void> editInputNames() async {
-    final inputs = await native.getTvInputs();
-    if (!mounted) return;
-    final keys = inputs.map((i) => i['id']?.toString() ?? '').where((i) => i.isNotEmpty).toList();
-    if (keys.isEmpty) {
-      setState(() => status = 'No selectable Android TV inputs were found'); return;
-    }
-    final selected = await FanatikaTvControls.choose<String>(context, title: 'Name TV input',
-      values: keys, label: (id) => inputs.firstWhere((i) => i['id']?.toString() == id)['label']?.toString() ?? id);
-    final choice = selected == null ? null : inputs.firstWhere((i) => i['id']?.toString() == selected);
-    if (!mounted || choice == null) return;
-    final settings = context.read<SettingsService>();
-    final id = choice['id']?.toString() ?? '';
-    if (id.isEmpty) return;
-    final text = await askText('Custom input name', value: settings.fanatikaInputNames[id] ?? '');
-    if (text != null) await settings.setFanatikaMapValue('fanatika_v2_input_names', id, text);
-  }
-
   Future<void> chooseAppBackground() async {
     final apps = context.read<AppsService>();
     final favorites = apps.categories.where((c) => c.name == 'Favorites')
@@ -208,7 +191,7 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
   @override
   Widget build(BuildContext context) {
     final s = context.watch<SettingsService>();
-    if (s.fanatikaSettingsPin.isNotEmpty && !unlocked) {
+    if (s.fanatikaSettingsPin.isNotEmpty && !unlocked && !widget.unlockedByParent) {
       return Column(children: [
         const Padding(padding: EdgeInsets.all(12), child: Text('Protected settings',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600))),
@@ -307,6 +290,8 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
             'fanatika_v2_hero_opacity', [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0],
             (v) => '${(v*100).round()}%', s.fanatikaHeroOpacity),
             subtitle: '${(s.fanatikaHeroOpacity * 100).round()}%'),
+          tile(Icons.font_download_outlined, 'Title font', () => Navigator.of(context).pushNamed(
+            FanatikaTitleFontPage.routeName), subtitle: s.fanatikaTitleFont),
           tile(Icons.auto_awesome, 'Text style', () => chooseSetting<String>(s, 'App title text style',
             'fanatika_v2_title_style', ['Classic','Bold','Cinema','Glass','Glow','Neon','Minimal','Wide','Shadow','Outline','Elegant','Mono','Soft','Steel','Sunset'], (v) => v,
             s.fanatikaTitleStyle), subtitle: s.fanatikaTitleStyle),
@@ -333,12 +318,9 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
           FanatikaToolSection('Wallpaper and sources'),
           switcher('Smart mountain wallpapers', s.fanatikaSmartMountains,
             (v) => s.setFanatikaOption('fanatika_v2_smart_mountains', v), icon: Icons.landscape),
-          tile(Icons.input, 'Rename TV / HDMI sources', editInputNames),
           tile(Icons.usb, 'USB files and import',
             () => Navigator.of(context).pushNamed(FanatikaUsbPage.routeName),
             subtitle: 'Browse USB through Android file access; import wallpapers and backups'),
-          tile(Icons.settings_input_hdmi, 'Open sources',
-            () => Navigator.of(context).pushNamed(TvInputsPanelPage.routeName)),
           FanatikaToolSection('Layouts and performance'),
           for (final preset in ['Minimal','Cinema','Classic'])
             tile(Icons.dashboard_customize_outlined, '$preset preset',

@@ -8,7 +8,8 @@ def read(p): return (R/p).read_text(encoding='utf-8')
 class QuickSettingsChecks(unittest.TestCase):
     def test_menu_accessible_from_bar_and_settings(self):
         self.assertIn('FanatikaQuickSettingsDialog()', read('lib/widgets/focus_aware_app_bar.dart'))
-        self.assertIn('FanatikaQuickSettingsDialog()', read('lib/widgets/settings/settings_panel_page.dart'))
+        self.assertNotIn('FanatikaQuickSettingsDialog()', read('lib/widgets/settings/settings_panel_page.dart'))
+        self.assertIn('UnifiedSystemPage.routeName', read('lib/widgets/tv_top_navigation_dialog.dart'))
     def test_all_tiles_present(self):
         source = read('lib/widgets/fanatika_quick_settings_dialog.dart')
         for name in ['Screensaver', 'Input source', 'Picture', 'Sound', 'Wi-Fi', 'Home settings', 'Bluetooth', 'Sleep timer']:
@@ -30,7 +31,7 @@ class QuickSettingsChecks(unittest.TestCase):
         source = read('lib/providers/apps_service.dart')
         for method in ['getOrCreateFavoritesCategory','addToFavorites','removeFromFavorites','reorderApplication']:
             self.assertIn(method,source)
-    def test_new_version(self): self.assertIn('version: 2.8.4+4137', read('pubspec.yaml'))
+    def test_new_version(self): self.assertIn('version: 2.8.7+4140', read('pubspec.yaml'))
     def test_workflow(self): self.assertIn('tests_fanatika_v28',read('.github/workflows/build-fanatika-signed.yml'))
 
 if __name__ == '__main__': unittest.main()

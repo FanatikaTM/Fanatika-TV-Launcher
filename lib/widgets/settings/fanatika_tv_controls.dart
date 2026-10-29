@@ -7,7 +7,7 @@ class FanatikaTvControls {
   static Widget section(String text) => Padding(
     padding: const EdgeInsets.fromLTRB(18, 16, 12, 8),
     child: Text(text.toUpperCase(), style: const TextStyle(
-      fontSize: 12, letterSpacing: 1.5, color: Color(0xFF9FB8DF),
+      fontSize: 12, letterSpacing: 1.5, color: Colors.white70,
       fontWeight: FontWeight.w700)),
   );
 
@@ -16,7 +16,7 @@ class FanatikaTvControls {
     String? subtitle, Widget? trailing, bool autofocus = false,
   }) => FocusableSettingsTile(
     autofocus: autofocus,
-    leading: Icon(icon, color: const Color(0xFFC4D9FF)),
+    leading: Icon(icon),
     title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
     subtitle: subtitle == null ? null : Text(subtitle,
       style: const TextStyle(color: Colors.white70, fontSize: 12)),
@@ -30,7 +30,7 @@ class FanatikaTvControls {
   }) => action(icon: icon, title: title,
     subtitle: subtitle ?? (value ? 'On' : 'Off'),
     trailing: Icon(value ? Icons.toggle_on : Icons.toggle_off,
-      color: value ? const Color(0xFF70AFFE) : Colors.white54, size: 32),
+      color: value ? Colors.white : Colors.white54, size: 32),
     onPressed: onPressed);
 
   static Future<T?> choose<T>(BuildContext context, {
@@ -49,7 +49,7 @@ class FanatikaTvControls {
               autofocus: index == 0,
               title: Text(label(value), style: const TextStyle(fontSize: 16)),
               trailing: value == current
-                ? const Icon(Icons.check_circle, color: Color(0xFF70AFFE))
+                ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
                 : null,
               onPressed: () => Navigator.pop(dialogContext, value),
             );

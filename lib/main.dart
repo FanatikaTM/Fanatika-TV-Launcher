@@ -33,6 +33,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'flauncher_app.dart';
+import 'widgets/fanatika_remote_backup_observer.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,11 +62,11 @@ Future<void> main() async {
             lazy: false
         ),
         ChangeNotifierProvider(
-            create: (_) => WatchNextService(fLauncherChannel),
+            create: (context) => WatchNextService(fLauncherChannel, context.read<SettingsService>()),
             lazy: false
         ),
       ],
-      child: FLauncherApp()
+      child: const FanatikaRemoteBackupObserver(child: FLauncherApp())
     )
   );
 }

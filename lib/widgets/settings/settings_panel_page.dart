@@ -16,209 +16,48 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import 'package:flauncher/providers/apps_service.dart';
-import 'package:flauncher/providers/update_service.dart';
-import 'package:flauncher/build_flags.dart';
-import 'package:flauncher/widgets/settings/applications_panel_page.dart';
-import 'package:flauncher/widgets/settings/flauncher_about_dialog.dart';
-import 'package:flauncher/widgets/settings/interface_settings_page.dart';
-import 'package:flauncher/widgets/settings/update_dialogs.dart';
-import 'package:flauncher/widgets/settings/general_settings_page.dart';
-import 'package:flauncher/widgets/settings/tv_inputs_panel_page.dart';
-import 'package:flauncher/widgets/settings/fanatika_tools_hub.dart';
-import 'package:flauncher/widgets/fanatika_quick_settings_dialog.dart';
-import 'package:flauncher/widgets/settings/fanatika_updates_page.dart';
-import 'package:flauncher/widgets/settings/fanatika_usb_page.dart';
-import 'package:flauncher/widgets/settings/fanatika_sleep_page.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:provider/provider.dart';
 import 'package:flauncher/l10n/app_localizations.dart';
-
+import 'package:flauncher/widgets/settings/flauncher_about_dialog.dart';
+import 'package:flauncher/widgets/settings/unified_settings_pages.dart';
 import 'focusable_settings_tile.dart';
 
 class SettingsPanelPage extends StatelessWidget {
-  static const String routeName = "settings_panel";
-
-  @override
-  Widget build(BuildContext context) {
-    AppLocalizations localizations = AppLocalizations.of(context)!;
-
-    return Column(
-      children: [
-        Text(localizations.settings, style: Theme.of(context).textTheme.titleLarge),
+  static const String routeName = 'settings_panel';
+  const SettingsPanelPage({super.key});
+  @override Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    Widget item(IconData icon, String label, String detail, String route, {bool focus = false}) =>
+      FocusableSettingsTile(autofocus: focus, leading: Icon(icon),
+        title: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+        subtitle: Text(detail, style: Theme.of(context).textTheme.bodySmall),
+        trailing: const Icon(Icons.chevron_right),
+        onPressed: () => Navigator.of(context).pushNamed(route));
+    return Column(children: [
+      Text(localizations.settings, style: Theme.of(context).textTheme.titleLarge),
+      const Divider(),
+      Expanded(child: ListView(children: [
+        item(Icons.home_outlined, 'Home & appearance',
+          'Large title, fonts, layout, Arc appearance', UnifiedHomePage.routeName, focus: true),
+        item(Icons.apps, 'Apps & Favorites',
+          'Arc Favorites, apps and focus behavior', UnifiedAppsPage.routeName),
+        item(Icons.movie_filter_outlined, 'Watch Next & weather',
+          'Plex Continue Watching, weather and forecast', UnifiedMediaPage.routeName),
+        item(Icons.landscape_outlined, 'Wallpapers',
+          'Arc wallpapers and Fanatika mountain backgrounds', UnifiedWallpaperPage.routeName),
+        item(Icons.settings_outlined, 'TV & tools',
+          'Native Input, sleep, backup, USB, system and updates', UnifiedSystemPage.routeName),
         const Divider(),
-        Expanded(
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                FocusableSettingsTile(
-                  autofocus: true,
-                  leading: const Icon(Icons.apps),
-                  title: Text(localizations.applications, style: Theme.of(context).textTheme.bodyMedium),
-                  onPressed: () => Navigator.of(context).pushNamed(ApplicationsPanelPage.routeName),
-                ),
-                FocusableSettingsTile(
-                  leading: const Icon(Icons.auto_awesome_mosaic_outlined),
-                  title: Text(localizations.interface, style: Theme.of(context).textTheme.bodyMedium),
-                  onPressed: () => Navigator.of(context).pushNamed(InterfaceSettingsPage.routeName),
-                ),
-                FocusableSettingsTile(
-                  leading: const Icon(Icons.settings_suggest_outlined),
-                  title: Text(localizations.system, style: Theme.of(context).textTheme.bodyMedium),
-                  onPressed: () => Navigator.of(context).pushNamed(GeneralSettingsPage.routeName),
-                ),
-                FocusableSettingsTile(
-                  leading: const Icon(Icons.dashboard_customize_outlined),
-                  title: const Text('Quick Settings'),
-                  subtitle: const Text('MiTV-M0EU0 style shortcuts, inputs and sleep timer'),
-                  onPressed: () => showDialog<void>(context: context,
-                      builder: (_) => const FanatikaQuickSettingsDialog()),
-                ),
-                FocusableSettingsTile(
-                  leading: const Icon(Icons.tune),
-                  title: const Text('Tools'),
-                  subtitle: const Text('Favorites, title, weather, wallpaper, backup and controls'),
-                  onPressed: () => Navigator.of(context).pushNamed(FanatikaToolsHub.routeName),
-                ),
-                FocusableSettingsTile(
-                  leading: const Icon(Icons.system_update), title: const Text('Updates'),
-                  subtitle: const Text('Check, download and install signed updates'),
-                  onPressed: () => Navigator.of(context).pushNamed(FanatikaUpdatesPage.routeName),
-                ),
-                FocusableSettingsTile(
-                  leading: const Icon(Icons.usb), title: const Text('USB storage'),
-                  subtitle: const Text('Browse supported USB drives and import images or backups'),
-                  onPressed: () => Navigator.of(context).pushNamed(FanatikaUsbPage.routeName),
-                ),
-                FocusableSettingsTile(
-                  leading: const Icon(Icons.bedtime_outlined),
-                  title: const Text('Sleep / Standby'),
-                  subtitle: const Text('Remote shortcut and 15–120 minute sleep timer'),
-                  onPressed: () => Navigator.of(context).pushNamed(FanatikaSleepPage.routeName),
-                ),
-                FocusableSettingsTile(
-                  leading: const Icon(Icons.settings_input_hdmi),
-                  title: const Text('TV Sources / HDMI Inputs'),
-                  subtitle: const Text('Choose HDMI and Live TV inputs where supported'),
-                  onPressed: () => Navigator.of(context).pushNamed(TvInputsPanelPage.routeName),
-                ),
-                const Divider(),
-                FocusableSettingsTile(
-                  leading: const Icon(Icons.settings_outlined),
-                  title: Text(localizations.systemSettings, style: Theme.of(context).textTheme.bodyMedium),
-                  onPressed: () => context.read<AppsService>().openSettings(),
-                ),
-                if (kEnableSelfUpdater)
-                  FocusableSettingsTile(
-                    leading: const Icon(Icons.system_update_alt),
-                    title: Text(localizations.updateCheck, style: Theme.of(context).textTheme.bodyMedium),
-                    onPressed: () => _checkForUpdates(context),
-                  ),
-                FocusableSettingsTile(
-                  leading: const Icon(Icons.info_outline),
-                  title: Text(localizations.aboutFlauncher, style: Theme.of(context).textTheme.bodyMedium),
-                  onPressed: () => showDialog(
-                    context: context,
-                    builder: (_) => FutureBuilder<PackageInfo>(
-                      future: PackageInfo.fromPlatform(),
-                      builder: (context, snapshot) => snapshot.connectionState == ConnectionState.done && snapshot.hasData
-                          ? LTvLauncherAboutDialog(packageInfo: snapshot.data!)
-                          : Container(),
-                    )))
-      ])))
+        FocusableSettingsTile(leading: const Icon(Icons.info_outline),
+          title: Text(localizations.aboutFlauncher),
+          onPressed: () => showDialog(context: context,
+            builder: (_) => FutureBuilder<PackageInfo>(
+              future: PackageInfo.fromPlatform(),
+              builder: (context, snapshot) => snapshot.connectionState == ConnectionState.done && snapshot.hasData
+                ? LTvLauncherAboutDialog(packageInfo: snapshot.data!) : Container()))),
+      ])),
     ]);
   }
 }
 
-Future<void> _checkForUpdates(BuildContext context) async {
-  if (!kEnableSelfUpdater) {
-    return;
-  }
-
-  final localizations = AppLocalizations.of(context)!;
-  final updateService = UpdateService();
-  final navigator = Navigator.of(context, rootNavigator: true);
-
-  showUpdateProgressDialog(
-    context,
-    label: localizations.updateCheck,
-  );
-
-  try {
-    final update = await updateService.checkForUpdate();
-    if (navigator.canPop()) {
-      navigator.pop();
-    }
-    if (!context.mounted) {
-      return;
-    }
-
-    if (!update.updateAvailable) {
-      await showNoUpdateDialog(
-        context,
-        localizations,
-        currentVersion: update.currentVersion,
-        changelog: update.releaseNotes,
-      );
-      return;
-    }
-
-    final download = await showUpdateAvailableDialog(
-      context,
-      localizations,
-      latestVersion: update.latestVersion,
-      currentVersion: update.currentVersion,
-      changelog: update.releaseNotes,
-    );
-
-    if (!download) {
-      return;
-    }
-
-    showUpdateProgressDialog(
-      context,
-      label: localizations.updateDownloadButton,
-    );
-
-    final downloadedApk = await updateService.downloadApk(update);
-    if (navigator.canPop()) {
-      navigator.pop();
-    }
-    if (!context.mounted) {
-      return;
-    }
-
-    final install = await showReadyToInstallDialog(
-      context,
-      localizations,
-      latestVersion: downloadedApk.version,
-    );
-
-    if (!install) {
-      return;
-    }
-
-    final installerOpened = await updateService.installApk(downloadedApk.path);
-    if (!context.mounted || installerOpened) {
-      return;
-    }
-
-    await showInstallPermissionDialog(
-      context,
-      localizations,
-      onOpenPermissionSettings: () =>
-          updateService.requestInstallUnknownAppsPermission(),
-    );
-  } catch (_) {
-    if (navigator.canPop()) {
-      navigator.pop();
-    }
-    if (!context.mounted) {
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(localizations.updateErrorGeneric)),
-    );
-  }
-}

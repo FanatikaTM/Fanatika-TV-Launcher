@@ -55,7 +55,7 @@ class _FanatikaUpdatesPageState extends State<FanatikaUpdatesPage> {
       actions: [TextButton(onPressed: () => Navigator.pop(ctx,false),child: const Text('Cancel')),
         TextButton(onPressed: () => Navigator.pop(ctx,true),child: const Text('Continue'))],
     )) ?? false;
-    if (ok) {
+    if (ok && mounted && await FanatikaUpdateDialogs.backupBeforeInstall(context)) {
       try { await FLauncherChannel().installApk(file); }
       catch (e) { if (mounted) setState(() => message = 'Installer error: $e'); }
     }

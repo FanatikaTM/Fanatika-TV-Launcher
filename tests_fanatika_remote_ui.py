@@ -24,7 +24,7 @@ class RemoteUpdateTests(unittest.TestCase):
  def test_sleep_nav(self):
   main=self.read('lib/widgets/settings/settings_panel_page.dart')
   sleep=self.read('lib/widgets/settings/fanatika_sleep_page.dart')
-  self.assertIn('FanatikaSleepPage.routeName',main)
+  self.assertIn('FanatikaSleepPage.routeName',self.read('lib/widgets/settings/unified_settings_pages.dart'))
   self.assertIn('FanatikaTvControls.choose<int>',sleep)
   self.assertIn('autofocus: true',sleep)
   self.assertNotIn('SimpleDialogOption(',sleep)
