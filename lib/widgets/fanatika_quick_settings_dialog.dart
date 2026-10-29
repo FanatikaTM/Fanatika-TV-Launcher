@@ -6,8 +6,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flauncher/flauncher_channel.dart';
-import 'package:flauncher/widgets/settings/settings_panel.dart';
-import 'package:flauncher/widgets/settings/fanatika_sleep_page.dart';
+import 'package:flauncher/widgets/fanatika_sleep_timer_dialog.dart';
 
 // Displayed by a separate icon in Fanatika's status bar, without replacing
 // the existing Settings and HOME controls.
@@ -23,11 +22,8 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
   final FLauncherChannel _channel = FLauncherChannel();
   Timer? _clockTimer;
   DateTime _now = DateTime.now();
-  bool _sleepOptions = false;
   bool _busy = false;
   String _notice = '';
-  int _remainingSeconds = 0;
-  bool _deviceAdminEnabled = false;
 
   @override
   void initState() {
@@ -59,21 +55,13 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
     await _channel.launchActivityFromAction(action);
   });
 
-  Future<void> _openPanel(String route) async {
-    // A nested settings dialog avoids using a disposed BuildContext.
-    await showDialog<void>(
-      context: context,
-      builder: (_) => SettingsPanel(initialRoute: route),
-    );
-  }
-
   Future<void> _openInput() async {
     await _perform(() async {
       final result = await _channel.openTvSourcePicker();
       if (!mounted) return;
       if (result['opened'] != true) {
         setState(() => _notice = result['detail']?.toString() ??
-            'The native picker is unavailable. Use the TV remote INPUT/SOURCE button.');
+            'Input unavailable. Use the TV remote Input button.');
         // Never replace the manufacturer's picker with a custom inputs menu.
       }
     });
@@ -89,51 +77,17 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
   });
 
   Future<void> _showSleep() async {
-    setState(() { _sleepOptions = true; _notice = ''; });
-    try {
-      final status = await _channel.fanatikaSleepStatus();
-      if (mounted) setState(() {
-        _deviceAdminEnabled = status['deviceAdminActive'] == true;
-        _remainingSeconds = (status['remainingSeconds'] as num?)?.toInt() ?? 0;
-      });
-    } catch (e) {
-      if (mounted) setState(() => _notice = 'Sleep capability unavailable: $e');
-    }
-  }
-
-  Future<void> _scheduleSleep(int minutes) async {
-    if (!_deviceAdminEnabled) {
-      await _openNativeSleepSettings();
-      return;
-    }
-    final accepted = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
-      title: const Text('Set sleep timer?'),
-      content: Text('Request TV sleep in $minutes minutes? The TV may lock rather '
-          'than enter standby depending on MiTV-M0EU0 firmware.'),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Set timer')),
-      ],
-    )) ?? false;
-    if (!accepted || !mounted) return;
-    await _perform(() async {
-      final response = await _channel.fanatikaSleepTimer(minutes);
-      if (!mounted) return;
-      setState(() => _notice = response['message']?.toString() ??
-          (response['ok'] == true ? 'Timer scheduled' : 'TV rejected timer'));
-      if (response['ok'] == true) await _showSleep();
+    // Close the quick panel first, then show only the clean sleep timer.
+    final navigator = Navigator.of(context);
+    navigator.pop();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (navigator.mounted) {
+        showDialog<void>(context: navigator.context,
+          builder: (_) => const FanatikaSleepTimerDialog());
+      }
     });
   }
 
-  Future<void> _cancelSleep() async {
-    await _perform(() async {
-      final response = await _channel.fanatikaCancelSleepTimer();
-      if (mounted) setState(() {
-        _remainingSeconds = 0;
-        _notice = response['message']?.toString() ?? 'Timer cancelled';
-      });
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -160,7 +114,7 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
           child: Column(children: [
             _header(),
             const SizedBox(height: 12),
-            Expanded(child: _sleepOptions ? _sleepBody() : _mainTiles()),
+            Expanded(child: _mainTiles()),
             if (_busy) const Padding(
               padding: EdgeInsets.symmetric(vertical: 4),
               child: LinearProgressIndicator(minHeight: 3)),
@@ -176,10 +130,6 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
   }
 
   Widget _header() => Row(children: [
-    if (_sleepOptions) IconButton(
-      tooltip: 'Back to Quick Settings',
-      icon: const Icon(Icons.arrow_back, color: Colors.white),
-      onPressed: () => setState(() => _sleepOptions = false)),
     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(DateFormat('EEE, MMM d').format(_now),
         style: const TextStyle(color: Color(0xFFDFEBFC), fontSize: 14)),
@@ -198,7 +148,7 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
     children: [
       _QuickTile(icon: Icons.wallpaper, text: 'Screensaver', autofocus: true,
         onPressed: () => _perform(_channel.startAmbientMode)),
-      _QuickTile(icon: Icons.input, text: 'Input source', onPressed: _openInput),
+      _QuickTile(icon: Icons.input, text: 'Input', onPressed: _openInput),
       _QuickTile(icon: Icons.tune, text: 'Picture',
         onPressed: () => _openSystemAction('android.settings.DISPLAY_SETTINGS')),
       _QuickTile(icon: Icons.volume_up_outlined, text: 'Sound',
@@ -211,39 +161,6 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
       _QuickTile(icon: Icons.bedtime_outlined, text: 'Sleep timer', onPressed: _showSleep),
     ],
   );
-
-  Widget _sleepBody() => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    const Text('Sleep timer', style: TextStyle(fontSize: 23, fontWeight: FontWeight.w800)),
-    const SizedBox(height: 8),
-    FilledButton.icon(onPressed: _openNativeSleepSettings,
-      icon: const Icon(Icons.tv), label: const Text('TV native Sleep Timer settings')),
-    const SizedBox(height: 8),
-    if (!_deviceAdminEnabled) const Padding(
-      padding: EdgeInsets.only(bottom: 8),
-      child: Text('The Xiaomi timer is controlled by TV firmware. In TV Settings open '
-          'System > Power & Energy > Power > Sleep Timer. The durations below '
-          'are App timers, available only with Device Administrator sleep permission.',
-        style: TextStyle(fontSize: 12, color: Color(0xFFFFE1AD)))),
-    Expanded(child: GridView.count(crossAxisCount: 1, childAspectRatio: 8.5,
-      mainAxisSpacing: 6,
-      children: [
-        for (final entry in const <(int, String)>[
-          (15, '15 minutes'), (30, '30 minutes'), (45, '45 minutes'),
-          (60, '1 hour'), (90, '1 hour 30 minutes'),
-          (120, '2 hours'), (180, '3 hours')])
-          _QuickTile(icon: Icons.timer_outlined, text: entry.$2, compact: true,
-            onPressed: () => _scheduleSleep(entry.$1)),
-      ],
-    )),
-    if (_remainingSeconds > 0) Text(
-      'Remaining: ~${(_remainingSeconds / 60).ceil()} minutes',
-      style: const TextStyle(fontSize: 12, color: Colors.white70)),
-    Row(children: [
-      TextButton(onPressed: _cancelSleep, child: const Text('Cancel timer')),
-      Expanded(child: TextButton(onPressed: () => _openPanel(FanatikaSleepPage.routeName),
-        child: const Text('Sleep permissions'))),
-    ]),
-  ]);
 
   Widget _bottomNavigation() => const Align(
     alignment: Alignment.centerLeft,

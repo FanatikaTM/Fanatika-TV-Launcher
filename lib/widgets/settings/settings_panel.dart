@@ -33,6 +33,7 @@ import 'package:flauncher/widgets/settings/fanatika_updates_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_usb_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_sleep_page.dart';
 import 'package:flauncher/widgets/settings/status_bar_panel_page.dart';
+import 'package:flauncher/widgets/settings/fanatika_top_bar_editor_page.dart';
 import 'package:flauncher/widgets/settings/wallpaper_panel_page.dart';
 import 'package:flauncher/widgets/settings/wifi_usage_period_page.dart';
 import 'package:flauncher/widgets/settings/back_button_action_page.dart';
@@ -168,6 +169,8 @@ class _SettingsPanelState extends State<SettingsPanel> {
                       return _FastPageRoute(builder: (_) => InterfaceSettingsPage());
                     case WallpaperPanelPage.routeName:
                       return _FastPageRoute(builder: (_) => WallpaperPanelPage());
+                    case FanatikaTopBarEditorPage.routeName:
+                      return _FastPageRoute(builder: (_) => const FanatikaTopBarEditorPage());
                     case StatusBarPanelPage.routeName:
                       return _FastPageRoute(builder: (_) => StatusBarPanelPage());
                     case GradientPanelPage.routeName:

@@ -68,7 +68,7 @@
         android:banner="@drawable/banner"
         android:fullBackupContent="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="TV Launcher"
+        android:label="Fanatika TV Launcher"
         android:requestLegacyExternalStorage="true">
         <!--
           Disable Impeller and fall back to the Skia renderer.

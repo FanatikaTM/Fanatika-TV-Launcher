@@ -14,6 +14,7 @@ import 'package:flauncher/widgets/settings/applications_panel_page.dart';
 import 'package:flauncher/widgets/settings/launcher_sections_panel_page.dart';
 import 'package:flauncher/widgets/settings/appearance_panel_page.dart';
 import 'package:flauncher/widgets/settings/status_bar_panel_page.dart';
+import 'package:flauncher/widgets/settings/fanatika_top_bar_editor_page.dart';
 import 'package:flauncher/widgets/settings/wallpaper_panel_page.dart';
 import 'package:flauncher/widgets/settings/plex_continue_watching_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_sleep_page.dart';
@@ -92,8 +93,8 @@ class UnifiedHomePage extends StatelessWidget {
       _MergedMenu.group('Arc + Fanatika appearance'),
       _MergedMenu.route(context, Icons.brush_outlined, 'Appearance and focus border',
         AppearancePanelPage.routeName, detail: 'Original Arc options and home appearance'),
-      _MergedMenu.route(context, Icons.view_quilt_outlined, 'Status bar settings',
-        StatusBarPanelPage.routeName, detail: 'Current bar layout has not been modified'),
+      _MergedMenu.route(context, Icons.view_quilt_outlined, 'Top bar: add, remove and reorder',
+        FanatikaTopBarEditorPage.routeName, detail: 'Text tabs inside the original bar style'),
       _MergedMenu.route(context, Icons.tune, 'Additional title and layout options',
         FanatikaV2Page.routeName, args: const [
           'Large selected-app title', 'Layouts and performance',
@@ -206,7 +207,7 @@ class UnifiedSystemPage extends StatelessWidget {
       if (!context.mounted) return;
       if (result['opened'] != true) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Native Input picker unavailable. Use the TV remote INPUT/SOURCE button.')));
+          content: Text('Input is not available on this TV. Use its remote.')));
       }
     } catch (_) {
       if (context.mounted) {
@@ -217,9 +218,9 @@ class UnifiedSystemPage extends StatelessWidget {
   }
   @override Widget build(BuildContext context) => _MergedMenu.page(context, 'TV & tools', [
     _MergedMenu.group('TV controls'),
-    _MergedMenu.action(Icons.input, 'Native Input / Source menu',
+    _MergedMenu.action(Icons.input, 'Input',
       () => _openNativeInputs(context), autofocus: true,
-      detail: 'Use the original TV menu, not a custom HDMI picker'),
+      detail: 'Open the original TV Input menu'),
     _MergedMenu.route(context, Icons.bedtime_outlined, 'Sleep / standby',
       FanatikaSleepPage.routeName),
     _MergedMenu.action(Icons.settings_applications, 'Android TV settings',

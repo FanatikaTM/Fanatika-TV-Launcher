@@ -17,6 +17,7 @@
  */
 
 import 'package:flauncher/widgets/rounded_switch_list_tile.dart';
+import 'package:flauncher/widgets/settings/fanatika_top_bar_editor_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flauncher/l10n/app_localizations.dart';
@@ -39,6 +40,15 @@ class StatusBarPanelPage extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
+                ListTile(
+                  autofocus: true,
+                  leading: const Icon(Icons.view_week_outlined),
+                  title: const Text('Customize top bar'),
+                  subtitle: const Text('Add, remove and reorder text tabs'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.of(context).pushNamed(FanatikaTopBarEditorPage.routeName),
+                ),
+                const Divider(),
                 RoundedSwitchListTile(
                   autofocus: true,
                   value: settingsService.autoHideAppBarEnabled,

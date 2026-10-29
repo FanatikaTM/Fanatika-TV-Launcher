@@ -29,6 +29,7 @@ public final class FanatikaSleepController {
     private static final String PREFS = "fanatika_sleep_settings";
     private static final String SHORTCUT = "long_press_key";
     private static final String DEADLINE = "timer_deadline_elapsed";
+    private static final String PAUSED = "timer_paused_remaining";
     private static final long HOLD_MS = 1050L;
     private static long triggeredDownTime = -1L;
     private static long lastTriggeredAt = -10000L;
@@ -81,7 +82,9 @@ public final class FanatikaSleepController {
         result.put("accessibilityActive", accessibilityActive(context));
         result.put("shortcutKey", prefs(context).getInt(SHORTCUT, 0));
         long deadline = prefs(context).getLong(DEADLINE, 0);
-        long remaining = deadline == 0 ? 0 : Math.max(0L, deadline - SystemClock.elapsedRealtime());
+        long paused = prefs(context).getLong(PAUSED, 0);
+        long remaining = paused > 0 ? paused : (deadline == 0 ? 0 : Math.max(0L, deadline - SystemClock.elapsedRealtime()));
+        result.put("paused", paused > 0);
         result.put("remainingSeconds", (int)Math.min(Integer.MAX_VALUE, (remaining + 999) / 1000));
         return result;
     }
@@ -149,7 +152,7 @@ public final class FanatikaSleepController {
         long deadline = SystemClock.elapsedRealtime() + minutes * 60000L;
         try {
             alarm.set(AlarmManager.ELAPSED_REALTIME, deadline, timerIntent(context));
-            prefs(context).edit().putLong(DEADLINE, deadline).apply();
+            prefs(context).edit().remove(PAUSED).putLong(DEADLINE, deadline).apply();
             return answer(true, "Sleep request scheduled for about " + minutes + " minutes. Android may delay it for power savings.");
         } catch (Exception e) {
             return answer(false, "Could not schedule sleep: " + e.getClass().getSimpleName());
@@ -159,8 +162,36 @@ public final class FanatikaSleepController {
     public static Map<String, Object> cancel(Context context) {
         AlarmManager alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (alarm != null) alarm.cancel(timerIntent(context));
-        prefs(context).edit().remove(DEADLINE).apply();
+        prefs(context).edit().remove(DEADLINE).remove(PAUSED).apply();
         return answer(true, "Sleep timer cancelled.");
+    }
+
+    // Pausing cancels the alarm and keeps only a relative duration, never a
+    // background countdown. Resuming schedules a fresh alarm with that duration.
+    public static Map<String, Object> pause(Context context) {
+        long deadline = prefs(context).getLong(DEADLINE, 0L);
+        if (deadline <= 0) return answer(false, "No running sleep timer.");
+        long remaining = Math.max(0, deadline - SystemClock.elapsedRealtime());
+        AlarmManager alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarm != null) alarm.cancel(timerIntent(context));
+        prefs(context).edit().remove(DEADLINE).putLong(PAUSED, remaining).apply();
+        return answer(true, "Timer paused.");
+    }
+
+    public static Map<String, Object> resume(Context context) {
+        long remaining = prefs(context).getLong(PAUSED, 0L);
+        if (remaining <= 0) return answer(false, "No paused sleep timer.");
+        if (!adminActive(context)) return answer(false, "Enable Device Administrator before resuming.");
+        AlarmManager alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarm == null) return answer(false, "Android alarm service unavailable.");
+        try {
+            long deadline = SystemClock.elapsedRealtime() + remaining;
+            alarm.set(AlarmManager.ELAPSED_REALTIME, deadline, timerIntent(context));
+            prefs(context).edit().remove(PAUSED).putLong(DEADLINE, deadline).apply();
+            return answer(true, "Timer resumed.");
+        } catch (Exception e) {
+            return answer(false, "Could not resume timer: " + e.getClass().getSimpleName());
+        }
     }
 
     static void onAlarm(Context context) {

@@ -2,6 +2,7 @@
 // Original Arc Launcher Favorites and settings are left untouched.
 import 'package:flutter/material.dart';
 import 'package:flauncher/flauncher_channel.dart';
+import 'package:flauncher/widgets/fanatika_sleep_timer_dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:flauncher/providers/settings_service.dart';
 import 'package:flauncher/widgets/settings/fanatika_tv_controls.dart';
@@ -116,11 +117,9 @@ class _FanatikaSleepPageState extends State<FanatikaSleepPage> with WidgetsBindi
   }
 
   Future<void> _schedule(int minutes) async {
-    final allowed = await _confirm('Sleep after $minutes minutes?',
-      'This will schedule one Android lock/sleep request in about $minutes minutes. '
-      'Android power-saving may delay delivery. The timer is cancelled by a reboot. '
-      'Device Administrator must first be approved on the TV.');
-    if (allowed && mounted) await _perform(() => _native.fanatikaSleepTimer(minutes));
+    await showDialog<void>(context: context,
+      builder: (_) => const FanatikaSleepTimerDialog());
+    await _refresh();
   }
 
   @override

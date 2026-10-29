@@ -82,6 +82,12 @@ class _AppBarFocusRingState extends State<AppBarFocusRing> {
           onFocusChange: (hasFocus) {
             if (hasFocus) {
               context.read<LauncherState>().setAppGridFocused(false);
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  Scrollable.ensureVisible(context,
+                    duration: const Duration(milliseconds: 160), alignment: 0.5);
+                }
+              });
             }
             if (mounted) {
               setState(() => _isFocused = hasFocus);

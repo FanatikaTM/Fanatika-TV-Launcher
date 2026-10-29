@@ -5,11 +5,12 @@ R=Path(__file__).resolve().parent
 read=lambda p:(R/p).read_text(encoding='utf-8')
 class NeutralUI283(unittest.TestCase):
  def test_build(self):
-  self.assertIn('version: 2.8.7+4140',read('pubspec.yaml'))
+  self.assertIn('version: 2.8.8+4141',read('pubspec.yaml'))
   self.assertIn('tests_fanatika_v283',read('.github/workflows/build-fanatika-signed.yml'))
  def test_tabs_visible_on_logical_widths(self):
   source=read('lib/widgets/focus_aware_app_bar.dart')
-  for marker in ["Text('Home'","Text('Apps'","Text('Tools'","SingleChildScrollView("]:self.assertIn(marker,source)
+  for marker in ['FanatikaTopBarTabs(', 'SingleChildScrollView(']:self.assertIn(marker,source)
+  self.assertIn("'Home','Apps','Tools'",read('lib/providers/settings_service.dart'))
   self.assertNotIn('width >= 980',source)
  def test_gray_quick_panel(self):
   source=read('lib/widgets/fanatika_quick_settings_dialog.dart')
@@ -27,8 +28,8 @@ class NeutralUI283(unittest.TestCase):
   self.assertNotIn('_openPanel(TvInputsPanelPage.routeName)',read('lib/widgets/fanatika_quick_settings_dialog.dart'))
  def test_branding_about_only(self):
   self.assertIn('applicationName: "Fanatika TV Launcher"',read('lib/widgets/settings/flauncher_about_dialog.dart'))
-  self.assertIn('android:label="TV Launcher"',read('android/app/src/main/AndroidManifest.xml'))
-  self.assertIn("title: 'TV Launcher'",read('lib/flauncher_app.dart'))
+  self.assertIn('android:label="Fanatika TV Launcher"',read('android/app/src/main/AndroidManifest.xml'))
+  self.assertIn("title: 'Fanatika TV Launcher'",read('lib/flauncher_app.dart'))
   self.assertNotIn("'assets/splash_fanatika_tv.png'",read('lib/widgets/fanatika_startup_splash.dart'))
   for p in ['lib/widgets/settings/settings_panel_page.dart','lib/widgets/fanatika_quick_settings_dialog.dart','lib/widgets/settings/fanatika_updates_page.dart']:
    self.assertNotIn("Text('Fanatika",read(p))

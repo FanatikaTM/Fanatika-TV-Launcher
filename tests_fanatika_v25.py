@@ -61,9 +61,9 @@ class V25Checks(unittest.TestCase):
   self.assertIn('maxLines: 1, softWrap: false',t)
  def test_status_options(self):
   b=src('lib/widgets/focus_aware_app_bar.dart'); s=src('lib/providers/settings_service.dart')
-  for key in ['fanatikaStatusBarStyle','fanatikaStatusApps','fanatikaStatusSleep','fanatikaStatusTools','fanatikaStatusWeather']:
-   self.assertIn(key,b);self.assertIn(key,s)
-  self.assertIn('FanatikaV2Page.routeName',b)
+  self.assertIn('fanatikaStatusBarStyle',b)
+  self.assertIn('fanatikaTopBarTabs',s)
+  self.assertIn('FanatikaTopBarTabs(',b)
  def test_wallpapers(self):
   dialog=src('lib/widgets/settings/fanatika_mountains_dialog.dart')
   names=['07_Bansko_Pirin.jpg','08_Pirin_River.jpg','09_Mountain_River.jpg','10_Bansko_Winter.jpg','11_Pirin_Alpine_Lake.jpg']

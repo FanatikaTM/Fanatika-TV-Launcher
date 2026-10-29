@@ -171,6 +171,8 @@ public class MainActivity extends FlutterActivity {
                     result.success(FanatikaSleepController.schedule(this, minutes == null ? 0 : minutes.intValue()));
                 }
                 case "fanatikaCancelSleepTimer" -> result.success(FanatikaSleepController.cancel(this));
+                case "fanatikaPauseSleepTimer" -> result.success(FanatikaSleepController.pause(this));
+                case "fanatikaResumeSleepTimer" -> result.success(FanatikaSleepController.resume(this));
                 case "fanatikaSetSleepShortcut" -> {
                     Number key = call.argument("keyCode");
                     result.success(FanatikaSleepController.setShortcut(this, key == null ? -1 : key.intValue()));

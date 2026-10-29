@@ -9,7 +9,7 @@ def read(name):
 
 class Unified286Tests(unittest.TestCase):
     def test_version(self):
-        self.assertIn('version: 2.8.7+4140', read('pubspec.yaml'))
+        self.assertIn('version: 2.8.8+4141', read('pubspec.yaml'))
 
     def test_arc_favorites_files_unchanged(self):
         hashes = {
@@ -41,10 +41,10 @@ class Unified286Tests(unittest.TestCase):
 
     def test_app_bar_visual_elements_still_present(self):
         bar=read('lib/widgets/focus_aware_app_bar.dart')
-        for s in ["Text('Home'", "Text('Apps'", "Text('Tools'", 'fanatikaStatusBarStyle',
-                  'FanatikaQuickSettingsDialog()', 'Icons.settings_input_hdmi',
-                  "semanticLabel: 'Settings'"]:
+        for s in ['fanatikaStatusBarStyle', 'FanatikaTopBarTabs(', 'SingleChildScrollView(']:
             self.assertIn(s,bar)
+        for s in ["case 'Home'", "case 'Apps'", "case 'Tools'", "case 'Input'"]:
+            self.assertIn(s,read('lib/widgets/fanatika_top_bar_tabs.dart'))
 
     def test_native_inputs_only(self):
         unified=read('lib/widgets/settings/unified_settings_pages.dart')
@@ -52,7 +52,7 @@ class Unified286Tests(unittest.TestCase):
         top=read('lib/widgets/focus_aware_app_bar.dart')
         self.assertIn('openTvSourcePicker()', unified)
         self.assertIn('openTvSourcePicker()', inp)
-        self.assertIn('openTvSourcePicker()', top)
+        self.assertIn('openTvSourcePicker()', read('lib/widgets/fanatika_top_bar_tabs.dart'))
         self.assertNotIn('tryXiaomiHdmi',inp)
         self.assertNotIn('getTvInputs()',inp)
         self.assertNotIn('editInputNames',read('lib/widgets/settings/fanatika_v2_page.dart'))

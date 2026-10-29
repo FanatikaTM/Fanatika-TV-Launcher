@@ -55,42 +55,10 @@ class FanatikaWatchNextPanel extends StatelessWidget {
   }
 
   Widget _body(BuildContext context, WatchNextService service) {
-    if (!service.canShowItems) {
-      return Column(crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center, children: [
-          const Text('Allow TV listings access to display Watch Next.',
-            style: TextStyle(color: Colors.white70, fontSize: 14)),
-          const SizedBox(height: 8),
-          Wrap(spacing: 8, children: [
-            OutlinedButton.icon(
-              onPressed: () async {
-                await service.requestPermission();
-                await service.refreshPermissionAndItems();
-              },
-              icon: const Icon(Icons.lock_open, size: 17),
-              label: const Text('Allow access'),
-            ),
-            TextButton(onPressed: service.refreshPermissionAndItems,
-              child: const Text('Recheck')),
-          ]),
-        ]);
-    }
-    if (service.isLoading) {
-      return const Center(child: CircularProgressIndicator(strokeWidth: 2));
-    }
-    if (!service.hasItems) {
-      return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const Icon(Icons.live_tv_outlined, color: Colors.white54, size: 32),
-        const SizedBox(height: 6),
-        const Text('No Watch Next titles available',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 5),
-        Text(service.plexError ?? (service.plexConfigured
-          ? 'No Plex Continue Watching entries. Watch part of a movie or episode, then refresh.'
-          : 'The TV or streaming apps have not provided Watch Next entries.\nTry playing content, then refresh.'),
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.white70, fontSize: 12)),
-      ]));
+    // Keep the home uncluttered. Access requests and Plex errors remain in
+    // Watch Next settings; never show placeholder warnings over the wallpaper.
+    if (!service.canShowItems || service.isLoading || !service.hasItems) {
+      return const SizedBox.shrink();
     }
     return ListView.separated(
       scrollDirection: Axis.horizontal,

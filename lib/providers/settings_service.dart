@@ -349,6 +349,27 @@ class SettingsService extends ChangeNotifier {
   bool get fanatikaFocusGlow => _sharedPreferences.getBool('fanatika_v2_focus_glow') ?? true;
   bool get fanatikaFixedTitle => _sharedPreferences.getBool('fanatika_v2_fixed_title') ?? true;
   String get fanatikaStatusBarStyle => _sharedPreferences.getString('fanatika_v2_bar_style') ?? 'Transparent';
+  // The single top bar. Home and Settings are always present so D-pad users
+  // cannot accidentally lose access to the launcher or its recovery settings.
+  static const fanatikaAvailableTopBarTabs = <String>[
+    'Home','Apps','Tools','Settings','Input','Quick','Sleep',
+    'Weather','Network','Updates','Bar'
+  ];
+  List<String> get fanatikaTopBarTabs {
+    final saved = _sharedPreferences.getStringList('fanatika_v2_top_bar_tabs');
+    final tabs = (saved ?? const ['Quick','Home','Apps','Tools','Settings','Input'])
+        .where(fanatikaAvailableTopBarTabs.contains).toSet().toList();
+    if (!tabs.contains('Home')) tabs.insert(0, 'Home');
+    if (!tabs.contains('Settings')) tabs.add('Settings');
+    return tabs;
+  }
+  Future<void> setFanatikaTopBarTabs(List<String> tabs) async {
+    final normalized = tabs.where(fanatikaAvailableTopBarTabs.contains).toSet().toList();
+    if (!normalized.contains('Home')) normalized.insert(0, 'Home');
+    if (!normalized.contains('Settings')) normalized.add('Settings');
+    await _sharedPreferences.setStringList('fanatika_v2_top_bar_tabs', normalized);
+    notifyListeners();
+  }
   bool get fanatikaStatusApps => _sharedPreferences.getBool('fanatika_v2_status_apps') ?? false;
   bool get fanatikaStatusSleep => _sharedPreferences.getBool('fanatika_v2_status_sleep') ?? false;
   bool get fanatikaStatusTools => _sharedPreferences.getBool('fanatika_v2_status_tools') ?? false;

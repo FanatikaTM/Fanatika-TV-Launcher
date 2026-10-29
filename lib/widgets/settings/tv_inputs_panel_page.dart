@@ -38,11 +38,11 @@ class _TvInputsPanelPageState extends State<TvInputsPanelPage> {
     }
   }
   @override Widget build(BuildContext context) => Column(children: [
-    Text('TV inputs', style: Theme.of(context).textTheme.titleLarge),
+    Text('Input', style: Theme.of(context).textTheme.titleLarge),
     const Divider(),
     Padding(padding: const EdgeInsets.all(12), child: Text(_notice)),
     FocusableSettingsTile(
       autofocus: true, leading: const Icon(Icons.input),
-      title: const Text('Open native Input / Source picker'), onPressed: _open),
+      title: const Text('Input'), onPressed: _open),
   ]);
 }

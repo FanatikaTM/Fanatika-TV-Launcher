@@ -83,7 +83,7 @@ class FLauncherApp extends StatelessWidget
         GlobalWidgetsLocalizations.delegate
       ],
       supportedLocales: AppLocalizations.supportedLocales,
-      title: 'TV Launcher',
+      title: 'Fanatika TV Launcher',
         theme: ThemeData(
           useMaterial3: true,
           brightness: Brightness.dark,

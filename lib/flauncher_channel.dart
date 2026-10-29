@@ -61,6 +61,10 @@ class FLauncherChannel {
       (await _methodChannel.invokeMapMethod<String, dynamic>('fanatikaSleepTimer', {'minutes': minutes})) ?? {};
   Future<Map<String, dynamic>> fanatikaCancelSleepTimer() async =>
       (await _methodChannel.invokeMapMethod<String, dynamic>('fanatikaCancelSleepTimer')) ?? {};
+  Future<Map<String, dynamic>> fanatikaPauseSleepTimer() async =>
+      (await _methodChannel.invokeMapMethod<String, dynamic>('fanatikaPauseSleepTimer')) ?? {};
+  Future<Map<String, dynamic>> fanatikaResumeSleepTimer() async =>
+      (await _methodChannel.invokeMapMethod<String, dynamic>('fanatikaResumeSleepTimer')) ?? {};
   Future<Map<String, dynamic>> fanatikaSetSleepShortcut(int keyCode) async =>
       (await _methodChannel.invokeMapMethod<String, dynamic>('fanatikaSetSleepShortcut', {'keyCode': keyCode})) ?? {};
 
