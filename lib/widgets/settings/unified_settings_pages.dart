@@ -6,14 +6,10 @@ import 'package:flauncher/providers/settings_service.dart';
 import 'package:flauncher/providers/apps_service.dart';
 import 'package:flauncher/flauncher_channel.dart';
 import 'package:flauncher/widgets/settings/focusable_settings_tile.dart';
-import 'package:flauncher/widgets/settings/fanatika_tv_controls.dart';
 import 'package:flauncher/widgets/settings/fanatika_v2_page.dart';
-import 'package:flauncher/widgets/settings/fanatika_theme_preview.dart';
-import 'package:flauncher/widgets/settings/fanatika_title_font_page.dart';
 import 'package:flauncher/widgets/settings/applications_panel_page.dart';
 import 'package:flauncher/widgets/settings/launcher_sections_panel_page.dart';
 import 'package:flauncher/widgets/settings/appearance_panel_page.dart';
-import 'package:flauncher/widgets/settings/status_bar_panel_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_top_bar_editor_page.dart';
 import 'package:flauncher/widgets/settings/wallpaper_panel_page.dart';
 import 'package:flauncher/widgets/settings/plex_continue_watching_page.dart';
@@ -61,46 +57,22 @@ class _MergedMenu {
 class UnifiedHomePage extends StatelessWidget {
   static const routeName = 'merged_home_settings';
   const UnifiedHomePage({super.key});
-  @override Widget build(BuildContext context) {
-    final s = context.watch<SettingsService>();
-    return _MergedMenu.page(context, 'Home & appearance', [
-      _MergedMenu.group('Large selected-app title'),
-      _MergedMenu.option('Show large title', s.showFanatikaHero, s.setShowFanatikaHero,
-        icon: Icons.title, autofocus: true),
-      _MergedMenu.route(context, Icons.font_download_outlined, 'Title font',
-        FanatikaTitleFontPage.routeName, detail: s.fanatikaTitleFont),
-      _MergedMenu.action(Icons.auto_awesome, 'Text style: ${s.fanatikaTitleStyle}', () async {
-        final chosen = await FanatikaTvControls.choose<String>(context,
-          title: 'Title text style',
-          values: const ['Classic','Bold','Cinema','Glass','Glow','Neon',
-            'Minimal','Wide','Shadow','Outline','Elegant','Mono','Soft','Steel','Sunset'],
-          label: (v) => v, current: s.fanatikaTitleStyle);
-        if (chosen != null && context.mounted) {
-          await context.read<SettingsService>().setFanatikaOption('fanatika_v2_title_style', chosen);
-        }
-      }),
-      _MergedMenu.action(Icons.format_size, 'Title size: ${s.fanatikaHeroSize.round()}', () async {
-        final chosen = await FanatikaTvControls.choose<double>(context,
-          title: 'Title size', values: const [28.0,36.0,44.0,52.0,60.0,72.0,84.0,96.0],
-          label: (v) => '${v.round()} px', current: s.fanatikaHeroSize);
-        if (chosen != null && context.mounted) {
-          await context.read<SettingsService>().setFanatikaOption('fanatika_v2_hero_size', chosen);
-        }
-      }),
-      _MergedMenu.action(Icons.visibility_outlined, 'Preview title before applying',
-        () => showDialog<void>(context: context,
-          builder: (_) => const FanatikaThemePreview())),
-      _MergedMenu.group('Arc + Fanatika appearance'),
-      _MergedMenu.route(context, Icons.brush_outlined, 'Appearance and focus border',
-        AppearancePanelPage.routeName, detail: 'Original Arc options and home appearance'),
-      _MergedMenu.route(context, Icons.view_quilt_outlined, 'Top bar: add, remove and reorder',
-        FanatikaTopBarEditorPage.routeName, detail: 'Text tabs inside the original bar style'),
-      _MergedMenu.route(context, Icons.tune, 'Additional title and layout options',
-        FanatikaV2Page.routeName, args: const [
-          'Large selected-app title', 'Layouts and performance',
-          'Diagnostics and appearance preview']),
-    ]);
-  }
+  @override Widget build(BuildContext context) => _MergedMenu.page(context, 'Home & appearance', [
+    _MergedMenu.route(context, Icons.title, 'Large app title',
+      FanatikaV2Page.routeName, autofocus: true,
+      args: const ['Large selected-app title'],
+      detail: 'Font, style, size, position and preview'),
+    _MergedMenu.route(context, Icons.wallpaper_outlined, 'Wallpapers',
+      UnifiedWallpaperPage.routeName, detail: 'Photos and Arc wallpaper library'),
+    _MergedMenu.route(context, Icons.brush_outlined, 'Appearance & focus',
+      AppearancePanelPage.routeName, detail: 'Arc blur, background and focus border'),
+    _MergedMenu.route(context, Icons.view_quilt_outlined, 'Top bar',
+      FanatikaTopBarEditorPage.routeName, detail: 'Add, remove or reorder tabs'),
+    _MergedMenu.route(context, Icons.tune, 'Extra layout options',
+      FanatikaV2Page.routeName,
+      args: const ['Layouts and performance', 'Status bar customization'],
+      detail: 'Presets, animations and bar style'),
+  ]);
 }
 
 class UnifiedAppsPage extends StatelessWidget {
@@ -109,27 +81,18 @@ class UnifiedAppsPage extends StatelessWidget {
   @override Widget build(BuildContext context) {
     final s = context.watch<SettingsService>();
     return _MergedMenu.page(context, 'Apps & Favorites', [
-      _MergedMenu.group('Original Arc app management'),
-      _MergedMenu.route(context, Icons.apps, 'Installed applications',
-        ApplicationsPanelPage.routeName, autofocus: true),
-      _MergedMenu.route(context, Icons.favorite_border, 'Favorites and sections',
-        LauncherSectionsPanelPage.routeName,
-        detail: 'Add, remove, move and reorder using Arc Favorites'),
-      _MergedMenu.group('Fanatika display options'),
-      _MergedMenu.option('Show app names under icons', s.showAppNamesBelowIcons,
+      _MergedMenu.route(context, Icons.favorite_border, 'Favorites & sections',
+        LauncherSectionsPanelPage.routeName, autofocus: true,
+        detail: 'Original Arc add, remove and reorder'),
+      _MergedMenu.route(context, Icons.apps, 'Installed apps',
+        ApplicationsPanelPage.routeName),
+      _MergedMenu.option('Show app labels', s.showAppNamesBelowIcons,
         s.setShowAppNamesBelowIcons, icon: Icons.text_fields),
-      _MergedMenu.option('Center short app rows', s.fanatikaCenterSections,
-        (v) => s.setFanatikaOption('fanatika_v2_center_sections', v),
-        icon: Icons.align_horizontal_center),
-      _MergedMenu.option('Enlarge focused app', s.fanatikaFocusGrow,
-        (v) => s.setFanatikaOption('fanatika_v2_focus_grow', v),
-        icon: Icons.zoom_out_map),
-      _MergedMenu.option('Glow around focused app', s.fanatikaFocusGlow,
-        (v) => s.setFanatikaOption('fanatika_v2_focus_glow', v),
-        icon: Icons.flare),
-      _MergedMenu.route(context, Icons.edit_note, 'App descriptions and backgrounds',
-        FanatikaV2Page.routeName,
-        args: const ['Diagnostics and appearance preview']),
+      _MergedMenu.route(context, Icons.auto_awesome, 'App focus & layout',
+        FanatikaV2Page.routeName, args: const ['Favorites and section layout'],
+        detail: 'Center rows, enlarge focus and glow'),
+      _MergedMenu.route(context, Icons.edit_note, 'App descriptions & backgrounds',
+        FanatikaV2Page.routeName, args: const ['App customization']),
     ]);
   }
 }
@@ -137,44 +100,17 @@ class UnifiedAppsPage extends StatelessWidget {
 class UnifiedMediaPage extends StatelessWidget {
   static const routeName = 'merged_media_settings';
   const UnifiedMediaPage({super.key});
-  Future<void> _chooseCity(BuildContext context, SettingsService s) async {
-    final ctrl = TextEditingController(text: s.fanatikaWeatherCity);
-    try {
-      final city = await showDialog<String>(context: context,
-        builder: (ctx) => AlertDialog(title: const Text('Weather city'),
-          content: TextField(controller: ctrl, autofocus: true,
-            decoration: const InputDecoration(hintText: 'City'),
-            onSubmitted: (v) => Navigator.pop(ctx, v)),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-            TextButton(onPressed: () => Navigator.pop(ctx, ctrl.text), child: const Text('Save')),
-          ]));
-      if (city != null && city.trim().isNotEmpty && context.mounted) {
-        await context.read<SettingsService>().setFanatikaWeatherCity(city.trim());
-      }
-    } finally { ctrl.dispose(); }
-  }
   @override Widget build(BuildContext context) {
     final s = context.watch<SettingsService>();
     return _MergedMenu.page(context, 'Watch Next & weather', [
-      _MergedMenu.group('Continue Watching'),
       _MergedMenu.option('Show Watch Next', s.showWatchNextSection,
         s.setShowWatchNextSection, icon: Icons.movie, autofocus: true),
       _MergedMenu.route(context, Icons.movie_filter_outlined, 'Plex Continue Watching',
         PlexContinueWatchingPage.routeName,
-        detail: 'Plex server, token and connection test'),
-      _MergedMenu.group('Weather'),
-      _MergedMenu.option('Show weather', s.showFanatikaWeather,
-        s.setShowFanatikaWeather, icon: Icons.cloud_outlined),
-      _MergedMenu.option('Use approximate TV location', s.fanatikaWeatherAutoLocation,
-        (v) => s.setFanatikaOption('fanatika_v27_auto_weather_location', v),
-        icon: Icons.my_location),
-      _MergedMenu.action(Icons.location_city, 'Weather city',
-        () => _chooseCity(context, s), detail: s.fanatikaWeatherCity),
-      _MergedMenu.option('Use Fahrenheit', s.fanatikaFahrenheit,
-        s.setFanatikaFahrenheit, icon: Icons.thermostat),
-      _MergedMenu.route(context, Icons.settings_outlined, 'Forecast and refresh options',
-        FanatikaV2Page.routeName, args: const ['Weather']),
+        detail: 'Android TV feed, server discovery and sign-in'),
+      _MergedMenu.route(context, Icons.cloud_outlined, 'Weather',
+        FanatikaV2Page.routeName, args: const ['Weather'],
+        detail: 'Location, city, forecast and units'),
     ]);
   }
 }
@@ -191,9 +127,6 @@ class UnifiedWallpaperPage extends StatelessWidget {
       _MergedMenu.option('Smart mountain wallpapers', s.fanatikaSmartMountains,
         (v) => s.setFanatikaOption('fanatika_v2_smart_mountains', v),
         icon: Icons.landscape),
-      _MergedMenu.route(context, Icons.image_outlined, 'Background for selected apps',
-        FanatikaV2Page.routeName,
-        args: const ['Diagnostics and appearance preview']),
     ]);
   }
 }
@@ -217,22 +150,36 @@ class UnifiedSystemPage extends StatelessWidget {
     }
   }
   @override Widget build(BuildContext context) => _MergedMenu.page(context, 'TV & tools', [
-    _MergedMenu.group('TV controls'),
     _MergedMenu.action(Icons.input, 'Input',
       () => _openNativeInputs(context), autofocus: true,
-      detail: 'Open the original TV Input menu'),
-    _MergedMenu.route(context, Icons.bedtime_outlined, 'Sleep / standby',
+      detail: 'Native TV source menu'),
+    _MergedMenu.route(context, Icons.bedtime_outlined, 'Sleep timer',
       FanatikaSleepPage.routeName),
     _MergedMenu.action(Icons.settings_applications, 'Android TV settings',
       () => context.read<AppsService>().openSettings()),
-    _MergedMenu.group('Arc system & maintenance'),
-    _MergedMenu.route(context, Icons.settings, 'Arc system preferences',
-      GeneralSettingsPage.routeName, detail: 'Clock, brightness, Wi-Fi and back button'),
-    _MergedMenu.route(context, Icons.backup_outlined, 'Backup, restore and recovery',
-      FanatikaV2Page.routeName, args: const [
-        'Backup and restore', 'Security and quick settings']),
-    _MergedMenu.route(context, Icons.usb, 'USB files', FanatikaUsbPage.routeName),
+    _MergedMenu.route(context, Icons.backup_outlined, 'Backup & restore',
+      FanatikaV2Page.routeName, args: const ['Backup and restore']),
     _MergedMenu.route(context, Icons.system_update, 'Updates',
       FanatikaUpdatesPage.routeName),
+    _MergedMenu.route(context, Icons.more_horiz, 'Advanced tools',
+      UnifiedAdvancedPage.routeName,
+      detail: 'Arc system, USB, PIN and diagnostics'),
+  ]);
+}
+
+// Only rarely used controls go one level deeper; no second settings hub.
+class UnifiedAdvancedPage extends StatelessWidget {
+  static const routeName = 'merged_advanced_settings';
+  const UnifiedAdvancedPage({super.key});
+  @override Widget build(BuildContext context) => _MergedMenu.page(context, 'Advanced tools', [
+    _MergedMenu.route(context, Icons.settings, 'Arc system preferences',
+      GeneralSettingsPage.routeName, autofocus: true,
+      detail: 'Clock, brightness, Wi-Fi and back button'),
+    _MergedMenu.route(context, Icons.usb, 'USB files', FanatikaUsbPage.routeName),
+    _MergedMenu.route(context, Icons.pin, 'Security & connectivity',
+      FanatikaV2Page.routeName, args: const ['Security and quick settings'],
+      detail: 'PIN, Wi-Fi, Bluetooth and display'),
+    _MergedMenu.route(context, Icons.health_and_safety_outlined, 'Diagnostics & recovery',
+      FanatikaV2Page.routeName, args: const ['Diagnostics and appearance preview']),
   ]);
 }

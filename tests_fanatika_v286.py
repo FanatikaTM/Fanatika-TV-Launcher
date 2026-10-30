@@ -9,7 +9,7 @@ def read(name):
 
 class Unified286Tests(unittest.TestCase):
     def test_version(self):
-        self.assertIn('version: 2.8.9+4142', read('pubspec.yaml'))
+        self.assertIn('version: 2.9.1+4144', read('pubspec.yaml'))
 
     def test_arc_favorites_files_unchanged(self):
         hashes = {
@@ -23,7 +23,7 @@ class Unified286Tests(unittest.TestCase):
     def test_merged_root_only(self):
         root = read('lib/widgets/settings/settings_panel_page.dart')
         for name in ['UnifiedHomePage.routeName','UnifiedAppsPage.routeName',
-                     'UnifiedMediaPage.routeName','UnifiedWallpaperPage.routeName',
+                     'UnifiedMediaPage.routeName',
                      'UnifiedSystemPage.routeName']:
             self.assertIn(name,root)
         for old in ['FanatikaToolsHub.routeName', 'FanatikaQuickSettingsDialog()',

@@ -26,17 +26,24 @@ class FocusAwareAppBarState extends State<FocusAwareAppBar>
 {
   bool focused = false;
   late FocusNode _settingsFocusNode;
+  late FocusNode _homeFocusNode;
 
   @override
   void initState() {
     super.initState();
     _settingsFocusNode = FocusNode();
+    _homeFocusNode = FocusNode(debugLabel: "Fanatika Home tab");
   }
 
   @override
   void dispose() {
     _settingsFocusNode.dispose();
+    _homeFocusNode.dispose();
     super.dispose();
+  }
+
+  void focusHome() {
+    _homeFocusNode.requestFocus();
   }
 
   void focusSettings() {
@@ -107,7 +114,7 @@ class FocusAwareAppBarState extends State<FocusAwareAppBar>
             mainAxisSize: MainAxisSize.min,
             children: [
               // Every actionable shortcut now lives inside the ONE text-only pill.
-              FanatikaTopBarTabs(settingsFocusNode: _settingsFocusNode,
+              FanatikaTopBarTabs(settingsFocusNode: _settingsFocusNode, homeFocusNode: _homeFocusNode,
                 onGoHome: widget.onHomeRequested,
                 onNavigateDown: widget.onNavigateDown),
               const SizedBox(width: 10),

@@ -17,9 +17,10 @@ import 'package:flauncher/widgets/settings/status_bar_panel_page.dart';
 
 class FanatikaTopBarTabs extends StatelessWidget {
   final FocusNode settingsFocusNode;
+  final FocusNode homeFocusNode;
   final VoidCallback? onGoHome;
   final VoidCallback? onNavigateDown;
-  const FanatikaTopBarTabs({super.key, required this.settingsFocusNode, this.onGoHome, this.onNavigateDown});
+  const FanatikaTopBarTabs({super.key, required this.settingsFocusNode, required this.homeFocusNode, this.onGoHome, this.onNavigateDown});
 
   @override Widget build(BuildContext context) {
     final names = context.watch<SettingsService>().fanatikaTopBarTabs;
@@ -37,7 +38,7 @@ class FanatikaTopBarTabs extends StatelessWidget {
               }
               return KeyEventResult.ignored;
             }, child: AppBarFocusRing(
-            focusNode: name == 'Settings' ? settingsFocusNode : null,
+            focusNode: name == 'Settings' ? settingsFocusNode : (name == 'Home' ? homeFocusNode : null),
             onPressed: () => _open(context, name),
             semanticLabel: name,
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -66,7 +67,7 @@ class FanatikaTopBarTabs extends StatelessWidget {
       builder: (_) => SettingsPanel(initialRoute: route));
     switch (name) {
       case 'Home':
-        settings(UnifiedHomePage.routeName);
+        if (onGoHome != null) { onGoHome!(); } else { homeFocusNode.requestFocus(); }
         return;
       case 'Apps': settings(UnifiedAppsPage.routeName); return;
       case 'Tools': settings(UnifiedSystemPage.routeName); return;

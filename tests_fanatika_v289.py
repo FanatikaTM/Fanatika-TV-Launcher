@@ -39,7 +39,7 @@ class V289(unittest.TestCase):
   self.assertIn('cleanup_v289_wallpapers.py', read('.github/workflows/build-fanatika-signed.yml'))
  def test_sleep_color_and_icon(self):
   timer=read('lib/widgets/fanatika_sleep_timer_dialog.dart')
-  self.assertIn('0xFF3C4A62',timer)
+  self.assertIn('0xFF1E1E1E',timer)
   bar=read('lib/widgets/fanatika_top_bar_tabs.dart')
   self.assertIn('Icons.grid_view_rounded',bar)
- def test_version(self):self.assertIn('version: 2.8.9+4142',read('pubspec.yaml'))
+ def test_version(self):self.assertIn('version: 2.9.1+4144',read('pubspec.yaml'))

@@ -1,3 +1,4 @@
+import 'package:flauncher/widgets/fanatika_sleep_countdown_badge.dart';
 /*
  * FLauncher
  * Copyright (C) 2021  Étienne Fesser
@@ -230,6 +231,9 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
               ),
             ),
           ),
+          // Visible only while Fanatika is on screen. Not a system-wide overlay.
+          const Positioned(top: kToolbarHeight + 12, right: 22,
+            child: FanatikaSleepCountdownBadge()),
         ],
       ),
     ),
@@ -286,7 +290,7 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                             Expanded(child: FanatikaWatchNextPanel(
                               onItemFocused: _onHomeSectionFocused,
                               firstItemFocusNode: _firstWatchNextFocusNode,
-                              onNavigateUp: () => _appBarKey.currentState?.focusSettings(),
+                              onNavigateUp: () => _appBarKey.currentState?.focusHome(),
                               expandVertical: !heroEnabled,
                             ))
                           else const Spacer(),
@@ -433,7 +437,7 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                     favoritesCategory!,
                     favoriteApps,
                     appsService,
-                    handleUpNavigationToSettings: !reserveWatchNextSpace,
+                    handleUpNavigationToSettings: !reserveWatchNextSpace || !context.read<WatchNextService>().hasItems,
                   ),
                 ),
               ),

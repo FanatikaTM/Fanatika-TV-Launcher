@@ -17,6 +17,9 @@ class PlexContinueWatchingPage extends StatefulWidget {
 class _PlexContinueWatchingPageState extends State<PlexContinueWatchingPage> {
   late final TextEditingController _server;
   late final TextEditingController _token;
+  final FocusNode _serverFocus = FocusNode(debugLabel: 'Plex server address');
+  final FocusNode _tokenFocus = FocusNode(debugLabel: 'Plex token');
+  final FocusNode _saveFocus = FocusNode(debugLabel: 'Save Plex settings');
   bool _enabled = false;
   bool _allowHttp = false;
   bool _busy = false;
@@ -101,6 +104,9 @@ class _PlexContinueWatchingPageState extends State<PlexContinueWatchingPage> {
   void dispose() {
     _server.dispose();
     _token.dispose();
+    _serverFocus.dispose();
+    _tokenFocus.dispose();
+    _saveFocus.dispose();
     super.dispose();
   }
 
@@ -150,6 +156,19 @@ class _PlexContinueWatchingPageState extends State<PlexContinueWatchingPage> {
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: Theme.of(context).colorScheme.surface,
     appBar: AppBar(title: const Text('Plex Continue Watching')),
+    // Permanent actions stay reachable while the TV keyboard hides the form.
+    bottomNavigationBar: SafeArea(top: false,
+      child: Padding(padding: const EdgeInsets.all(10), child: Row(children: [
+        Expanded(child: FilledButton.icon(
+          focusNode: _saveFocus,
+          onPressed: _busy ? null : _save,
+          icon: const Icon(Icons.save), label: const Text('Save'))),
+        const SizedBox(width: 8),
+        Expanded(child: OutlinedButton(
+          onPressed: _busy ? null : _test, child: const Text('Test Plex'))),
+        const SizedBox(width: 8),
+        TextButton(onPressed: _busy ? null : _clear, child: const Text('Clear')),
+      ]))),
     body: ListView(padding: const EdgeInsets.all(16), children: [
       const Text('Show movies and episodes directly from Plex Media Server, even if Plex does not publish Android TV Watch Next rows.',
         style: TextStyle(color: Colors.white70)),
@@ -189,15 +208,17 @@ class _PlexContinueWatchingPageState extends State<PlexContinueWatchingPage> {
       const Text('Advanced — Manual connection', style: TextStyle(fontWeight: FontWeight.bold)),
       const SizedBox(height: 8),
       TextField(
-        controller: _server, autocorrect: false,
-        keyboardType: TextInputType.url,
+        controller: _server, focusNode: _serverFocus, autocorrect: false,
+        keyboardType: TextInputType.url, textInputAction: TextInputAction.next,
+        onSubmitted: (_) => _tokenFocus.requestFocus(),
         decoration: const InputDecoration(labelText: 'Plex server address',
           hintText: 'https://your-server.plex.direct:32400', border: OutlineInputBorder()),
       ),
       const SizedBox(height: 14),
       TextField(
-        controller: _token, autocorrect: false, obscureText: true,
-        enableSuggestions: false,
+        controller: _token, focusNode: _tokenFocus, autocorrect: false, obscureText: true,
+        enableSuggestions: false, textInputAction: TextInputAction.done,
+        onSubmitted: (_) { _tokenFocus.unfocus(); _saveFocus.requestFocus(); _save(); },
         decoration: const InputDecoration(labelText: 'Plex access token',
           border: OutlineInputBorder()),
       ),
@@ -227,14 +248,7 @@ class _PlexContinueWatchingPageState extends State<PlexContinueWatchingPage> {
       const Text('Your token stays in the TV launcher app preferences and is excluded from Fanatika exported backups. Do not share your token.',
         style: TextStyle(color: Colors.white60, fontSize: 12)),
       const SizedBox(height: 14),
-      Wrap(spacing: 10, runSpacing: 10, children: [
-        FilledButton.icon(onPressed: _busy ? null : _save,
-          icon: const Icon(Icons.save), label: const Text('Save')),
-        OutlinedButton.icon(onPressed: _busy ? null : _test,
-          icon: const Icon(Icons.wifi_find), label: const Text('Test Plex')),
-        TextButton.icon(onPressed: _busy ? null : _clear,
-          icon: const Icon(Icons.delete_outline), label: const Text('Clear')),
-      ]),
+      const Text('Press Done on the TV keyboard to save, or use the Save button below.'),
       if (_busy) const Padding(padding: EdgeInsets.all(8), child: LinearProgressIndicator()),
       if (_status.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 12),
         child: Text(_status, style: const TextStyle(color: Colors.white70))),

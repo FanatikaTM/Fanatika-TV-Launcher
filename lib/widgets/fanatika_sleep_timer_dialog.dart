@@ -99,8 +99,9 @@ class _FanatikaSleepTimerDialogState extends State<FanatikaSleepTimerDialog> {
         padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(32),
-          gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-            colors: [Color(0xFF3C4A62), Color(0xFF27334C)]),
+          // Same dark surface used by Arc/Fanatika's unified settings panels.
+          color: const Color(0xFF1E1E1E),
+          border: Border.all(color: Colors.white24),
           boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 24)]),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           const Text('Sleep timer', style: TextStyle(color: Colors.white,
@@ -169,7 +170,7 @@ class _TimerOption extends StatefulWidget {
 class _TimerOptionState extends State<_TimerOption> {
   bool _focused = false;
   @override Widget build(BuildContext context) => Material(
-    color: _focused ? Colors.white : const Color(0x553E546E),
+    color: _focused ? Colors.white : const Color(0xFF343434),
     borderRadius: BorderRadius.circular(23),
     child: InkWell(
       autofocus: widget.autofocus,
@@ -179,7 +180,7 @@ class _TimerOptionState extends State<_TimerOption> {
       child: Padding(padding: const EdgeInsets.symmetric(horizontal: 21, vertical: 19),
         child: Text(widget.label, style: TextStyle(fontSize: 16,
           fontWeight: _focused ? FontWeight.w600 : FontWeight.w400,
-          color: _focused ? const Color(0xFF273D59) : Colors.white),
+          color: _focused ? const Color(0xFF1E1E1E) : Colors.white),
           textAlign: TextAlign.left)),
     ),
   );

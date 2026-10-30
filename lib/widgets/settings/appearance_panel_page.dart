@@ -28,30 +28,6 @@ class AppearancePanelPage extends StatelessWidget {
                 padding: EdgeInsets.only(top: 8, bottom: 8),
                 child: Text('Home screen', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
               ),
-              RoundedSwitchListTile(
-                value: settingsService.showFanatikaHero,
-                onChanged: settingsService.setShowFanatikaHero,
-                title: const Text('Large selected-app title'),
-                secondary: const Icon(Icons.title),
-              ),
-              RoundedSwitchListTile(
-                value: settingsService.showFanatikaWeather,
-                onChanged: settingsService.setShowFanatikaWeather,
-                title: const Text('Weather card'),
-                secondary: const Icon(Icons.cloud_outlined),
-              ),
-              FocusableSettingsTile(
-                leading: const Icon(Icons.location_city),
-                title: const Text('Weather city'),
-                subtitle: Text(settingsService.fanatikaWeatherCity),
-                onPressed: () => _editWeatherCity(context, settingsService),
-              ),
-              RoundedSwitchListTile(
-                value: settingsService.fanatikaFahrenheit,
-                onChanged: settingsService.setFanatikaFahrenheit,
-                title: const Text('Use Fahrenheit'),
-                secondary: const Icon(Icons.thermostat),
-              ),
               const Divider(),
               RoundedSwitchListTile(
                 autofocus: true,
@@ -92,30 +68,6 @@ class AppearancePanelPage extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  Future<void> _editWeatherCity(BuildContext context, SettingsService settings) async {
-    final controller = TextEditingController(text: settings.fanatikaWeatherCity);
-    final city = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Weather city'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLength: 80,
-          decoration: const InputDecoration(hintText: 'e.g. Bansko, Sofia, London'),
-          onSubmitted: (text) => Navigator.of(dialogContext).pop(text),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(controller.text), child: const Text('Save')),
-        ],
-      ),
-    );
-    if (city != null) await settings.setFanatikaWeatherCity(city);
-    // Dialog has finished and no longer uses its controller.
-    controller.dispose();
   }
 
   String _thicknessLabel(AppLocalizations localizations, double thickness) {

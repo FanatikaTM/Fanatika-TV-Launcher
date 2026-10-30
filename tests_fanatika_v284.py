@@ -5,14 +5,14 @@ R=Path(__file__).resolve().parent
 read=lambda p:(R/p).read_text(encoding='utf-8')
 class LayoutFocusNav284(unittest.TestCase):
  def test_version_and_ci(self):
-  self.assertIn('version: 2.8.9+4142',read('pubspec.yaml'))
+  self.assertIn('version: 2.9.1+4144',read('pubspec.yaml'))
   self.assertIn('tests_fanatika_v284',read('.github/workflows/build-fanatika-signed.yml'))
  def test_focus_up_from_watch_next(self):
   panel=read('lib/widgets/fanatika_watch_next_panel.dart')
   launcher=read('lib/flauncher.dart')
   self.assertIn('LogicalKeyboardKey.arrowUp',panel)
   self.assertIn('KeyEventResult.handled',panel)
-  self.assertIn('onNavigateUp: () => _appBarKey.currentState?.focusSettings()',launcher)
+  self.assertIn('onNavigateUp: () => _appBarKey.currentState?.focusHome()',launcher)
  def test_title_off_gives_height_to_panels(self):
   launcher=read('lib/flauncher.dart')
   self.assertIn('heroEnabled\n                      ? SizedBox(height: 242, child: topPanels)',launcher)
@@ -24,7 +24,7 @@ class LayoutFocusNav284(unittest.TestCase):
   for route in ['UnifiedHomePage.routeName','UnifiedAppsPage.routeName','UnifiedSystemPage.routeName']:
    self.assertIn(route,menu)
   sections=read('lib/widgets/settings/unified_settings_pages.dart')
-  for title in ['Plex Continue Watching', 'Show weather', 'Show large title', 'Installed applications', 'Favorites and sections', 'Updates', 'USB files', 'Sleep / standby', 'Input']:
+  for title in ['Plex Continue Watching', 'Weather', 'Large app title', 'Installed apps', 'Favorites & sections', 'Updates', 'USB files', 'Sleep timer', 'Input']:
    self.assertIn(title,sections)
   self.assertIn('s.setShowAppNamesBelowIcons',sections)
   bar=read('lib/widgets/fanatika_top_bar_tabs.dart')

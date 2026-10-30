@@ -143,6 +143,8 @@ class _SettingsPanelState extends State<SettingsPanel> {
                       return _FastPageRoute(builder: (_) => const UnifiedWallpaperPage());
                     case UnifiedSystemPage.routeName:
                       return _FastPageRoute(builder: (_) => const UnifiedSystemPage());
+                    case UnifiedAdvancedPage.routeName:
+                      return _FastPageRoute(builder: (_) => const UnifiedAdvancedPage());
                     case FanatikaTitleFontPage.routeName:
                       return _FastPageRoute(builder: (_) => const FanatikaTitleFontPage());
                     case FanatikaToolsHub.routeName:
