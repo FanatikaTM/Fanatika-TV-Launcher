@@ -1,81 +1,128 @@
-// Fanatika compact Watch Next: placed beside Weather, above the selected app title.
-// Content comes from Android's TV Provider. It is never fabricated by the launcher.
+// Fanatika Continue Watching artwork row: no panel background or heading.
+// A TV remote can navigate every show, including off-screen cards.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flauncher/models/watch_next_item.dart';
 import 'package:flauncher/providers/watch_next_service.dart';
 
-class FanatikaWatchNextPanel extends StatelessWidget {
+class FanatikaWatchNextPanel extends StatefulWidget {
   final VoidCallback? onItemFocused;
   final VoidCallback? onNavigateUp;
+  final VoidCallback? onNavigateDown;
   final bool expandVertical;
   final FocusNode? firstItemFocusNode;
   final FocusNode? refreshFocusNode;
   const FanatikaWatchNextPanel({super.key, this.onItemFocused,
-    this.onNavigateUp, this.expandVertical = false, this.firstItemFocusNode, this.refreshFocusNode});
+    this.onNavigateUp, this.onNavigateDown,
+    this.expandVertical = false, this.firstItemFocusNode, this.refreshFocusNode});
 
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<WatchNextService>(builder: (context, service, _) {
-      return Focus(
-        canRequestFocus: false,
-        onKeyEvent: (node, event) {
-          if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.arrowUp
-              && onNavigateUp != null) {
-            onNavigateUp!();
-            return KeyEventResult.handled;
-          }
-          return KeyEventResult.ignored;
-        },
-        child: Container(
-        height: expandVertical ? double.infinity : 242,
-        padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
-        decoration: BoxDecoration(
-          color: const Color(0xA5101F38),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white24),
-        ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            const Icon(Icons.ondemand_video_outlined, color: Colors.white, size: 19),
-            const SizedBox(width: 8),
-            const Expanded(child: Text('Watch Next',
-              style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700,
-                color: Colors.white))),
-            IconButton(
-              tooltip: 'Refresh Watch Next',
-              focusNode: refreshFocusNode,
-              icon: const Icon(Icons.refresh, size: 20, color: Colors.white70),
-              onPressed: service.refreshPermissionAndItems,
-            ),
-          ]),
-          const SizedBox(height: 4),
-          Expanded(child: _body(context, service)),
-        ]),
-      ));
-    });
+  @override State<FanatikaWatchNextPanel> createState() => _FanatikaWatchNextPanelState();
+}
+
+class _FanatikaWatchNextPanelState extends State<FanatikaWatchNextPanel> {
+  final ScrollController _posterScroll = ScrollController();
+  final Map<String, FocusNode> _cardNodes = {};
+  FocusNode _nodeFor(WatchNextItem item) => _cardNodes.putIfAbsent(
+    '${item.id}_${item.packageName}', () => FocusNode(debugLabel: 'Continue Watching ${item.id}'));
+
+  @override void dispose() {
+    _posterScroll.dispose();
+    for (final node in _cardNodes.values) { node.dispose(); }
+    super.dispose();
   }
 
-  Widget _body(BuildContext context, WatchNextService service) {
-    // Keep the home uncluttered. Access requests and Plex errors remain in
-    // Watch Next settings; never show placeholder warnings over the wallpaper.
-    if (!service.canShowItems || service.isLoading || !service.hasItems) {
-      return const SizedBox.shrink();
+  void _focusCard(List<WatchNextItem> items, int index) {
+    if (index < 0 || index >= items.length) return;
+    final node = index == 0 && widget.firstItemFocusNode != null
+      ? widget.firstItemFocusNode! : _nodeFor(items[index]);
+    node.requestFocus();
+  }
+
+  KeyEventResult _cardKey(KeyEvent event, List<WatchNextItem> items, int index) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
+    final key = event.logicalKey;
+    if (key == LogicalKeyboardKey.arrowRight) {
+      if (index + 1 < items.length) _focusCard(items, index + 1);
+      else widget.refreshFocusNode?.requestFocus();
+      return KeyEventResult.handled;
     }
-    return ListView.separated(
-      scrollDirection: Axis.horizontal,
-      itemCount: service.items.length,
-      separatorBuilder: (_, __) => const SizedBox(width: 12),
-      itemBuilder: (context, index) => _WatchNextCompactCard(
-        key: ValueKey('${service.items[index].id}_${service.items[index].packageName}'),
-        item: service.items[index],
-        service: service,
-        focusNode: index == 0 ? firstItemFocusNode : null,
-        onItemFocused: onItemFocused,
-      ),
-    );
+    if (key == LogicalKeyboardKey.arrowLeft) {
+      if (index > 0) _focusCard(items, index - 1);
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.arrowUp) {
+      widget.onNavigateUp?.call();
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.arrowDown) {
+      widget.onNavigateDown?.call();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
   }
+
+  @override Widget build(BuildContext context) => Consumer<WatchNextService>(
+    builder: (context, service, _) {
+      final shows = service.canShowItems ? service.items : <WatchNextItem>[];
+      return SizedBox(
+        height: widget.expandVertical ? double.infinity : 242,
+        child: Row(children: [
+          Expanded(child: SingleChildScrollView(
+            controller: _posterScroll,
+            scrollDirection: Axis.horizontal,
+            child: Row(children: [
+              for (var index = 0; index < shows.length; index++) ...[
+                if (index > 0) const SizedBox(width: 12),
+                Builder(builder: (cardContext) => Focus(
+                  canRequestFocus: false,
+                  onKeyEvent: (_, event) => _cardKey(event, shows, index),
+                  child: _WatchNextCompactCard(
+                    key: ValueKey('${shows[index].id}_${shows[index].packageName}'),
+                    item: shows[index], service: service,
+                    focusNode: index == 0 ? widget.firstItemFocusNode : _nodeFor(shows[index]),
+                    onItemFocused: () {
+                      widget.onItemFocused?.call();
+                      // Keep each card fully visible when moving with the D-pad.
+                      Scrollable.ensureVisible(cardContext,
+                        duration: const Duration(milliseconds: 180),
+                        curve: Curves.easeOutCubic, alignment: 0.08);
+                    },
+                  ),
+                )),
+              ],
+            ]),
+          )),
+          const SizedBox(width: 12),
+          Focus(canRequestFocus: false,
+            onKeyEvent: (_, event) {
+              if (event is! KeyDownEvent) return KeyEventResult.ignored;
+              if (event.logicalKey == LogicalKeyboardKey.arrowLeft && shows.isNotEmpty) {
+                _focusCard(shows, shows.length - 1); return KeyEventResult.handled;
+              }
+              if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                widget.onNavigateUp?.call(); return KeyEventResult.handled;
+              }
+              if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                widget.onNavigateDown?.call(); return KeyEventResult.handled;
+              }
+              return KeyEventResult.ignored;
+            },
+            child: Align(alignment: Alignment.topCenter,
+              child: SizedBox(width: 60, height: 60,
+                child: IconButton.filledTonal(
+                  tooltip: 'Refresh shows',
+                  focusNode: widget.refreshFocusNode,
+                  iconSize: 30,
+                  icon: const Icon(Icons.refresh),
+                  onPressed: service.refreshPermissionAndItems,
+                ),
+              )),
+          ),
+        ]),
+      );
+    },
+  );
 }
 
 class _WatchNextCompactCard extends StatefulWidget {
@@ -86,37 +133,29 @@ class _WatchNextCompactCard extends StatefulWidget {
   const _WatchNextCompactCard({super.key, required this.item, required this.service,
     this.onItemFocused, this.focusNode});
 
-  @override
-  State<_WatchNextCompactCard> createState() => _WatchNextCompactCardState();
+  @override State<_WatchNextCompactCard> createState() => _WatchNextCompactCardState();
 }
 
 class _WatchNextCompactCardState extends State<_WatchNextCompactCard> {
   bool _focused = false;
-
-  @override
-  void initState() {
+  @override void initState() {
     super.initState();
     widget.service.ensurePosterLoaded(widget.item.posterUri);
   }
-
-  @override
-  void didUpdateWidget(covariant _WatchNextCompactCard oldWidget) {
+  @override void didUpdateWidget(covariant _WatchNextCompactCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.item.posterUri != widget.item.posterUri) {
       widget.service.ensurePosterLoaded(widget.item.posterUri);
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
+  @override Widget build(BuildContext context) {
     final poster = widget.service.getCachedPoster(widget.item.posterUri);
-    return SizedBox(width: 222, child: Material(
+    return SizedBox(width: 222, height: 218, child: Material(
       color: _focused ? const Color(0xFF425A79) : const Color(0xDD1B3049),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(13),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13),
         side: BorderSide(color: _focused ? const Color(0xFFBEE9FF) : Colors.white24,
-          width: _focused ? 2.5 : 1),
-      ),
+          width: _focused ? 2.5 : 1)),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         focusNode: widget.focusNode,
@@ -131,7 +170,8 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard> {
                 errorBuilder: (_, __, ___) => const Icon(Icons.movie_outlined, size: 35))
             : const Icon(Icons.movie_outlined, size: 35, color: Colors.white70)),
           Padding(padding: const EdgeInsets.all(8),
-            child: Text(widget.item.source == 'plex' ? 'Plex  •  ${widget.item.title}' : widget.item.title, maxLines: 1, overflow: TextOverflow.ellipsis,
+            // Show only the title: never prepend the Plex source name.
+            child: Text(widget.item.title, maxLines: 1, overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: Colors.white,
                 fontWeight: FontWeight.w600, fontSize: 13))),
         ]),

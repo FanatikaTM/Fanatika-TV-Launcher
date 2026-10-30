@@ -10,8 +10,8 @@ class HomeOverride293(unittest.TestCase):
  def test_manifest_and_a11y_are_restricted(self):
   root=ET.fromstring(R('android/app/src/main/AndroidManifest.xml'))
   services=[s for s in root.findall('.//service') if s.attrib.get(ANDROID+'name')=='.FanatikaHomeOverrideService']
-  self.assertEqual(len(services),1)
-  self.assertEqual(services[0].attrib[ANDROID+'permission'],'android.permission.BIND_ACCESSIBILITY_SERVICE')
+  self.assertEqual(len(services),0)
+  self.assertNotIn('FanatikaHomeOverrideService',R('android/app/src/main/AndroidManifest.xml'))
   xml=ET.fromstring(R('android/app/src/main/res/xml/fanatika_home_override_accessibility.xml'))
   self.assertEqual(xml.attrib[ANDROID+'canRetrieveWindowContent'],'false')
   self.assertEqual(xml.attrib[ANDROID+'accessibilityEventTypes'],'typeWindowStateChanged')
@@ -32,11 +32,11 @@ class HomeOverride293(unittest.TestCase):
   self.assertIn('Fanatika HOME Override',R('android/app/src/main/res/values/fanatika_home_override_strings.xml'))
  def test_navigation_and_channels(self):
   s=R('lib/widgets/settings/unified_settings_pages.dart')
-  self.assertIn('Make Fanatika HOME',s)
-  self.assertIn('FanatikaHomeOverridePage.routeName',s)
+  self.assertNotIn('Make Fanatika HOME',s)
+  self.assertNotIn('FanatikaHomeOverridePage.routeName',s)
   self.assertIn('fanatikaHomeOverrideOpenAccessibility',R('lib/flauncher_channel.dart'))
   self.assertIn('fanatikaHomeOverrideStatus',R(J+'MainActivity.java'))
-  self.assertIn('version: 2.9.3+4146',R('pubspec.yaml'))
+  self.assertIn('version: 2.9.4+4147',R('pubspec.yaml'))
  def test_original_favorites_and_sleep_and_plex(self):
   self.assertIn('addToFavorites',R('lib/providers/apps_service.dart'))
   self.assertIn('FanatikaSleepController.handleRemoteKey',R(J+'FanatikaSleepKeyService.java'))

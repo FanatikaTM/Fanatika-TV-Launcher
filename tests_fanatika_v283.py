@@ -5,7 +5,7 @@ R=Path(__file__).resolve().parent
 read=lambda p:(R/p).read_text(encoding='utf-8')
 class NeutralUI283(unittest.TestCase):
  def test_build(self):
-  self.assertIn('version: 2.9.3+4146',read('pubspec.yaml'))
+  self.assertIn('version: 2.9.4+4147',read('pubspec.yaml'))
   self.assertIn('tests_fanatika_v283',read('.github/workflows/build-fanatika-signed.yml'))
  def test_tabs_visible_on_logical_widths(self):
   source=read('lib/widgets/focus_aware_app_bar.dart')

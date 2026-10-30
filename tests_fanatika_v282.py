@@ -7,7 +7,7 @@ def read(p): return (ROOT/p).read_text(encoding='utf-8')
 
 class FanatikaV282Tests(unittest.TestCase):
     def test_version(self):
-        self.assertIn('version: 2.9.3+4146', read('pubspec.yaml'))
+        self.assertIn('version: 2.9.4+4147', read('pubspec.yaml'))
     def test_watch_next_left_of_weather(self):
         source=read('lib/flauncher.dart')
         self.assertIn('FanatikaWatchNextPanel(',source)
@@ -19,7 +19,7 @@ class FanatikaV282Tests(unittest.TestCase):
         self.assertIn('key: ValueKey(_focusedFavoritePackage',source)
     def test_empty_state_and_permission_recovery(self):
         source=read('lib/widgets/fanatika_watch_next_panel.dart')
-        for feature in ['SizedBox.shrink()', 'refreshPermissionAndItems','service.items.length']:
+        for feature in ['SingleChildScrollView(', 'refreshPermissionAndItems','shows.length']:
             self.assertIn(feature,source)
         self.assertNotIn('No Watch Next titles available',source)
     def test_real_provider_not_fake_content(self):

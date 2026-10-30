@@ -7,11 +7,13 @@ class Fanatika290(unittest.TestCase):
         self.assertIn('onNavigateUp: () => _appBarKey.currentState?.focusHome()', read('lib/flauncher.dart'))
         self.assertIn('void focusHome()', read('lib/widgets/focus_aware_app_bar.dart'))
         self.assertIn("name == 'Home' ? homeFocusNode", read('lib/widgets/fanatika_top_bar_tabs.dart'))
-    def test_plex_keyboard_and_sticky_save(self):
+    def test_plex_pairing_replaces_keyboard_and_manual_save(self):
         page = read('lib/widgets/settings/plex_continue_watching_page.dart')
-        for s in ['bottomNavigationBar:', 'TextInputAction.next', 'TextInputAction.done',
-                  'onSubmitted:', 'focusNode: _saveFocus', '_save();']:
-            self.assertIn(s, page)
+        for marker in ['Start Plex pairing', 'I approved Plex', 'setPlexContinueWatchingConfig(',
+                       'Choose your Plex server', 'Disconnect Plex']:
+            self.assertIn(marker,page)
+        for removed in ['TextField(', 'bottomNavigationBar:', 'Manual server setup']:
+            self.assertNotIn(removed,page)
     def test_sleep_countdown_on_home(self):
         code = read('lib/widgets/fanatika_sleep_countdown_badge.dart')
         self.assertIn('fanatikaSleepStatus()', code)

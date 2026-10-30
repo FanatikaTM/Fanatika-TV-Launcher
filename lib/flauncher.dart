@@ -213,12 +213,7 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                 ),
             child: Scaffold(
               backgroundColor: Colors.transparent,
-              appBar: FocusAwareAppBar(key: _appBarKey, onNavigateDown: _focusFirstHomeItem, onHomeRequested: () {
-                if (_scrollController.hasClients) {
-                  _scrollController.animateTo(0.0,
-                    duration: const Duration(milliseconds: 220), curve: Curves.easeOutCubic);
-                }
-              }),
+              appBar: FocusAwareAppBar(key: _appBarKey, onNavigateDown: _focusFirstHomeItem, onHomeRequested: _returnToHomeFromTab),
               // (initialized (data.$1), layoutVersion (data.$2), showAppNamesBelowIcons (data.$3))
               body: Selector2<AppsService, SettingsService, (bool, int, bool)>(
                 selector: (_, appsService, settingsService) =>
@@ -241,6 +236,16 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
     ),
   );
 
+  void _returnToHomeFromTab() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(0.0,
+        duration: const Duration(milliseconds: 220), curve: Curves.easeOutCubic);
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusFirstHomeItem();
+    });
+  }
+
   void _focusFirstHomeItem() {
     // D-pad Down from ANY tab starts at the left-most home item, regardless
     // of remembered focus on the last item in either row.
@@ -259,13 +264,14 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
   }
 
   void _focusFromFavoritesUp() {
-    // Favorites -> Watch Next Refresh -> Home; never jump to Settings.
+    // Favorites -> first show (or Refresh if empty), never Settings.
     final settings = context.read<SettingsService>();
-    if (settings.showWatchNextSection && _watchNextRefreshFocusNode.context != null) {
-      _watchNextRefreshFocusNode.requestFocus();
-    } else {
-      _appBarKey.currentState?.focusHome();
+    final feed = context.read<WatchNextService>();
+    if (settings.showWatchNextSection) {
+      final target = feed.hasItems ? _firstWatchNextFocusNode : _watchNextRefreshFocusNode;
+      if (target.context != null) { target.requestFocus(); return; }
     }
+    _appBarKey.currentState?.focusHome();
   }
 
   void _setAppGridFocused(bool focused) {
@@ -295,8 +301,6 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
     final fanatikaSettings = context.watch<SettingsService>();
     final heroEnabled = fanatikaSettings.showFanatikaHero;
     final weatherEnabled = fanatikaSettings.showFanatikaWeather;
-    // Preserve the older source-check marker, but no longer reserve a second Watch Next row.
-    final reserveWatchNextSpace = showWatchNextSection;
 
     final topPanels = Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -307,6 +311,7 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                               firstItemFocusNode: _firstWatchNextFocusNode,
                               refreshFocusNode: _watchNextRefreshFocusNode,
                               onNavigateUp: () => _appBarKey.currentState?.focusHome(),
+                              onNavigateDown: () => _firstFavoriteFocusNode.requestFocus(),
                               expandVertical: !heroEnabled,
                             ))
                           else const Spacer(),
@@ -453,7 +458,7 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                     favoritesCategory!,
                     favoriteApps,
                     appsService,
-                    handleUpNavigationToSettings: !reserveWatchNextSpace || !context.read<WatchNextService>().hasItems,
+                    handleUpNavigationToSettings: true,
                   ),
                 ),
               ),

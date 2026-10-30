@@ -47,7 +47,6 @@ import 'package:flauncher/widgets/settings/misc_panel_page.dart';
 import 'package:flauncher/widgets/settings/interface_settings_page.dart';
 import 'package:flauncher/widgets/settings/general_settings_page.dart';
 import 'package:flauncher/widgets/settings/unified_settings_pages.dart';
-import 'package:flauncher/widgets/settings/fanatika_home_override_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_title_font_page.dart';
 import 'package:flauncher/widgets/settings/screensaver_clock_style_page.dart';
 import 'package:flauncher/models/app.dart';
@@ -160,8 +159,6 @@ class _SettingsPanelState extends State<SettingsPanel> {
                       return _FastPageRoute(builder: (_) => FanatikaV2Page(
                         sections: (settings.arguments as List<String>?) ?? const [],
                         unlockedByParent: storedPin.isEmpty || _pinUnlocked));
-                    case FanatikaHomeOverridePage.routeName:
-                      return _FastPageRoute(builder: (_) => const FanatikaHomeOverridePage());
                     case FanatikaSleepPage.routeName:
                       return _FastPageRoute(builder: (_) => const FanatikaSleepPage());
                     case TvInputsPanelPage.routeName:

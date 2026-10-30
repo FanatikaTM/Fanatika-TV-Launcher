@@ -27,7 +27,7 @@ class V25Checks(unittest.TestCase):
   self.assertIn('fanatika_v2_focus_glow',src('lib/widgets/settings/fanatika_v2_page.dart'))
  def test_weather_with_watchnext(self):
   s=src('lib/flauncher.dart')
-  self.assertIn('reserveWatchNextSpace',s)
+  self.assertIn('showWatchNextSection',s)
   self.assertIn('FanatikaWeatherCard(',s)
   self.assertRegex(s,r'clamp\(365\.0, 1200\.0\)')
  def test_backup_redacts_secrets_and_asks_permission(self):

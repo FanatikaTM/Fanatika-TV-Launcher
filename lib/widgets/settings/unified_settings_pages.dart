@@ -14,10 +14,9 @@ import 'package:flauncher/widgets/settings/fanatika_top_bar_editor_page.dart';
 import 'package:flauncher/widgets/settings/wallpaper_panel_page.dart';
 import 'package:flauncher/widgets/settings/plex_continue_watching_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_sleep_page.dart';
-import 'package:flauncher/widgets/settings/fanatika_home_override_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_usb_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_updates_page.dart';
-import 'package:flauncher/widgets/settings/general_settings_page.dart';
+import 'package:flauncher/widgets/settings/date_time_format_page.dart';
 
 class _MergedMenu {
   static Widget group(String label) => Padding(
@@ -67,6 +66,8 @@ class UnifiedHomePage extends StatelessWidget {
       UnifiedWallpaperPage.routeName, detail: 'Photos and Arc wallpaper library'),
     _MergedMenu.route(context, Icons.brush_outlined, 'Appearance & focus',
       AppearancePanelPage.routeName, detail: 'Arc blur, background and focus border'),
+    _MergedMenu.route(context, Icons.access_time_outlined, 'Date & time format',
+      DateTimeFormatPage.routeName, detail: 'Clock and date formats on the top bar'),
     _MergedMenu.route(context, Icons.view_quilt_outlined, 'Top bar',
       FanatikaTopBarEditorPage.routeName, detail: 'Add, remove or reorder tabs'),
     _MergedMenu.route(context, Icons.tune, 'Extra layout options',
@@ -108,7 +109,7 @@ class UnifiedMediaPage extends StatelessWidget {
         s.setShowWatchNextSection, icon: Icons.movie, autofocus: true),
       _MergedMenu.route(context, Icons.movie_filter_outlined, 'Plex Continue Watching',
         PlexContinueWatchingPage.routeName,
-        detail: 'Android TV feed, server discovery and sign-in'),
+        detail: 'One-time Plex pairing and refresh settings'),
       _MergedMenu.route(context, Icons.cloud_outlined, 'Weather',
         FanatikaV2Page.routeName, args: const ['Weather'],
         detail: 'Location, city, forecast and units'),
@@ -154,9 +155,6 @@ class UnifiedSystemPage extends StatelessWidget {
     _MergedMenu.action(Icons.input, 'Input',
       () => _openNativeInputs(context), autofocus: true,
       detail: 'Native TV source menu'),
-    _MergedMenu.route(context, Icons.home_filled, 'Make Fanatika HOME',
-      FanatikaHomeOverridePage.routeName,
-      detail: 'One-time TV approval; no ADB commands or stock launcher removal'),
     _MergedMenu.route(context, Icons.bedtime_outlined, 'Sleep timer',
       FanatikaSleepPage.routeName),
     _MergedMenu.action(Icons.settings_applications, 'Android TV settings',
@@ -167,7 +165,7 @@ class UnifiedSystemPage extends StatelessWidget {
       FanatikaUpdatesPage.routeName),
     _MergedMenu.route(context, Icons.more_horiz, 'Advanced tools',
       UnifiedAdvancedPage.routeName,
-      detail: 'Arc system, USB, PIN and diagnostics'),
+      detail: 'USB, PIN and diagnostics'),
   ]);
 }
 
@@ -176,10 +174,7 @@ class UnifiedAdvancedPage extends StatelessWidget {
   static const routeName = 'merged_advanced_settings';
   const UnifiedAdvancedPage({super.key});
   @override Widget build(BuildContext context) => _MergedMenu.page(context, 'Advanced tools', [
-    _MergedMenu.route(context, Icons.settings, 'Arc system preferences',
-      GeneralSettingsPage.routeName, autofocus: true,
-      detail: 'Clock, brightness, Wi-Fi and back button'),
-    _MergedMenu.route(context, Icons.usb, 'USB files', FanatikaUsbPage.routeName),
+    _MergedMenu.route(context, Icons.usb, 'USB files', FanatikaUsbPage.routeName, autofocus: true),
     _MergedMenu.route(context, Icons.pin, 'Security & connectivity',
       FanatikaV2Page.routeName, args: const ['Security and quick settings'],
       detail: 'PIN, Wi-Fi, Bluetooth and display'),

@@ -15,17 +15,16 @@ class V292(unittest.TestCase):
         self.assertIn('onNavigateUp: onNavigateUp',read('lib/widgets/category_clean_row.dart'))
         home=read('lib/flauncher.dart')
         self.assertIn('onNavigateUp: _focusFromFavoritesUp',home)
-        self.assertIn('_watchNextRefreshFocusNode.requestFocus()',home)
+        self.assertIn('feed.hasItems ? _firstWatchNextFocusNode : _watchNextRefreshFocusNode',home)
         self.assertIn('refreshFocusNode: _watchNextRefreshFocusNode',home)
     def test_empty_watch_next_refresh_still_focusable(self):
         s=read('lib/widgets/fanatika_watch_next_panel.dart')
-        self.assertIn('focusNode: refreshFocusNode',s)
-        self.assertIn('onNavigateUp!()',s)
+        self.assertIn('focusNode: widget.refreshFocusNode',s)
+        self.assertIn('widget.onNavigateUp?.call()',s)
     def test_plex_does_not_force_manual_entry(self):
         s=read('lib/widgets/settings/plex_continue_watching_page.dart')
-        self.assertIn('bool _showManualConnection = false',s)
-        self.assertIn('if (_showManualConnection) ...[',s)
-        self.assertIn('Plex paired and saved. Watch Next refreshed.',s)
+        self.assertNotIn('Manual server setup',s)
+        self.assertIn('Plex connected. Continue Watching updated.',s)
         self.assertIn('setPlexContinueWatchingConfig(',s)
         self.assertIn('Start Plex pairing',s)
     def test_top_bar_original_controls_and_arc_favorites_preserved(self):
