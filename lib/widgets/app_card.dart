@@ -62,6 +62,7 @@ class AppCard extends StatefulWidget {
   final void Function(AxisDirection) onMove;
   final VoidCallback onMoveEnd;
   final bool handleUpNavigationToSettings;
+  final VoidCallback? onNavigateUp;
   final double scrollAlignment;
   final bool enforceAspectRatio;
   final VoidCallback? onFocused;
@@ -77,6 +78,7 @@ class AppCard extends StatefulWidget {
     required this.onMove,
     required this.onMoveEnd,
     this.handleUpNavigationToSettings = false,
+    this.onNavigateUp,
     this.scrollAlignment = 0.5,
     this.enforceAspectRatio = true,
     this.onFocused,
@@ -611,6 +613,9 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
           });
         });
       }
+      return KeyEventResult.handled;
+    } else if (key == LogicalKeyboardKey.arrowUp && widget.onNavigateUp != null) {
+      widget.onNavigateUp!();
       return KeyEventResult.handled;
     } else if (key == LogicalKeyboardKey.arrowUp && widget.handleUpNavigationToSettings) {
       Actions.invoke(context, const MoveFocusToSettingsIntent());

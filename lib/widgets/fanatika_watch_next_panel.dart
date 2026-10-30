@@ -11,8 +11,9 @@ class FanatikaWatchNextPanel extends StatelessWidget {
   final VoidCallback? onNavigateUp;
   final bool expandVertical;
   final FocusNode? firstItemFocusNode;
+  final FocusNode? refreshFocusNode;
   const FanatikaWatchNextPanel({super.key, this.onItemFocused,
-    this.onNavigateUp, this.expandVertical = false, this.firstItemFocusNode});
+    this.onNavigateUp, this.expandVertical = false, this.firstItemFocusNode, this.refreshFocusNode});
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +45,7 @@ class FanatikaWatchNextPanel extends StatelessWidget {
                 color: Colors.white))),
             IconButton(
               tooltip: 'Refresh Watch Next',
+              focusNode: refreshFocusNode,
               icon: const Icon(Icons.refresh, size: 20, color: Colors.white70),
               onPressed: service.refreshPermissionAndItems,
             ),

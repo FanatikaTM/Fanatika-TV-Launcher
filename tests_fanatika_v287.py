@@ -5,7 +5,7 @@ ROOT = Path(__file__).parent
 def read(name): return (ROOT/name).read_text()
 
 class FanatikaV287(unittest.TestCase):
-    def test_version(self): self.assertIn('version: 2.9.1+4144',read('pubspec.yaml'))
+    def test_version(self): self.assertIn('version: 2.9.2+4145',read('pubspec.yaml'))
     def test_authority_and_own_uid_checks(self):
         manifest=read('android/app/src/main/AndroidManifest.xml')
         provider=read('android/app/src/main/java/com/leanbitlab/ltvL/FanatikaRemoteControlProvider.java')

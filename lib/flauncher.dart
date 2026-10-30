@@ -65,6 +65,7 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _dockKey = GlobalKey();
   final FocusNode _firstWatchNextFocusNode = FocusNode(debugLabel: 'First Watch Next');
+  final FocusNode _watchNextRefreshFocusNode = FocusNode(debugLabel: 'Watch Next Refresh');
   final FocusNode _firstFavoriteFocusNode = FocusNode(debugLabel: 'First Favorite');
   String? _focusedFavoriteAppName;
   String? _focusedFavoritePackage;
@@ -79,6 +80,7 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _firstWatchNextFocusNode.dispose();
+    _watchNextRefreshFocusNode.dispose();
     _firstFavoriteFocusNode.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -244,12 +246,25 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
     // of remembered focus on the last item in either row.
     final feed = context.read<WatchNextService>();
     final settings = context.read<SettingsService>();
-    final target = settings.showWatchNextSection && feed.hasItems
-      ? _firstWatchNextFocusNode : _firstFavoriteFocusNode;
+    final target = settings.showWatchNextSection
+      ? (feed.hasItems ? _firstWatchNextFocusNode : _watchNextRefreshFocusNode)
+      : _firstFavoriteFocusNode;
     if (target.canRequestFocus && target.context != null) {
       target.requestFocus();
+    } else if (_watchNextRefreshFocusNode.context != null && settings.showWatchNextSection) {
+      _watchNextRefreshFocusNode.requestFocus();
     } else if (_firstFavoriteFocusNode.context != null) {
       _firstFavoriteFocusNode.requestFocus();
+    }
+  }
+
+  void _focusFromFavoritesUp() {
+    // Favorites -> Watch Next Refresh -> Home; never jump to Settings.
+    final settings = context.read<SettingsService>();
+    if (settings.showWatchNextSection && _watchNextRefreshFocusNode.context != null) {
+      _watchNextRefreshFocusNode.requestFocus();
+    } else {
+      _appBarKey.currentState?.focusHome();
     }
   }
 
@@ -290,6 +305,7 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                             Expanded(child: FanatikaWatchNextPanel(
                               onItemFocused: _onHomeSectionFocused,
                               firstItemFocusNode: _firstWatchNextFocusNode,
+                              refreshFocusNode: _watchNextRefreshFocusNode,
                               onNavigateUp: () => _appBarKey.currentState?.focusHome(),
                               expandVertical: !heroEnabled,
                             ))
@@ -704,6 +720,7 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
           scrollAlignment: 1.0,
           onAppFocused: _onHomeSectionFocused,
           firstFavoriteFocusNode: _firstFavoriteFocusNode,
+          onNavigateUp: _focusFromFavoritesUp,
           onFavoriteFocused: (app) {
             if (!mounted || _focusedFavoritePackage == app.packageName) return;
             setState(() { _focusedFavoriteAppName = app.name; _focusedFavoritePackage = app.packageName; });

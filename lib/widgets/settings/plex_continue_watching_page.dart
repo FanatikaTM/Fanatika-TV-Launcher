@@ -26,6 +26,7 @@ class _PlexContinueWatchingPageState extends State<PlexContinueWatchingPage> {
   String _status = '';
   FanatikaPlexPin? _pin;
   List<FanatikaPlexServer> _discovered = [];
+  bool _showManualConnection = false;
 
   Future<void> _runSetup(Future<void> Function() action) async {
     if (_busy) return;
@@ -86,7 +87,13 @@ class _PlexContinueWatchingPageState extends State<PlexContinueWatchingPage> {
     _server.text = chosen.url;
     _token.text = chosen.token;
     setState(() { _allowHttp = chosen.allowHttp; _enabled = true; _pin = null;
-      _status = 'Server selected. Press Test Plex, then Save to enable the row.'; });
+      _status = 'Plex server selected. Saving connection…'; });
+    await context.read<SettingsService>().setPlexContinueWatchingConfig(
+      url: _server.text, token: _token.text, enabled: true, allowHttp: _allowHttp);
+    if (!mounted) return;
+    await context.read<SettingsService>().setShowWatchNextSection(true);
+    await context.read<WatchNextService>().refreshPermissionAndItems();
+    if (mounted) setState(() => _status = 'Plex paired and saved. Watch Next refreshed.');
   });
 
 
@@ -170,7 +177,7 @@ class _PlexContinueWatchingPageState extends State<PlexContinueWatchingPage> {
         TextButton(onPressed: _busy ? null : _clear, child: const Text('Clear')),
       ]))),
     body: ListView(padding: const EdgeInsets.all(16), children: [
-      const Text('Show movies and episodes directly from Plex Media Server, even if Plex does not publish Android TV Watch Next rows.',
+      const Text('Use Android TV entries, discover a server, or pair your Plex account. Manual server entry is optional. Press Back to close the TV keyboard.',
         style: TextStyle(color: Colors.white70)),
       const SizedBox(height: 14),
       SwitchListTile(
@@ -205,7 +212,12 @@ class _PlexContinueWatchingPageState extends State<PlexContinueWatchingPage> {
         OutlinedButton(onPressed: _busy ? null : _checkPin, child: const Text('I approved Plex — Check sign-in')),
       ],
       const SizedBox(height: 12),
-      const Text('Advanced — Manual connection', style: TextStyle(fontWeight: FontWeight.bold)),
+      OutlinedButton.icon(
+        onPressed: () => setState(() => _showManualConnection = !_showManualConnection),
+        icon: Icon(_showManualConnection ? Icons.expand_less : Icons.expand_more),
+        label: Text(_showManualConnection ? 'Hide manual server setup' : 'Manual server setup (advanced)'),
+      ),
+      if (_showManualConnection) ...[
       const SizedBox(height: 8),
       TextField(
         controller: _server, focusNode: _serverFocus, autocorrect: false,
@@ -228,6 +240,7 @@ class _PlexContinueWatchingPageState extends State<PlexContinueWatchingPage> {
         subtitle: const Text('Not encrypted; permitted only for private LAN IPs or .local. Prefer HTTPS with a valid certificate.'),
         value: _allowHttp, onChanged: _busy ? null : (value) => setState(() => _allowHttp = value),
       ),
+      ],
       const SizedBox(height: 8),
       ListTile(
         title: const Text('Plex refresh interval'),

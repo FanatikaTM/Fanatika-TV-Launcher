@@ -357,7 +357,7 @@ class SettingsService extends ChangeNotifier {
   ];
   List<String> get fanatikaTopBarTabs {
     final saved = _sharedPreferences.getStringList('fanatika_v2_top_bar_tabs');
-    final tabs = (saved ?? const ['Quick','Home','Apps','Tools','Settings','Input'])
+    final tabs = (saved ?? const ['Quick','Home','Apps','Settings','Input'])
         .where(fanatikaAvailableTopBarTabs.contains).toSet().toList();
     if (!tabs.contains('Home')) tabs.insert(0, 'Home');
     if (!tabs.contains('Settings')) tabs.add('Settings');
@@ -393,7 +393,9 @@ class SettingsService extends ChangeNotifier {
     return {};
   }
   Future<void> setFanatikaOption(String key, Object value) async {
-    if (!key.startsWith('fanatika_v2_')) throw ArgumentError('Invalid setting key');
+    if (!key.startsWith('fanatika_v2_') && key != 'fanatika_v27_auto_weather_location') {
+      throw ArgumentError('Invalid setting key');
+    }
     if (value is bool) { await _sharedPreferences.setBool(key, value); }
     else if (value is int) { await _sharedPreferences.setInt(key, value); }
     else if (value is double) { await _sharedPreferences.setDouble(key, value); }

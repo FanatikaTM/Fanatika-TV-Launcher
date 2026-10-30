@@ -36,6 +36,7 @@ class CategoryCleanRow extends StatelessWidget
   final VoidCallback? onAppFocused;
   final ValueChanged<App>? onFavoriteFocused;
   final FocusNode? firstFavoriteFocusNode;
+  final VoidCallback? onNavigateUp;
 
   CategoryCleanRow({
     Key? key,
@@ -46,6 +47,7 @@ class CategoryCleanRow extends StatelessWidget
     this.onAppFocused,
     this.onFavoriteFocused,
     this.firstFavoriteFocusNode,
+    this.onNavigateUp,
   }) : super(key: key);
 
   @override
@@ -85,6 +87,7 @@ class CategoryCleanRow extends StatelessWidget
                         autofocus: lastExists ? applications[index].packageName == last : index == 0,
                         externalFocusNode: index == 0 ? firstFavoriteFocusNode : null,
                         handleUpNavigationToSettings: isFirstSection,
+                        onNavigateUp: onNavigateUp,
                         scrollAlignment: scrollAlignment,
                         enforceAspectRatio: false,
                         onFocused: () {
