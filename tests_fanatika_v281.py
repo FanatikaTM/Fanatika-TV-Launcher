@@ -7,7 +7,7 @@ def read(p): return (R/p).read_text(encoding='utf-8')
 
 class QuickSettings281(unittest.TestCase):
     def test_version_and_workflow(self):
-        self.assertIn('version: 2.9.2+4145', read('pubspec.yaml'))
+        self.assertIn('version: 2.9.3+4146', read('pubspec.yaml'))
         self.assertIn('tests_fanatika_v281', read('.github/workflows/build-fanatika-signed.yml'))
     def test_visible_short_names(self):
         self.assertIn("'TV & tools'", read('lib/widgets/settings/settings_panel_page.dart'))

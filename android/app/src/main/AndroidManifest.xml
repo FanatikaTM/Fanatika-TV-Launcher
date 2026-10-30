@@ -136,6 +136,17 @@
             <meta-data android:name="android.accessibilityservice" android:resource="@xml/fanatika_sleep_accessibility" />
         </service>
 
+        <!-- Optional HOME interception for locked Xiaomi/Google TV firmware.
+             The TV owner must enable this service under Accessibility. -->
+        <service android:name=".FanatikaHomeOverrideService"
+            android:label="@string/fanatika_home_override_label"
+            android:exported="true"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter><action android:name="android.accessibilityservice.AccessibilityService" /></intent-filter>
+            <meta-data android:name="android.accessibilityservice"
+                android:resource="@xml/fanatika_home_override_accessibility" />
+        </service>
+
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

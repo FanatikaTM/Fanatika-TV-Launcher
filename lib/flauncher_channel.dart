@@ -46,6 +46,16 @@ class FLauncherChannel {
   Future<Map<String, dynamic>> fanatikaUsbChoose(String kind) async =>
       (await _methodChannel.invokeMapMethod<String, dynamic>('fanatikaUsbChoose', {'kind': kind})) ?? {};
 
+  // HOME override: approval is made by the TV owner in Android Accessibility.
+  Future<Map<String, dynamic>> fanatikaHomeOverrideStatus() async =>
+      (await _methodChannel.invokeMapMethod<String, dynamic>('fanatikaHomeOverrideStatus')) ?? {};
+  Future<Map<String, dynamic>> fanatikaHomeOverrideEnable(bool enabled) async =>
+      (await _methodChannel.invokeMapMethod<String, dynamic>('fanatikaHomeOverrideEnable', {'enabled': enabled})) ?? {};
+  Future<Map<String, dynamic>> fanatikaHomeOverrideOpenAccessibility() async =>
+      (await _methodChannel.invokeMapMethod<String, dynamic>('fanatikaHomeOverrideOpenAccessibility')) ?? {};
+  Future<Map<String, dynamic>> fanatikaHomeOverrideOpenAppInfo() async =>
+      (await _methodChannel.invokeMapMethod<String, dynamic>('fanatikaHomeOverrideOpenAppInfo')) ?? {};
+
   // Fanatika v2 sleep controls. Permission is always approved on the TV.
   Future<bool> fanatikaOpenDisplaySleepSettings() async =>
       await _methodChannel.invokeMethod<bool>('fanatikaOpenDisplaySleepSettings') ?? false;

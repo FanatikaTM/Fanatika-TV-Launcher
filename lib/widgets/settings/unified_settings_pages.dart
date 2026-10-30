@@ -14,6 +14,7 @@ import 'package:flauncher/widgets/settings/fanatika_top_bar_editor_page.dart';
 import 'package:flauncher/widgets/settings/wallpaper_panel_page.dart';
 import 'package:flauncher/widgets/settings/plex_continue_watching_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_sleep_page.dart';
+import 'package:flauncher/widgets/settings/fanatika_home_override_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_usb_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_updates_page.dart';
 import 'package:flauncher/widgets/settings/general_settings_page.dart';
@@ -153,6 +154,9 @@ class UnifiedSystemPage extends StatelessWidget {
     _MergedMenu.action(Icons.input, 'Input',
       () => _openNativeInputs(context), autofocus: true,
       detail: 'Native TV source menu'),
+    _MergedMenu.route(context, Icons.home_filled, 'Make Fanatika HOME',
+      FanatikaHomeOverridePage.routeName,
+      detail: 'One-time TV approval; no ADB commands or stock launcher removal'),
     _MergedMenu.route(context, Icons.bedtime_outlined, 'Sleep timer',
       FanatikaSleepPage.routeName),
     _MergedMenu.action(Icons.settings_applications, 'Android TV settings',

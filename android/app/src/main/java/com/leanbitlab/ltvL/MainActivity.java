@@ -162,6 +162,13 @@ public class MainActivity extends FlutterActivity {
                         catch (Exception ignored) { result.success(false); }
                     }
                 }
+                case "fanatikaHomeOverrideStatus" -> result.success(FanatikaHomeOverrideController.status(this));
+                case "fanatikaHomeOverrideEnable" -> {
+                    Boolean enabled = call.argument("enabled");
+                    result.success(FanatikaHomeOverrideController.setEnabled(this, Boolean.TRUE.equals(enabled)));
+                }
+                case "fanatikaHomeOverrideOpenAccessibility" -> result.success(FanatikaHomeOverrideController.openSettings(this));
+                case "fanatikaHomeOverrideOpenAppInfo" -> result.success(FanatikaHomeOverrideController.openAppInfo(this));
                 case "fanatikaSleepStatus" -> result.success(FanatikaSleepController.status(this));
                 case "fanatikaRequestSleepAdmin" -> result.success(FanatikaSleepController.requestAdmin(this));
                 case "fanatikaOpenSleepAccessibility" -> result.success(FanatikaSleepController.openAccessibility(this));

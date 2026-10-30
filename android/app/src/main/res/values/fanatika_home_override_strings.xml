@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fanatika_home_override_label">Fanatika HOME Override</string>
+    <string name="fanatika_home_override_description">When enabled by you, return to Fanatika whenever Google TV HOME opens. This does not read screen content or disable Google TV. Reversible in Accessibility settings.</string>
+</resources>

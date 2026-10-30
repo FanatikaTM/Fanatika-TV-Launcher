@@ -9,7 +9,7 @@ def read(name):
 
 class Unified286Tests(unittest.TestCase):
     def test_version(self):
-        self.assertIn('version: 2.9.2+4145', read('pubspec.yaml'))
+        self.assertIn('version: 2.9.3+4146', read('pubspec.yaml'))
 
     def test_arc_favorites_files_unchanged(self):
         hashes = {
