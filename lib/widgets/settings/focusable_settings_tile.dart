@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flauncher/widgets/settings/fanatika_panel_style.dart';
 
 class FocusableSettingsTile extends StatefulWidget {
   final Widget title;
@@ -32,11 +33,19 @@ class _FocusableSettingsTileState extends State<FocusableSettingsTile> {
     final title = widget.title;
     return title is Text ? (title.data ?? title.toStringShort()) : widget.key?.toString() ?? widget.runtimeType.toString();
   }
+  String? _routeKey(BuildContext context) {
+    final settings = ModalRoute.of(context)?.settings;
+    if (settings?.name == null) return null;
+    final arguments = settings!.arguments;
+    final section = arguments is List ? arguments.join('|') : (arguments?.toString() ?? '');
+    return '${settings.name}::$section';
+  }
+
   @override void didChangeDependencies() {
     super.didChangeDependencies();
     if (_didRestore) return;
     _didRestore = true;
-    final name = ModalRoute.of(context)?.settings.name;
+    final name = _routeKey(context);
     if (name == null) return;
     if (_routeFocus[name] == _identity) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -59,31 +68,40 @@ class _FocusableSettingsTileState extends State<FocusableSettingsTile> {
           },
           child: Focus(
             focusNode: _focusNode,
-            autofocus: widget.autofocus && (ModalRoute.of(context)?.settings.name == null ||
-              !_routeFocus.containsKey(ModalRoute.of(context)?.settings.name)),
+            autofocus: widget.autofocus && (_routeKey(context) == null ||
+              !_routeFocus.containsKey(_routeKey(context))),
             onFocusChange: (hasFocus) {
               if (hasFocus) {
-                final name = ModalRoute.of(context)?.settings.name;
+                final name = _routeKey(context);
                 if (name != null) {
                   // Bound retention; no navigation history, credentials or app data stored.
                   if (_routeFocus.length > 60) _routeFocus.clear();
                   _routeFocus[name] = _identity;
                 }
               }
+              if (hasFocus) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) Scrollable.ensureVisible(context,
+                    alignment: 0.12,
+                    duration: const Duration(milliseconds: 150),
+                    curve: Curves.easeOutCubic);
+                });
+              }
               if (mounted && hasFocus != _focused) setState(() => _focused = hasFocus);
             },
             child: InkWell(
+              canRequestFocus: false,
               onTap: widget.onPressed,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(19),
               focusColor: Colors.transparent,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: _focused ? Theme.of(context).colorScheme.surfaceContainerHigh : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
+                  color: _focused ? FanatikaPanelStyle.focusedTile : FanatikaPanelStyle.tile,
+                  borderRadius: BorderRadius.circular(19),
                   border: _focused
-                      ? Border.all(color: Theme.of(context).colorScheme.primary, width: 2)
-                      : Border.all(color: Colors.transparent, width: 2),
+                      ? Border.all(color: Colors.white38, width: 1)
+                      : Border.all(color: Colors.transparent, width: 1),
                 ),
                 child: Row(
                   children: [

@@ -15,11 +15,11 @@ class V292(unittest.TestCase):
         self.assertIn('onNavigateUp: onNavigateUp',read('lib/widgets/category_clean_row.dart'))
         home=read('lib/flauncher.dart')
         self.assertIn('onNavigateUp: _focusFromFavoritesUp',home)
-        self.assertIn('feed.hasItems ? _firstWatchNextFocusNode : _watchNextRefreshFocusNode',home)
-        self.assertIn('refreshFocusNode: _watchNextRefreshFocusNode',home)
+        self.assertIn('feed.hasItems',home)
+        self.assertNotIn('refreshFocusNode:',home)
     def test_empty_watch_next_refresh_still_focusable(self):
         s=read('lib/widgets/fanatika_watch_next_panel.dart')
-        self.assertIn('focusNode: widget.refreshFocusNode',s)
+        self.assertNotIn('refreshFocusNode',s)
         self.assertIn('widget.onNavigateUp?.call()',s)
     def test_plex_does_not_force_manual_entry(self):
         s=read('lib/widgets/settings/plex_continue_watching_page.dart')

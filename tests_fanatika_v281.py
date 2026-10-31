@@ -7,7 +7,7 @@ def read(p): return (R/p).read_text(encoding='utf-8')
 
 class QuickSettings281(unittest.TestCase):
     def test_version_and_workflow(self):
-        self.assertIn('version: 2.9.4+4147', read('pubspec.yaml'))
+        self.assertIn('version: 2.9.8+4151', read('pubspec.yaml'))
         self.assertIn('tests_fanatika_v281', read('.github/workflows/build-fanatika-signed.yml'))
     def test_visible_short_names(self):
         self.assertIn("'TV & tools'", read('lib/widgets/settings/settings_panel_page.dart'))
@@ -16,7 +16,7 @@ class QuickSettings281(unittest.TestCase):
         self.assertIn("Text('Updates'", read('lib/widgets/settings/fanatika_updates_page.dart'))
     def test_top_pill_nav_does_not_override_home(self):
         s=read('lib/widgets/fanatika_top_bar_tabs.dart')
-        for name in ["case 'Home'", "case 'Apps'", "case 'Tools'", 'onGoHome']:
+        for name in ["case 'Home'", "case 'Apps'", "case 'Settings'", 'onGoHome']:
             self.assertIn(name,s)
         self.assertIn('_scrollController.animateTo(0.0', read('lib/flauncher.dart'))
     def test_native_timer_does_not_claim_direct_oem_control(self):

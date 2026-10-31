@@ -5,7 +5,7 @@ R=Path(__file__).resolve().parent
 read=lambda p:(R/p).read_text(encoding='utf-8')
 class LayoutFocusNav284(unittest.TestCase):
  def test_version_and_ci(self):
-  self.assertIn('version: 2.9.4+4147',read('pubspec.yaml'))
+  self.assertIn('version: 2.9.8+4151',read('pubspec.yaml'))
   self.assertIn('tests_fanatika_v284',read('.github/workflows/build-fanatika-signed.yml'))
  def test_focus_up_from_watch_next(self):
   panel=read('lib/widgets/fanatika_watch_next_panel.dart')
@@ -28,7 +28,7 @@ class LayoutFocusNav284(unittest.TestCase):
    self.assertIn(title,sections)
   self.assertIn('s.setShowAppNamesBelowIcons',sections)
   bar=read('lib/widgets/fanatika_top_bar_tabs.dart')
-  for key in ["case 'Home'","case 'Apps'","case 'Tools'"]:
+  for key in ["case 'Home'","case 'Apps'","case 'Settings'"]:
    self.assertIn(key,bar)
  def test_original_favorites_unmodified(self):
   apps=read('lib/providers/apps_service.dart')

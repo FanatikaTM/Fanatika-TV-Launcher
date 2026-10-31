@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flauncher/providers/wallpaper_service.dart';
+import 'package:flauncher/widgets/settings/fanatika_panel_style.dart';
 
 const mountainWallpapers = [
   ('01_Violet_Sunset.jpg', 'Violet Sunset'),
@@ -24,12 +25,21 @@ class _FanatikaMountainsDialogState extends State<FanatikaMountainsDialog> {
   bool _busy = false;
   String? _error;
   @override
-  Widget build(BuildContext context) => Dialog(
-    child: SizedBox(
-      width: 950,
-      height: 590,
+  Widget build(BuildContext context) {
+    final screen = MediaQuery.sizeOf(context);
+    final width = (screen.width * 0.83).clamp(280.0, 950.0).toDouble()
+      .clamp(1.0, (screen.width - 24).clamp(1.0, double.infinity)).toDouble();
+    final height = (screen.height * 0.85).clamp(280.0, 590.0).toDouble()
+      .clamp(1.0, (screen.height - MediaQuery.viewInsetsOf(context).bottom - 24)
+        .clamp(1.0, double.infinity)).toDouble();
+    return Dialog(
+    backgroundColor: Colors.transparent,
+    child: Container(
+      decoration: FanatikaPanelStyle.decoration,
+      width: width,
+      height: height,
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(18),
         child: Column(children: [
           Row(children: [
             const Expanded(child: Text('Mountain wallpapers', style: TextStyle(fontSize: 24))),
@@ -40,8 +50,8 @@ class _FanatikaMountainsDialogState extends State<FanatikaMountainsDialog> {
           const SizedBox(height: 16),
           Expanded(child: GridView.builder(
             itemCount: mountainWallpapers.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3, childAspectRatio: 1.48, mainAxisSpacing: 14, crossAxisSpacing: 14),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: width < 680 ? 2 : 3, childAspectRatio: 1.48, mainAxisSpacing: 14, crossAxisSpacing: 14),
             itemBuilder: (context, i) {
               final (file, label) = mountainWallpapers[i];
               final path = 'assets/mountains/$file';
@@ -60,6 +70,7 @@ class _FanatikaMountainsDialogState extends State<FanatikaMountainsDialog> {
       ),
     ),
   );
+  }
   Future<void> _apply(String assetPath) async {
     setState(() { _busy = true; _error = null; });
     try {

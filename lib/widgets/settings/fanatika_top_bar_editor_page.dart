@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flauncher/providers/settings_service.dart';
+import 'package:flauncher/widgets/settings/fanatika_panel_style.dart';
 
 // Add/remove/move controls without a separate launcher menu.
 class FanatikaTopBarEditorPage extends StatelessWidget {
@@ -10,12 +11,10 @@ class FanatikaTopBarEditorPage extends StatelessWidget {
     final service = context.watch<SettingsService>();
     final tabs = service.fanatikaTopBarTabs;
     return Column(children: [
-      const Text('Customize top bar', style: TextStyle(fontSize: 21,
-        fontWeight: FontWeight.w600)),
-      const Divider(),
+      const FanatikaPanelHeader(title: 'Customize top bar'),
       const Padding(padding: EdgeInsets.symmetric(vertical: 9, horizontal: 14),
-        child: Text('Select the text tabs you want. Move them up or down to change '
-          'their order. Home and Settings remain available for recovery.',
+        child: Text('Keep the top bar compact. TV controls are in Settings > TV & tools. '
+          'Move tabs to change their order. Home and Settings stay available.',
           style: TextStyle(fontSize: 13, color: Colors.white70))),
       Expanded(child: ListView(children: [
         for (final name in SettingsService.fanatikaAvailableTopBarTabs)
@@ -23,7 +22,13 @@ class FanatikaTopBarEditorPage extends StatelessWidget {
             final on = tabs.contains(name);
             final locked = name == 'Home' || name == 'Settings';
             final idx = tabs.indexOf(name);
-            return ListTile(
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: FanatikaPanelStyle.tile,
+                  borderRadius: BorderRadius.circular(19)),
+                child: ListTile(
               leading: Icon(on ? Icons.check_box : Icons.check_box_outline_blank),
               title: Text(name),
               subtitle: locked ? const Text('Always available') : null,
@@ -40,7 +45,7 @@ class FanatikaTopBarEditorPage extends StatelessWidget {
                     updated[idx-1] = name; updated[idx] = previous;
                     await context.read<SettingsService>().setFanatikaTopBarTabs(updated);
                   } : null,
-                  icon: const Icon(Icons.arrow_upward)),
+                  icon: const Icon(Icons.arrow_left)),
                 IconButton(tooltip: 'Move $name right',
                   onPressed: idx < tabs.length-1 ? () async {
                     final updated = [...tabs];
@@ -48,9 +53,10 @@ class FanatikaTopBarEditorPage extends StatelessWidget {
                     updated[idx+1] = name; updated[idx] = next;
                     await context.read<SettingsService>().setFanatikaTopBarTabs(updated);
                   } : null,
-                  icon: const Icon(Icons.arrow_downward)),
+                  icon: const Icon(Icons.arrow_right)),
               ])) : null,
-            );
+              ),
+            ));
           }),
       ])),
     ]);

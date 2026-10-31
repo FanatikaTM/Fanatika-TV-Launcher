@@ -12,11 +12,11 @@ class QuickSettingsChecks(unittest.TestCase):
         self.assertIn('UnifiedSystemPage.routeName', read('lib/widgets/tv_top_navigation_dialog.dart'))
     def test_all_tiles_present(self):
         source = read('lib/widgets/fanatika_quick_settings_dialog.dart')
-        for name in ['Screensaver', 'Input', 'Picture', 'Sound', 'Wi-Fi', 'Home settings', 'Bluetooth', 'Sleep timer']:
+        for name in ['Screensaver', 'Picture', 'Sound', 'Wi-Fi', 'Bluetooth', 'Sleep timer']:
             self.assertIn("text: '%s'" % name, source)
     def test_safe_intents_and_no_home_modification(self):
         source = read('lib/widgets/fanatika_quick_settings_dialog.dart')
-        for intent in ['android.settings.DISPLAY_SETTINGS', 'android.settings.SOUND_SETTINGS', 'android.settings.HOME_SETTINGS', 'android.settings.BLUETOOTH_SETTINGS']:
+        for intent in ['android.settings.DISPLAY_SETTINGS', 'android.settings.SOUND_SETTINGS', 'android.settings.BLUETOOTH_SETTINGS']:
             self.assertIn(intent, source)
         for unsafe in ['pm disable', 'pm uninstall', 'Runtime.getRuntime', 'adb shell', 'WRITE_SECURE_SETTINGS']:
             self.assertNotIn(unsafe, source)
@@ -31,7 +31,7 @@ class QuickSettingsChecks(unittest.TestCase):
         source = read('lib/providers/apps_service.dart')
         for method in ['getOrCreateFavoritesCategory','addToFavorites','removeFromFavorites','reorderApplication']:
             self.assertIn(method,source)
-    def test_new_version(self): self.assertIn('version: 2.9.4+4147', read('pubspec.yaml'))
+    def test_new_version(self): self.assertIn('version: 2.9.8+4151', read('pubspec.yaml'))
     def test_workflow(self): self.assertIn('tests_fanatika_v28',read('.github/workflows/build-fanatika-signed.yml'))
 
 if __name__ == '__main__': unittest.main()

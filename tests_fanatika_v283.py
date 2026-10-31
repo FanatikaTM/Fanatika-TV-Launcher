@@ -5,18 +5,18 @@ R=Path(__file__).resolve().parent
 read=lambda p:(R/p).read_text(encoding='utf-8')
 class NeutralUI283(unittest.TestCase):
  def test_build(self):
-  self.assertIn('version: 2.9.4+4147',read('pubspec.yaml'))
+  self.assertIn('version: 2.9.8+4151',read('pubspec.yaml'))
   self.assertIn('tests_fanatika_v283',read('.github/workflows/build-fanatika-signed.yml'))
  def test_tabs_visible_on_logical_widths(self):
   source=read('lib/widgets/focus_aware_app_bar.dart')
   for marker in ['FanatikaTopBarTabs(', 'SingleChildScrollView(']:self.assertIn(marker,source)
-  self.assertIn("'Home','Apps','Tools'",read('lib/providers/settings_service.dart'))
+  self.assertIn("'Home','Apps','Settings'",read('lib/providers/settings_service.dart'))
   self.assertNotIn('width >= 980',source)
  def test_gray_quick_panel(self):
   source=read('lib/widgets/fanatika_quick_settings_dialog.dart')
-  self.assertIn('Color(0xFF1E1E1E)',source)
-  self.assertIn('Color(0xFF303030)',source)
-  self.assertIn('surfaceContainerHigh',source)
+  self.assertIn('FanatikaPanelStyle.decoration',source)
+  self.assertIn('FanatikaPanelStyle.tile',source)
+  self.assertIn('FanatikaPanelStyle.focusedTile',source)
  def test_native_input_first_with_fallback(self):
   native=read('android/app/src/main/java/com/leanbitlab/ltvL/MainActivity.java')
   segment=native.split('private Map<String, Object> openTvSourcePicker()',1)[1].split('private Map<String, Object> tryXiaomiHdmi(',1)[0]
@@ -24,7 +24,7 @@ class NeutralUI283(unittest.TestCase):
   self.assertIn('ActivityNotFoundException',segment)
   self.assertIn('SecurityException',segment)
   self.assertIn('startActivity(intent)',segment)
-  self.assertIn('await _channel.openTvSourcePicker()',read('lib/widgets/fanatika_quick_settings_dialog.dart'))
+  self.assertNotIn("text: 'Input'",read('lib/widgets/fanatika_quick_settings_dialog.dart'))
   self.assertNotIn('_openPanel(TvInputsPanelPage.routeName)',read('lib/widgets/fanatika_quick_settings_dialog.dart'))
  def test_branding_about_only(self):
   self.assertIn('applicationName: "Fanatika TV Launcher"',read('lib/widgets/settings/flauncher_about_dialog.dart'))

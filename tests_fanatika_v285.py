@@ -9,7 +9,7 @@ def source(name):
 
 class PlexV285Tests(unittest.TestCase):
     def test_current_version(self):
-        self.assertIn('version: 2.9.4+4147', source('pubspec.yaml'))
+        self.assertIn('version: 2.9.8+4151', source('pubspec.yaml'))
 
     def test_plex_hub_and_auth_in_header(self):
         code = source('lib/providers/plex_continue_watching_client.dart')

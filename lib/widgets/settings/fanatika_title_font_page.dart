@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flauncher/providers/settings_service.dart';
 import 'package:flauncher/widgets/settings/focusable_settings_tile.dart';
+import 'package:flauncher/widgets/settings/fanatika_panel_style.dart';
 
 class FanatikaTitleFontPage extends StatelessWidget {
   static const routeName = 'fanatika_title_fonts';
@@ -25,8 +26,7 @@ class FanatikaTitleFontPage extends StatelessWidget {
   @override Widget build(BuildContext context) {
     final current = context.watch<SettingsService>().fanatikaTitleFont;
     return Column(children: [
-      Text('Large app title font', style: Theme.of(context).textTheme.titleLarge),
-      const Divider(),
+      const FanatikaPanelHeader(title: 'Large app title font'),
       Expanded(child: ListView(children: [
         const Padding(padding: EdgeInsets.all(12), child: Text(
           'Choose the font for the big selected-app name only. The top bar, menu fonts, '

@@ -36,7 +36,7 @@ class HomeOverride293(unittest.TestCase):
   self.assertNotIn('FanatikaHomeOverridePage.routeName',s)
   self.assertIn('fanatikaHomeOverrideOpenAccessibility',R('lib/flauncher_channel.dart'))
   self.assertIn('fanatikaHomeOverrideStatus',R(J+'MainActivity.java'))
-  self.assertIn('version: 2.9.4+4147',R('pubspec.yaml'))
+  self.assertIn('version: 2.9.8+4151',R('pubspec.yaml'))
  def test_original_favorites_and_sleep_and_plex(self):
   self.assertIn('addToFavorites',R('lib/providers/apps_service.dart'))
   self.assertIn('FanatikaSleepController.handleRemoteKey',R(J+'FanatikaSleepKeyService.java'))

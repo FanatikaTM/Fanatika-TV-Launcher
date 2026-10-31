@@ -16,7 +16,7 @@ class Fanatika288(unittest.TestCase):
   bar=read('lib/widgets/focus_aware_app_bar.dart')
   text=read('lib/widgets/fanatika_top_bar_tabs.dart')
   self.assertIn('FanatikaTopBarTabs(',bar)
-  for tab in ['Home','Apps','Tools','Settings','Input','Quick','Sleep','Weather','Network']:
+  for tab in ['Home','Apps','Settings','Input','Quick','Sleep','Weather','Network']:
    self.assertIn("'"+tab+"'",text)
   self.assertNotIn('Icons.settings_input_hdmi',bar)
   self.assertIn('AppBarFocusRing(',text)
@@ -49,7 +49,7 @@ class Fanatika288(unittest.TestCase):
   self.assertIn('service.launchItem(widget.item)',panel)
  def test_input_only_and_arc_favorites_untouched(self):
   self.assertIn("'Input'",read('lib/widgets/settings/unified_settings_pages.dart'))
-  self.assertIn("text: 'Input'",read('lib/widgets/fanatika_quick_settings_dialog.dart'))
+  self.assertNotIn("text: 'Input'",read('lib/widgets/fanatika_quick_settings_dialog.dart'))
   apps=read('lib/providers/apps_service.dart')
   for method in ['addToFavorites','removeFromFavorites','reorderApplication']:
    self.assertIn(method,apps)

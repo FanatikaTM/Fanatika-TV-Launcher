@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:flauncher/providers/settings_service.dart';
 import 'package:flauncher/providers/watch_next_service.dart';
 import 'package:flauncher/providers/fanatika_plex_setup.dart';
+import 'package:flauncher/widgets/settings/fanatika_panel_style.dart';
 
 class PlexContinueWatchingPage extends StatefulWidget {
   static const routeName = 'fanatika_plex_continue_watching';
@@ -81,10 +82,9 @@ class _PlexContinueWatchingPageState extends State<PlexContinueWatchingPage> {
     final settings = context.watch<SettingsService>();
     final connected = settings.plexContinueWatchingEnabled &&
       settings.plexServerUrl.isNotEmpty && settings.plexAccessToken.isNotEmpty;
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(title: const Text('Plex Continue Watching')),
-      body: ListView(padding: const EdgeInsets.all(18), children: [
+    return Column(children: [
+      const FanatikaPanelHeader(title: 'Plex Continue Watching'),
+      Expanded(child: ListView(padding: const EdgeInsets.fromLTRB(6, 8, 6, 24), children: [
         Text(connected ? 'Plex connected' : 'Connect your Plex account',
           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
         const SizedBox(height: 12),
@@ -135,7 +135,7 @@ class _PlexContinueWatchingPageState extends State<PlexContinueWatchingPage> {
         const SizedBox(height: 20),
         const Text('Plex login is approved by you at plex.tv/link. Fanatika stores its own server access token privately and excludes it from exported backups.',
           style: TextStyle(color: Colors.white60, fontSize: 12)),
-      ]),
-    );
+      ])),
+    ]);
   }
 }

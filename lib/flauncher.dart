@@ -65,7 +65,6 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _dockKey = GlobalKey();
   final FocusNode _firstWatchNextFocusNode = FocusNode(debugLabel: 'First Watch Next');
-  final FocusNode _watchNextRefreshFocusNode = FocusNode(debugLabel: 'Watch Next Refresh');
   final FocusNode _firstFavoriteFocusNode = FocusNode(debugLabel: 'First Favorite');
   String? _focusedFavoriteAppName;
   String? _focusedFavoritePackage;
@@ -80,7 +79,6 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _firstWatchNextFocusNode.dispose();
-    _watchNextRefreshFocusNode.dispose();
     _firstFavoriteFocusNode.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -247,29 +245,29 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
   }
 
   void _focusFirstHomeItem() {
-    // D-pad Down from ANY tab starts at the left-most home item, regardless
-    // of remembered focus on the last item in either row.
+    // The first Watch Next card is the default. With no shows, go to the
+    // first Favorite; there is deliberately no Refresh button in the row.
     final feed = context.read<WatchNextService>();
     final settings = context.read<SettingsService>();
-    final target = settings.showWatchNextSection
-      ? (feed.hasItems ? _firstWatchNextFocusNode : _watchNextRefreshFocusNode)
-      : _firstFavoriteFocusNode;
+    final target = settings.showWatchNextSection && feed.hasItems
+      ? _firstWatchNextFocusNode : _firstFavoriteFocusNode;
     if (target.canRequestFocus && target.context != null) {
       target.requestFocus();
-    } else if (_watchNextRefreshFocusNode.context != null && settings.showWatchNextSection) {
-      _watchNextRefreshFocusNode.requestFocus();
     } else if (_firstFavoriteFocusNode.context != null) {
       _firstFavoriteFocusNode.requestFocus();
+    } else {
+      _appBarKey.currentState?.focusHome();
     }
   }
 
   void _focusFromFavoritesUp() {
-    // Favorites -> first show (or Refresh if empty), never Settings.
+    // Favorites -> first Watch Next show, or Home when the row is empty.
     final settings = context.read<SettingsService>();
     final feed = context.read<WatchNextService>();
-    if (settings.showWatchNextSection) {
-      final target = feed.hasItems ? _firstWatchNextFocusNode : _watchNextRefreshFocusNode;
-      if (target.context != null) { target.requestFocus(); return; }
+    if (settings.showWatchNextSection && feed.hasItems &&
+        _firstWatchNextFocusNode.context != null) {
+      _firstWatchNextFocusNode.requestFocus();
+      return;
     }
     _appBarKey.currentState?.focusHome();
   }
@@ -309,7 +307,6 @@ class _FLauncherState extends State<FLauncher> with WidgetsBindingObserver {
                             Expanded(child: FanatikaWatchNextPanel(
                               onItemFocused: _onHomeSectionFocused,
                               firstItemFocusNode: _firstWatchNextFocusNode,
-                              refreshFocusNode: _watchNextRefreshFocusNode,
                               onNavigateUp: () => _appBarKey.currentState?.focusHome(),
                               onNavigateDown: () => _firstFavoriteFocusNode.requestFocus(),
                               expandVertical: !heroEnabled,

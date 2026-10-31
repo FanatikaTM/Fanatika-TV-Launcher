@@ -22,6 +22,7 @@ import 'package:flauncher/l10n/app_localizations.dart';
 import 'package:flauncher/widgets/settings/flauncher_about_dialog.dart';
 import 'package:flauncher/widgets/settings/unified_settings_pages.dart';
 import 'focusable_settings_tile.dart';
+import 'fanatika_panel_style.dart';
 
 class SettingsPanelPage extends StatelessWidget {
   static const String routeName = 'settings_panel';
@@ -35,8 +36,7 @@ class SettingsPanelPage extends StatelessWidget {
         trailing: const Icon(Icons.chevron_right),
         onPressed: () => Navigator.of(context).pushNamed(route));
     return Column(children: [
-      Text(localizations.settings, style: Theme.of(context).textTheme.titleLarge),
-      const Divider(),
+      FanatikaPanelHeader(title: localizations.settings),
       Expanded(child: ListView(children: [
         item(Icons.home_outlined, 'Home & appearance',
           'Title, wallpapers, layout and top bar', UnifiedHomePage.routeName, focus: true),

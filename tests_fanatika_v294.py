@@ -14,7 +14,7 @@ class V294(unittest.TestCase):
  def test_watch_next_only_artwork_and_title(self):
   s=read('lib/widgets/fanatika_watch_next_panel.dart')
   for marker in ['SingleChildScrollView(', 'Scrollable.ensureVisible(', 'LogicalKeyboardKey.arrowRight',
-    'LogicalKeyboardKey.arrowLeft', 'widget.item.title', 'focusNode: widget.refreshFocusNode']:
+    'LogicalKeyboardKey.arrowLeft', 'widget.item.title', 'BoxFit.contain']:
    self.assertIn(marker,s)
   for old in ["Text('Watch Next'", "'Plex  •  '", 'border: Border.all(color: Colors.white24)']:
    self.assertNotIn(old,s)
@@ -22,7 +22,7 @@ class V294(unittest.TestCase):
   s=read('lib/flauncher.dart')
   for marker in ['onHomeRequested: _returnToHomeFromTab',
     'onNavigateDown: () => _firstFavoriteFocusNode.requestFocus()',
-    'handleUpNavigationToSettings: true', 'feed.hasItems ? _firstWatchNextFocusNode']:
+    'handleUpNavigationToSettings: true', 'settings.showWatchNextSection && feed.hasItems']:
    self.assertIn(marker,s)
   for method in ['addToFavorites','removeFromFavorites','reorderApplication']:
    self.assertIn(method,read('lib/providers/apps_service.dart'))
@@ -36,4 +36,4 @@ class V294(unittest.TestCase):
   self.assertIn("'Date & time format'",menu)
   self.assertIn('DateTimeFormatPage.routeName',menu)
  def test_current_version(self):
-  self.assertIn('version: 2.9.4+4147',read('pubspec.yaml'))
+  self.assertIn('version: 2.9.8+4151',read('pubspec.yaml'))

@@ -9,7 +9,7 @@ def read(name):
 
 class Unified286Tests(unittest.TestCase):
     def test_version(self):
-        self.assertIn('version: 2.9.4+4147', read('pubspec.yaml'))
+        self.assertIn('version: 2.9.8+4151', read('pubspec.yaml'))
 
     def test_arc_favorites_files_unchanged(self):
         hashes = {
@@ -43,7 +43,7 @@ class Unified286Tests(unittest.TestCase):
         bar=read('lib/widgets/focus_aware_app_bar.dart')
         for s in ['fanatikaStatusBarStyle', 'FanatikaTopBarTabs(', 'SingleChildScrollView(']:
             self.assertIn(s,bar)
-        for s in ["case 'Home'", "case 'Apps'", "case 'Tools'", "case 'Input'"]:
+        for s in ["case 'Home'", "case 'Apps'", "case 'Settings'", "case 'Input'"]:
             self.assertIn(s,read('lib/widgets/fanatika_top_bar_tabs.dart'))
 
     def test_native_inputs_only(self):
@@ -63,15 +63,15 @@ class Unified286Tests(unittest.TestCase):
         self.assertNotIn('Widget _secondaryTiles()', q)
         self.assertNotIn('All settings', q)
         self.assertNotIn('FanatikaToolsHub.routeName', q)
-        self.assertIn('Color(0xFF1E1E1E)',q)
+        self.assertIn('FanatikaPanelStyle.decoration',q)
 
     def test_arc_colors(self):
         focus=read('lib/widgets/settings/focusable_settings_tile.dart')
-        self.assertIn('Theme.of(context).colorScheme.surfaceContainerHigh',focus)
-        self.assertIn('Theme.of(context).colorScheme.primary',focus)
+        self.assertIn('FanatikaPanelStyle.focusedTile',focus)
+        self.assertIn('Colors.white38',focus)
         self.assertNotIn('Color(0xFF7CB7FF)',focus)
         plex=read('lib/widgets/settings/plex_continue_watching_page.dart')
-        self.assertIn('Theme.of(context).colorScheme.surface',plex)
+        self.assertIn('FanatikaPanelHeader',plex)
 
     def test_big_title_font_choices_persist(self):
         font=read('lib/widgets/settings/fanatika_title_font_page.dart')

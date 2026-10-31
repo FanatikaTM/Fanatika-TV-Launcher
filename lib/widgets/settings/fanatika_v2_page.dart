@@ -13,6 +13,7 @@ import 'package:flauncher/widgets/settings/fanatika_sleep_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_theme_preview.dart';
 import 'package:flauncher/widgets/settings/fanatika_title_font_page.dart';
 import 'package:flauncher/widgets/settings/fanatika_usb_page.dart';
+import 'package:flauncher/widgets/settings/fanatika_panel_style.dart';
 
 // Navigation marker also renders the section header, so each submenu stays independent.
 class FanatikaToolSection extends StatelessWidget {
@@ -200,10 +201,8 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
       ]);
     }
     return Column(children: [
-      const Padding(padding: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-        child: Text('Customization',
-          style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700))),
-      const Divider(height: 1),
+      FanatikaPanelHeader(title: widget.sections.length == 1
+        ? widget.sections.first : 'Appearance & settings'),
       Expanded(child: FocusTraversalGroup(
         policy: ReadingOrderTraversalPolicy(),
         child: ListView(
@@ -326,17 +325,14 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
             () => Navigator.of(context).pushNamed(FanatikaSleepPage.routeName),
             subtitle: 'Sleep now, timers, permissions and remote keys'),
           FanatikaToolSection('Security and quick settings'),
+          // Quick grid owns the Wi-Fi/Bluetooth/Picture controls; Android TV
+          // settings is available from TV & tools. Don't duplicate their menu routes.
           tile(Icons.pin, s.fanatikaSettingsPin.isEmpty ? 'Set settings PIN' : 'Change or remove PIN', changePin),
-          tile(Icons.wifi, 'Wi-Fi settings', () => guard(native.openWifiSettings)),
-          tile(Icons.bluetooth, 'Bluetooth settings',
-            () => guard(() => native.launchActivityFromAction('android.settings.BLUETOOTH_SETTINGS'))),
-          tile(Icons.display_settings, 'Display settings',
-            () => guard(() => native.launchActivityFromAction('android.settings.DISPLAY_SETTINGS'))),
-          tile(Icons.settings, 'Android system settings', () => guard(native.openSettings)),
         ], widget.sections),
       ))),
       if (working) const LinearProgressIndicator(),
-      if (status.isNotEmpty) Padding(padding: const EdgeInsets.all(12), child: Text(status)),
+      if (status.isNotEmpty) Padding(padding: const EdgeInsets.all(12),
+        child: Text(status, maxLines: 2, overflow: TextOverflow.ellipsis)),
     ]);
   }
 }

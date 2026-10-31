@@ -4,6 +4,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flauncher/flauncher_channel.dart';
+import 'package:flauncher/widgets/settings/fanatika_panel_style.dart';
 
 class FanatikaSleepTimerDialog extends StatefulWidget {
   const FanatikaSleepTimerDialog({super.key});
@@ -97,12 +98,7 @@ class _FanatikaSleepTimerDialogState extends State<FanatikaSleepTimerDialog> {
         width: width < 650 ? width * 0.85 : 430,
         constraints: BoxConstraints(maxHeight: height * 0.88),
         padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(32),
-          // Same dark surface used by Arc/Fanatika's unified settings panels.
-          color: const Color(0xFF1E1E1E),
-          border: Border.all(color: Colors.white24),
-          boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 24)]),
+        decoration: FanatikaPanelStyle.decoration,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           const Text('Sleep timer', style: TextStyle(color: Colors.white,
             fontSize: 24, fontWeight: FontWeight.bold)),
@@ -170,7 +166,7 @@ class _TimerOption extends StatefulWidget {
 class _TimerOptionState extends State<_TimerOption> {
   bool _focused = false;
   @override Widget build(BuildContext context) => Material(
-    color: _focused ? Colors.white : const Color(0xFF343434),
+    color: _focused ? FanatikaPanelStyle.focusedTile : FanatikaPanelStyle.tile,
     borderRadius: BorderRadius.circular(23),
     child: InkWell(
       autofocus: widget.autofocus,
@@ -180,7 +176,7 @@ class _TimerOptionState extends State<_TimerOption> {
       child: Padding(padding: const EdgeInsets.symmetric(horizontal: 21, vertical: 19),
         child: Text(widget.label, style: TextStyle(fontSize: 16,
           fontWeight: _focused ? FontWeight.w600 : FontWeight.w400,
-          color: _focused ? const Color(0xFF1E1E1E) : Colors.white),
+          color: Colors.white),
           textAlign: TextAlign.left)),
     ),
   );

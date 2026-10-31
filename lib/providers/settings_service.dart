@@ -349,10 +349,12 @@ class SettingsService extends ChangeNotifier {
   bool get fanatikaFocusGlow => _sharedPreferences.getBool('fanatika_v2_focus_glow') ?? true;
   bool get fanatikaFixedTitle => _sharedPreferences.getBool('fanatika_v2_fixed_title') ?? true;
   String get fanatikaStatusBarStyle => _sharedPreferences.getString('fanatika_v2_bar_style') ?? 'Transparent';
-  // The single top bar. Home and Settings are always present so D-pad users
+  // The single top bar. Old saved Tools tabs are filtered on read: TV controls
+  // remain under Settings > TV & tools, without a duplicate top-level tab.
+  // Home and Settings are always present so D-pad users
   // cannot accidentally lose access to the launcher or its recovery settings.
   static const fanatikaAvailableTopBarTabs = <String>[
-    'Home','Apps','Tools','Settings','Input','Quick','Sleep',
+    'Home','Apps','Settings','Input','Quick','Sleep',
     'Weather','Network','Updates','Bar'
   ];
   List<String> get fanatikaTopBarTabs {

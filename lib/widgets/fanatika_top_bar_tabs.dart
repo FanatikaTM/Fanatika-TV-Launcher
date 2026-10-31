@@ -1,4 +1,4 @@
-// Configurable, D-pad-friendly text-only top navigation. Uses original
+// Configurable, D-pad-friendly compact top navigation. Uses original
 // Arc launcher FocusRing decoration and the existing pill background.
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,6 +16,7 @@ import 'package:flauncher/widgets/settings/fanatika_updates_page.dart';
 import 'package:flauncher/widgets/settings/status_bar_panel_page.dart';
 
 class FanatikaTopBarTabs extends StatelessWidget {
+  static bool _settingsDialogOpen = false;
   final FocusNode settingsFocusNode;
   final FocusNode homeFocusNode;
   final VoidCallback? onGoHome;
@@ -63,14 +64,21 @@ class FanatikaTopBarTabs extends StatelessWidget {
   }
 
   void _open(BuildContext context, String name) {
-    void settings([String? route]) => showDialog<void>(context: context,
-      builder: (_) => SettingsPanel(initialRoute: route));
+    Future<void> settings([String? route]) async {
+      if (_settingsDialogOpen) return;
+      _settingsDialogOpen = true;
+      try {
+        await showDialog<void>(context: context,
+          builder: (_) => SettingsPanel(initialRoute: route));
+      } finally {
+        _settingsDialogOpen = false;
+      }
+    }
     switch (name) {
       case 'Home':
         if (onGoHome != null) { onGoHome!(); } else { homeFocusNode.requestFocus(); }
         return;
       case 'Apps': settings(UnifiedAppsPage.routeName); return;
-      case 'Tools': settings(UnifiedSystemPage.routeName); return;
       case 'Settings': settings(); return;
       case 'Weather': settings(UnifiedMediaPage.routeName); return;
       case 'Sleep': showDialog<void>(context: context,

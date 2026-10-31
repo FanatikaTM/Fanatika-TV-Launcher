@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flauncher/flauncher_channel.dart';
 import 'package:flauncher/widgets/fanatika_sleep_timer_dialog.dart';
+import 'package:flauncher/widgets/settings/fanatika_panel_style.dart';
 
 // Displayed by a separate icon in Fanatika's status bar, without replacing
 // the existing Settings and HOME controls.
@@ -17,8 +18,6 @@ class FanatikaQuickSettingsDialog extends StatefulWidget {
 }
 
 class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialog> {
-  static const Color base = Color(0xFF1E1E1E);
-  static const Color tileBlue = Color(0xFF303030);
   final FLauncherChannel _channel = FLauncherChannel();
   Timer? _clockTimer;
   DateTime _now = DateTime.now();
@@ -55,18 +54,6 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
     await _channel.launchActivityFromAction(action);
   });
 
-  Future<void> _openInput() async {
-    await _perform(() async {
-      final result = await _channel.openTvSourcePicker();
-      if (!mounted) return;
-      if (result['opened'] != true) {
-        setState(() => _notice = result['detail']?.toString() ??
-            'Input unavailable. Use the TV remote Input button.');
-        // Never replace the manufacturer's picker with a custom inputs menu.
-      }
-    });
-  }
-
   Future<void> _openNativeSleepSettings() => _perform(() async {
     // The native Xiaomi timer is controlled by the firmware, not by the launcher.
     // A public third-party intent to select its exact timer is not available.
@@ -92,8 +79,9 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
-    final panelWidth = (size.width * 0.42).clamp(420.0, 520.0).toDouble();
-    final panelHeight = (size.height * 0.91).clamp(470.0, 685.0).toDouble();
+    final panelWidth = FanatikaPanelStyle.panelWidth(size);
+    final panelHeight = FanatikaPanelStyle.panelHeight(size,
+      keyboard: MediaQuery.viewInsetsOf(context).bottom);
     return Dialog(
       alignment: Alignment.centerRight,
       insetPadding: const EdgeInsets.only(left: 10, top: 12, right: 24, bottom: 12),
@@ -102,13 +90,7 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
       child: Container(
         width: panelWidth,
         height: panelHeight,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: Colors.white24, width: 1),
-          gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
-            colors: [Color(0xFF242424), base, Color(0xFF191919)]),
-          boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 30, offset: Offset(0, 8))],
-        ),
+        decoration: FanatikaPanelStyle.decoration,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 15, 20, 14),
           child: Column(children: [
@@ -142,20 +124,17 @@ class _FanatikaQuickSettingsDialogState extends State<FanatikaQuickSettingsDialo
   ]);
 
   Widget _mainTiles() => GridView.count(
-    physics: const NeverScrollableScrollPhysics(),
+    physics: const ClampingScrollPhysics(),
     crossAxisCount: 2, childAspectRatio: 2.5,
     mainAxisSpacing: 9, crossAxisSpacing: 9,
     children: [
       _QuickTile(icon: Icons.wallpaper, text: 'Screensaver', autofocus: true,
         onPressed: () => _perform(_channel.startAmbientMode)),
-      _QuickTile(icon: Icons.input, text: 'Input', onPressed: _openInput),
       _QuickTile(icon: Icons.tune, text: 'Picture',
         onPressed: () => _openSystemAction('android.settings.DISPLAY_SETTINGS')),
       _QuickTile(icon: Icons.volume_up_outlined, text: 'Sound',
         onPressed: () => _openSystemAction('android.settings.SOUND_SETTINGS')),
       _QuickTile(icon: Icons.wifi, text: 'Wi-Fi', onPressed: () => _perform(_channel.openWifiSettings)),
-      _QuickTile(icon: Icons.home_outlined, text: 'Home settings',
-        onPressed: () => _openSystemAction('android.settings.HOME_SETTINGS')),
       _QuickTile(icon: Icons.bluetooth, text: 'Bluetooth',
         onPressed: () => _openSystemAction('android.settings.BLUETOOTH_SETTINGS')),
       _QuickTile(icon: Icons.bedtime_outlined, text: 'Sleep timer', onPressed: _showSleep),
@@ -181,7 +160,7 @@ class _QuickTile extends StatefulWidget {
 class _QuickTileState extends State<_QuickTile> {
   bool focused = false;
   @override Widget build(BuildContext context) => Material(
-    color: focused ? Theme.of(context).colorScheme.surfaceContainerHigh : _FanatikaQuickSettingsDialogState.tileBlue,
+    color: focused ? FanatikaPanelStyle.focusedTile : FanatikaPanelStyle.tile,
     borderRadius: BorderRadius.circular(19),
     child: InkWell(
       borderRadius: BorderRadius.circular(19),

@@ -6,6 +6,7 @@ import 'package:flauncher/providers/settings_service.dart';
 import 'package:flauncher/providers/apps_service.dart';
 import 'package:flauncher/flauncher_channel.dart';
 import 'package:flauncher/widgets/settings/focusable_settings_tile.dart';
+import 'package:flauncher/widgets/settings/fanatika_panel_style.dart';
 import 'package:flauncher/widgets/settings/fanatika_v2_page.dart';
 import 'package:flauncher/widgets/settings/applications_panel_page.dart';
 import 'package:flauncher/widgets/settings/launcher_sections_panel_page.dart';
@@ -43,13 +44,15 @@ class _MergedMenu {
       Future<void> Function(bool) update, {IconData icon = Icons.tune, bool autofocus = false}) =>
     FocusableSettingsTile(autofocus: autofocus, leading: Icon(icon),
       title: Text(title),
-      trailing: Switch(value: enabled, onChanged: update),
+      // One focus target per row on the TV remote. The switch reflects the
+      // state; activating the enclosing tile changes it without nested focus.
+      trailing: ExcludeFocus(child: IgnorePointer(
+        child: Switch(value: enabled, onChanged: update))),
       onPressed: () => update(!enabled));
 
   static Widget page(BuildContext context, String title, List<Widget> children) =>
     Column(children: [
-      Text(title, style: Theme.of(context).textTheme.titleLarge),
-      const Divider(),
+      FanatikaPanelHeader(title: title),
       Expanded(child: ListView(padding: const EdgeInsets.only(bottom: 24), children: children)),
     ]);
 }
@@ -151,12 +154,16 @@ class UnifiedSystemPage extends StatelessWidget {
       }
     }
   }
-  @override Widget build(BuildContext context) => _MergedMenu.page(context, 'TV & tools', [
-    _MergedMenu.action(Icons.input, 'Input',
+  @override Widget build(BuildContext context) {
+    final showInputHere = !context.watch<SettingsService>().fanatikaTopBarTabs.contains('Input');
+    return _MergedMenu.page(context, 'TV & tools', [
+    // Avoid two visible entry points to Input. If the user hides the top-bar
+    // Input tab, the native picker is still reachable from Settings.
+    if (showInputHere) _MergedMenu.action(Icons.input, 'Input',
       () => _openNativeInputs(context), autofocus: true,
       detail: 'Native TV source menu'),
     _MergedMenu.route(context, Icons.bedtime_outlined, 'Sleep timer',
-      FanatikaSleepPage.routeName),
+      FanatikaSleepPage.routeName, autofocus: !showInputHere),
     _MergedMenu.action(Icons.settings_applications, 'Android TV settings',
       () => context.read<AppsService>().openSettings()),
     _MergedMenu.route(context, Icons.backup_outlined, 'Backup & restore',
@@ -167,6 +174,7 @@ class UnifiedSystemPage extends StatelessWidget {
       UnifiedAdvancedPage.routeName,
       detail: 'USB, PIN and diagnostics'),
   ]);
+  }
 }
 
 // Only rarely used controls go one level deeper; no second settings hub.
@@ -175,9 +183,9 @@ class UnifiedAdvancedPage extends StatelessWidget {
   const UnifiedAdvancedPage({super.key});
   @override Widget build(BuildContext context) => _MergedMenu.page(context, 'Advanced tools', [
     _MergedMenu.route(context, Icons.usb, 'USB files', FanatikaUsbPage.routeName, autofocus: true),
-    _MergedMenu.route(context, Icons.pin, 'Security & connectivity',
+    _MergedMenu.route(context, Icons.pin, 'Settings PIN',
       FanatikaV2Page.routeName, args: const ['Security and quick settings'],
-      detail: 'PIN, Wi-Fi, Bluetooth and display'),
+      detail: 'Protect access to launcher settings'),
     _MergedMenu.route(context, Icons.health_and_safety_outlined, 'Diagnostics & recovery',
       FanatikaV2Page.routeName, args: const ['Diagnostics and appearance preview']),
   ]);

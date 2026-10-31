@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:flauncher/providers/settings_service.dart';
 import 'package:flauncher/widgets/settings/fanatika_tv_controls.dart';
 import 'package:flauncher/widgets/settings/fanatika_title_font_page.dart';
+import 'package:flauncher/widgets/settings/fanatika_panel_style.dart';
 
 class FanatikaThemePreview extends StatefulWidget {
   const FanatikaThemePreview({super.key});
@@ -101,11 +102,18 @@ class _FanatikaThemePreviewState extends State<FanatikaThemePreview> {
   @override
   Widget build(BuildContext context) {
     final media = MediaQuery.sizeOf(context);
+    final availableWidth = (media.width - 36).clamp(1.0, double.infinity).toDouble();
+    final availableHeight = (media.height - MediaQuery.viewInsetsOf(context).bottom - 40)
+      .clamp(1.0, double.infinity).toDouble();
     return Dialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-      child: SizedBox(
-        width: media.width.clamp(440.0, 790.0) * 0.78,
-        height: media.height.clamp(420.0, 790.0) * 0.82,
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+      child: Container(
+        decoration: FanatikaPanelStyle.decoration,
+        width: (media.width * 0.78).clamp(280.0, 790.0).toDouble()
+          .clamp(1.0, availableWidth).toDouble(),
+        height: (media.height * 0.82).clamp(260.0, 660.0).toDouble()
+          .clamp(1.0, availableHeight).toDouble(),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(children: [

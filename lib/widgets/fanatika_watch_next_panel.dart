@@ -12,10 +12,9 @@ class FanatikaWatchNextPanel extends StatefulWidget {
   final VoidCallback? onNavigateDown;
   final bool expandVertical;
   final FocusNode? firstItemFocusNode;
-  final FocusNode? refreshFocusNode;
   const FanatikaWatchNextPanel({super.key, this.onItemFocused,
     this.onNavigateUp, this.onNavigateDown,
-    this.expandVertical = false, this.firstItemFocusNode, this.refreshFocusNode});
+    this.expandVertical = false, this.firstItemFocusNode});
 
   @override State<FanatikaWatchNextPanel> createState() => _FanatikaWatchNextPanelState();
 }
@@ -44,7 +43,7 @@ class _FanatikaWatchNextPanelState extends State<FanatikaWatchNextPanel> {
     final key = event.logicalKey;
     if (key == LogicalKeyboardKey.arrowRight) {
       if (index + 1 < items.length) _focusCard(items, index + 1);
-      else widget.refreshFocusNode?.requestFocus();
+      // At the right edge, stay on the final show. No visible Refresh control.
       return KeyEventResult.handled;
     }
     if (key == LogicalKeyboardKey.arrowLeft) {
@@ -67,59 +66,34 @@ class _FanatikaWatchNextPanelState extends State<FanatikaWatchNextPanel> {
       final shows = service.canShowItems ? service.items : <WatchNextItem>[];
       return SizedBox(
         height: widget.expandVertical ? double.infinity : 242,
-        child: Row(children: [
-          Expanded(child: SingleChildScrollView(
-            controller: _posterScroll,
-            scrollDirection: Axis.horizontal,
-            child: Row(children: [
-              for (var index = 0; index < shows.length; index++) ...[
-                if (index > 0) const SizedBox(width: 12),
-                Builder(builder: (cardContext) => Focus(
-                  canRequestFocus: false,
-                  onKeyEvent: (_, event) => _cardKey(event, shows, index),
-                  child: _WatchNextCompactCard(
-                    key: ValueKey('${shows[index].id}_${shows[index].packageName}'),
-                    item: shows[index], service: service,
-                    focusNode: index == 0 ? widget.firstItemFocusNode : _nodeFor(shows[index]),
-                    onItemFocused: () {
-                      widget.onItemFocused?.call();
-                      // Keep each card fully visible when moving with the D-pad.
-                      Scrollable.ensureVisible(cardContext,
-                        duration: const Duration(milliseconds: 180),
-                        curve: Curves.easeOutCubic, alignment: 0.08);
-                    },
-                  ),
-                )),
-              ],
-            ]),
-          )),
-          const SizedBox(width: 12),
-          Focus(canRequestFocus: false,
-            onKeyEvent: (_, event) {
-              if (event is! KeyDownEvent) return KeyEventResult.ignored;
-              if (event.logicalKey == LogicalKeyboardKey.arrowLeft && shows.isNotEmpty) {
-                _focusCard(shows, shows.length - 1); return KeyEventResult.handled;
-              }
-              if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-                widget.onNavigateUp?.call(); return KeyEventResult.handled;
-              }
-              if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-                widget.onNavigateDown?.call(); return KeyEventResult.handled;
-              }
-              return KeyEventResult.ignored;
-            },
-            child: Align(alignment: Alignment.topCenter,
-              child: SizedBox(width: 60, height: 60,
-                child: IconButton.filledTonal(
-                  tooltip: 'Refresh shows',
-                  focusNode: widget.refreshFocusNode,
-                  iconSize: 30,
-                  icon: const Icon(Icons.refresh),
-                  onPressed: service.refreshPermissionAndItems,
-                ),
-              )),
-          ),
-        ]),
+        child: shows.isEmpty
+          ? const SizedBox.shrink()
+          : SingleChildScrollView(
+              controller: _posterScroll,
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+              child: Row(children: [
+                for (var index = 0; index < shows.length; index++) ...[
+                  if (index > 0) const SizedBox(width: 14),
+                  Builder(builder: (cardContext) => Focus(
+                    canRequestFocus: false,
+                    onKeyEvent: (_, event) => _cardKey(event, shows, index),
+                    child: _WatchNextCompactCard(
+                      key: ValueKey('${shows[index].id}_${shows[index].packageName}'),
+                      item: shows[index], service: service,
+                      focusNode: index == 0 ? widget.firstItemFocusNode : _nodeFor(shows[index]),
+                      onItemFocused: () {
+                        widget.onItemFocused?.call();
+                        // Scroll the entire focused poster into view on a TV remote.
+                        Scrollable.ensureVisible(cardContext,
+                          duration: const Duration(milliseconds: 180),
+                          curve: Curves.easeOutCubic, alignment: 0.06);
+                      },
+                    ),
+                  )),
+                ],
+              ]),
+            ),
       );
     },
   );
@@ -151,7 +125,7 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard> {
 
   @override Widget build(BuildContext context) {
     final poster = widget.service.getCachedPoster(widget.item.posterUri);
-    return SizedBox(width: 222, height: 218, child: Material(
+    return SizedBox(width: 280, height: 206, child: Material(
       color: _focused ? const Color(0xFF425A79) : const Color(0xDD1B3049),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13),
         side: BorderSide(color: _focused ? const Color(0xFFBEE9FF) : Colors.white24,
@@ -165,11 +139,20 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard> {
         },
         onTap: () => widget.service.launchItem(widget.item),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Expanded(child: poster != null
-            ? Image.memory(poster, fit: BoxFit.cover, gaplessPlayback: true,
-                errorBuilder: (_, __, ___) => const Icon(Icons.movie_outlined, size: 35))
-            : const Icon(Icons.movie_outlined, size: 35, color: Colors.white70)),
-          Padding(padding: const EdgeInsets.all(8),
+          // Preserve the WHOLE Plex artwork (including portrait posters).
+          // BoxFit.cover cropped titles and faces in the previous version.
+          Expanded(child: ColoredBox(
+            color: const Color(0xFF0B1729),
+            child: poster != null
+              ? Image.memory(poster, fit: BoxFit.contain,
+                  width: double.infinity, height: double.infinity,
+                  gaplessPlayback: true,
+                  errorBuilder: (_, __, ___) => const Center(
+                    child: Icon(Icons.movie_outlined, size: 35)))
+              : const Center(child: Icon(Icons.movie_outlined,
+                  size: 35, color: Colors.white70)),
+          )),
+          Padding(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             // Show only the title: never prepend the Plex source name.
             child: Text(widget.item.title, maxLines: 1, overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: Colors.white,

@@ -17,6 +17,7 @@
  */
 
 import 'package:flauncher/widgets/side_panel_dialog.dart';
+import 'package:flauncher/widgets/settings/fanatika_panel_style.dart';
 import 'package:flauncher/widgets/settings/applications_panel_page.dart';
 import 'package:flauncher/widgets/settings/launcher_sections_panel_page.dart';
 import 'package:flauncher/widgets/settings/gradient_panel_page.dart';
@@ -91,10 +92,9 @@ class _SettingsPanelState extends State<SettingsPanel> {
   }
 
   Widget _pinGate(BuildContext context, String storedPin) => SidePanelDialog(
-    width: 440, isRightSide: false,
+    width: FanatikaPanelStyle.panelWidth(MediaQuery.sizeOf(context)), isRightSide: true,
     child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text('Settings locked', style: Theme.of(context).textTheme.titleLarge),
-      const Divider(),
+      const FanatikaPanelHeader(title: 'Settings locked'),
       const Padding(padding: EdgeInsets.symmetric(vertical: 14),
         child: Text('Enter your existing Fanatika settings PIN to open the merged settings.')),
       TextField(controller: _pinController, obscureText: true,
@@ -113,7 +113,18 @@ class _SettingsPanelState extends State<SettingsPanel> {
     if (storedPin.isNotEmpty && !_pinUnlocked) {
       return Material(color: Colors.black54, child: _pinGate(context, storedPin));
     }
-    return WillPopScope(
+    return Theme(
+      data: Theme.of(context).copyWith(
+        dialogTheme: DialogThemeData(
+          backgroundColor: FanatikaPanelStyle.base,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30),
+            side: const BorderSide(color: Colors.white24)),
+          titleTextStyle: const TextStyle(color: Colors.white, fontSize: 21,
+            fontWeight: FontWeight.w700),
+          contentTextStyle: const TextStyle(color: Colors.white70, fontSize: 15),
+        ),
+      ),
+      child: WillPopScope(
       onWillPop: () async => !await _navigatorKey.currentState!.maybePop(),
       child: Scaffold(
         backgroundColor: Colors.black54, // Dim the background
@@ -126,93 +137,93 @@ class _SettingsPanelState extends State<SettingsPanel> {
             ),
             // The side panel
             SidePanelDialog(
-              width: 440,
-              isRightSide: false,
+              width: FanatikaPanelStyle.panelWidth(MediaQuery.sizeOf(context)),
+              isRightSide: true,
               child: Navigator(
                 key: _navigatorKey,
                 initialRoute: widget.initialRoute ?? SettingsPanelPage.routeName,
                 onGenerateRoute: (settings) {
                   switch (settings.name) {
                     case UnifiedHomePage.routeName:
-                      return _FastPageRoute(builder: (_) => const UnifiedHomePage());
+                      return _FastPageRoute(settings: settings, builder: (_) => const UnifiedHomePage());
                     case UnifiedAppsPage.routeName:
-                      return _FastPageRoute(builder: (_) => const UnifiedAppsPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => const UnifiedAppsPage());
                     case UnifiedMediaPage.routeName:
-                      return _FastPageRoute(builder: (_) => const UnifiedMediaPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => const UnifiedMediaPage());
                     case UnifiedWallpaperPage.routeName:
-                      return _FastPageRoute(builder: (_) => const UnifiedWallpaperPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => const UnifiedWallpaperPage());
                     case UnifiedSystemPage.routeName:
-                      return _FastPageRoute(builder: (_) => const UnifiedSystemPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => const UnifiedSystemPage());
                     case UnifiedAdvancedPage.routeName:
-                      return _FastPageRoute(builder: (_) => const UnifiedAdvancedPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => const UnifiedAdvancedPage());
                     case FanatikaTitleFontPage.routeName:
-                      return _FastPageRoute(builder: (_) => const FanatikaTitleFontPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => const FanatikaTitleFontPage());
                     case FanatikaToolsHub.routeName:
-                      return _FastPageRoute(builder: (_) => const UnifiedSystemPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => const UnifiedSystemPage());
                     case FanatikaUpdatesPage.routeName:
-                      return _FastPageRoute(builder: (_) => const FanatikaUpdatesPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => const FanatikaUpdatesPage());
                     case FanatikaUsbPage.routeName:
-                      return _FastPageRoute(builder: (_) => const FanatikaUsbPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => const FanatikaUsbPage());
                     case PlexContinueWatchingPage.routeName:
-                      return _FastPageRoute(builder: (_) => const PlexContinueWatchingPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => const PlexContinueWatchingPage());
                     case FanatikaV2Page.routeName:
-                      return _FastPageRoute(builder: (_) => FanatikaV2Page(
+                      return _FastPageRoute(settings: settings, builder: (_) => FanatikaV2Page(
                         sections: (settings.arguments as List<String>?) ?? const [],
                         unlockedByParent: storedPin.isEmpty || _pinUnlocked));
                     case FanatikaSleepPage.routeName:
-                      return _FastPageRoute(builder: (_) => const FanatikaSleepPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => const FanatikaSleepPage());
                     case TvInputsPanelPage.routeName:
-                      return _FastPageRoute(builder: (_) => const TvInputsPanelPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => const TvInputsPanelPage());
                     case SettingsPanelPage.routeName:
-                      return _FastPageRoute(builder: (_) => SettingsPanelPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => SettingsPanelPage());
                     case GeneralSettingsPage.routeName:
-                      return _FastPageRoute(builder: (_) => GeneralSettingsPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => GeneralSettingsPage());
                     case InterfaceSettingsPage.routeName:
-                      return _FastPageRoute(builder: (_) => InterfaceSettingsPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => InterfaceSettingsPage());
                     case WallpaperPanelPage.routeName:
-                      return _FastPageRoute(builder: (_) => WallpaperPanelPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => WallpaperPanelPage());
                     case FanatikaTopBarEditorPage.routeName:
-                      return _FastPageRoute(builder: (_) => const FanatikaTopBarEditorPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => const FanatikaTopBarEditorPage());
                     case StatusBarPanelPage.routeName:
-                      return _FastPageRoute(builder: (_) => StatusBarPanelPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => StatusBarPanelPage());
                     case GradientPanelPage.routeName:
-                      return _FastPageRoute(builder: (_) => GradientPanelPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => GradientPanelPage());
                     case SlideshowSourcesPanelPage.routeName:
-                      return _FastPageRoute(builder: (_) => SlideshowSourcesPanelPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => SlideshowSourcesPanelPage());
                     case UnsplashSlideshowPanelPage.routeName:
-                      return _FastPageRoute(builder: (_) => UnsplashSlideshowPanelPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => UnsplashSlideshowPanelPage());
                     case RedditWallpaperPanelPage.routeName:
-                      return _FastPageRoute(builder: (_) => const RedditWallpaperPanelPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => const RedditWallpaperPanelPage());
                     case RedditSubredditsPanelPage.routeName:
-                      return _FastPageRoute(builder: (_) => const RedditSubredditsPanelPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => const RedditSubredditsPanelPage());
                     case ApplicationsPanelPage.routeName:
-                      return _FastPageRoute(builder: (_) => ApplicationsPanelPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => ApplicationsPanelPage());
                     case LauncherSectionsPanelPage.routeName:
-                      return _FastPageRoute(builder: (_) => LauncherSectionsPanelPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => LauncherSectionsPanelPage());
                     case LauncherSectionPanelPage.routeName:
                       return _FastPageRoute(
                         builder: (_) => LauncherSectionPanelPage(sectionIndex: settings.arguments as int?),
                       );
                     case WifiUsagePeriodPage.routeName:
-                      return _FastPageRoute(builder: (_) => WifiUsagePeriodPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => WifiUsagePeriodPage());
                     case BackButtonActionPage.routeName:
-                      return _FastPageRoute(builder: (_) => BackButtonActionPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => BackButtonActionPage());
                     case DateTimeFormatPage.routeName:
-                      return _FastPageRoute(builder: (_) => DateTimeFormatPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => DateTimeFormatPage());
                     case AppearancePanelPage.routeName:
-                      return _FastPageRoute(builder: (_) => const AppearancePanelPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => const AppearancePanelPage());
                     case FocusBorderThicknessPage.routeName:
-                      return _FastPageRoute(builder: (_) => const FocusBorderThicknessPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => const FocusBorderThicknessPage());
                     case MiscPanelPage.routeName:
-                      return _FastPageRoute(builder: (_) => MiscPanelPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => MiscPanelPage());
                     case ScreensaverClockStylePage.routeName:
-                      return _FastPageRoute(builder: (_) => const ScreensaverClockStylePage());
+                      return _FastPageRoute(settings: settings, builder: (_) => const ScreensaverClockStylePage());
                     case AccentColorPage.routeName:
-                      return _FastPageRoute(builder: (_) => AccentColorPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => AccentColorPage());
                     case BrightnessSettingsPage.routeName:
-                      return _FastPageRoute(builder: (_) => BrightnessSettingsPage());
+                      return _FastPageRoute(settings: settings, builder: (_) => BrightnessSettingsPage());
                     case AppDetailsPage.routeName:
-                      return _FastPageRoute(builder: (_) => AppDetailsPage(application: settings.arguments as App));
+                      return _FastPageRoute(settings: settings, builder: (_) => AppDetailsPage(application: settings.arguments as App));
                     default:
                       throw ArgumentError.value(settings.name, "settings.name", "Route not supported.");
                   }
@@ -222,14 +233,14 @@ class _SettingsPanelState extends State<SettingsPanel> {
           ],
         ),
       ),
-    );
+    ));
   }
 }
 
 /// A faster page route with a 150ms slide transition instead of
 /// the default 300ms Material transition.
 class _FastPageRoute<T> extends MaterialPageRoute<T> {
-  _FastPageRoute({required super.builder});
+  _FastPageRoute({required super.builder, super.settings});
 
   @override
   Duration get transitionDuration => const Duration(milliseconds: 150);

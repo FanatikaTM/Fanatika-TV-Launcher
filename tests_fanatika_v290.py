@@ -22,5 +22,5 @@ class Fanatika290(unittest.TestCase):
     def test_sleep_theme_matches_arc_menu(self):
         theme = read('lib/widgets/side_panel_dialog.dart')
         sleep = read('lib/widgets/fanatika_sleep_timer_dialog.dart')
-        self.assertIn('Color(0xFF1E1E1E)',theme)
-        self.assertIn('Color(0xFF1E1E1E)',sleep)
+        self.assertIn('FanatikaPanelStyle.decoration',theme)
+        self.assertIn('FanatikaPanelStyle.decoration',sleep)
