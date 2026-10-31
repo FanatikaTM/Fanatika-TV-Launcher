@@ -28,4 +28,4 @@ class V296(unittest.TestCase):
   self.assertIn('onGoHome!();',bar)
   self.assertIn('onHomeRequested: _returnToHomeFromTab', read('lib/flauncher.dart'))
  def test_version(self):
-  self.assertIn('version: 2.9.8+4151',read('pubspec.yaml'))
+  self.assertIn('version: 2.9.9+4152',read('pubspec.yaml'))

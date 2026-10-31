@@ -347,7 +347,8 @@ class SettingsService extends ChangeNotifier {
   bool get fanatikaCenterSections => _sharedPreferences.getBool('fanatika_v2_center_sections') ?? false;
   bool get fanatikaFocusGrow => _sharedPreferences.getBool('fanatika_v2_focus_grow') ?? true;
   bool get fanatikaFocusGlow => _sharedPreferences.getBool('fanatika_v2_focus_glow') ?? true;
-  bool get fanatikaFixedTitle => _sharedPreferences.getBool('fanatika_v2_fixed_title') ?? true;
+  // Fixed title is always on; legacy saved toggles can no longer move it.
+  bool get fanatikaFixedTitle => true;
   String get fanatikaStatusBarStyle => _sharedPreferences.getString('fanatika_v2_bar_style') ?? 'Transparent';
   // The single top bar. Old saved Tools tabs are filtered on read: TV controls
   // remain under Settings > TV & tools, without a duplicate top-level tab.

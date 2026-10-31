@@ -64,7 +64,7 @@ class UnifiedHomePage extends StatelessWidget {
     _MergedMenu.route(context, Icons.title, 'Large app title',
       FanatikaV2Page.routeName, autofocus: true,
       args: const ['Large selected-app title'],
-      detail: 'Font, style, size, position and preview'),
+      detail: 'Font, style, size and preview'),
     _MergedMenu.route(context, Icons.wallpaper_outlined, 'Wallpapers',
       UnifiedWallpaperPage.routeName, detail: 'Photos and Arc wallpaper library'),
     _MergedMenu.route(context, Icons.brush_outlined, 'Appearance & focus',
@@ -86,9 +86,8 @@ class UnifiedAppsPage extends StatelessWidget {
   @override Widget build(BuildContext context) {
     final s = context.watch<SettingsService>();
     return _MergedMenu.page(context, 'Apps & Favorites', [
-      _MergedMenu.route(context, Icons.favorite_border, 'Favorites & sections',
-        LauncherSectionsPanelPage.routeName, autofocus: true,
-        detail: 'Original Arc add, remove and reorder'),
+      _MergedMenu.route(context, Icons.favorite_border, 'Favorites and Sections',
+        LauncherSectionsPanelPage.routeName, autofocus: true),
       _MergedMenu.route(context, Icons.apps, 'Installed apps',
         ApplicationsPanelPage.routeName),
       _MergedMenu.option('Show app labels', s.showAppNamesBelowIcons,

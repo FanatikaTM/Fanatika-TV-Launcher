@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:flauncher/models/app.dart';
 import 'package:flauncher/models/category.dart';
 import 'package:flauncher/providers/apps_service.dart';
-import 'package:flauncher/widgets/add_to_category_dialog.dart';
+import 'package:flauncher/widgets/fanatika_add_to_category_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flauncher/l10n/app_localizations.dart';
@@ -94,7 +94,7 @@ class AppDetailsPage extends StatelessWidget {
                   title: "Add to Category", // Need localization or string
                   onTap: () => showDialog<Category>(
                     context: context,
-                    builder: (_) => AddToCategoryDialog(application),
+                    builder: (_) => FanatikaAddToCategoryDialog(application),
                   ),
                 ),
               const Divider(),
@@ -123,6 +123,8 @@ class AppDetailsPage extends StatelessWidget {
   Widget _buildListTile(BuildContext context,
       {required IconData icon, required String title, required VoidCallback onTap}) {
     return ListTile(
+      focusColor: const Color(0xFF145EA8),
+      hoverColor: const Color(0xFF145EA8),
       leading: Icon(icon, color: Colors.white70),
       title: Text(title, style: Theme.of(context).textTheme.bodyMedium),
       onTap: onTap,

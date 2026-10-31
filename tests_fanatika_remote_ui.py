@@ -18,7 +18,7 @@ class RemoteUpdateTests(unittest.TestCase):
  def test_remote_dialog(self):
   d=self.read('lib/widgets/settings/fanatika_tv_controls.dart')
   self.assertIn('FocusableSettingsTile(',d)
-  self.assertIn('autofocus: index == 0',d)
+  self.assertIn('autofocus: index == focusIndex',d)
   self.assertIn('ListView.builder(',d)
   self.assertIn('value == current',d)
  def test_sleep_nav(self):

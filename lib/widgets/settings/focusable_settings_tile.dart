@@ -8,6 +8,8 @@ class FocusableSettingsTile extends StatefulWidget {
   final Widget? trailing;
   final VoidCallback? onPressed;
   final bool autofocus;
+  final String? focusId;
+  final FocusOnKeyEventCallback? onKeyEvent;
 
   const FocusableSettingsTile({
     Key? key,
@@ -17,6 +19,8 @@ class FocusableSettingsTile extends StatefulWidget {
     this.trailing,
     this.onPressed,
     this.autofocus = false,
+    this.focusId,
+    this.onKeyEvent,
   }) : super(key: key);
 
   @override
@@ -30,6 +34,7 @@ class _FocusableSettingsTileState extends State<FocusableSettingsTile> {
   bool _didRestore = false;
 
   String get _identity {
+    if (widget.focusId != null) return widget.focusId!;
     final title = widget.title;
     return title is Text ? (title.data ?? title.toStringShort()) : widget.key?.toString() ?? widget.runtimeType.toString();
   }
@@ -68,6 +73,7 @@ class _FocusableSettingsTileState extends State<FocusableSettingsTile> {
           },
           child: Focus(
             focusNode: _focusNode,
+            onKeyEvent: widget.onKeyEvent,
             autofocus: widget.autofocus && (_routeKey(context) == null ||
               !_routeFocus.containsKey(_routeKey(context))),
             onFocusChange: (hasFocus) {
@@ -100,7 +106,7 @@ class _FocusableSettingsTileState extends State<FocusableSettingsTile> {
                   color: _focused ? FanatikaPanelStyle.focusedTile : FanatikaPanelStyle.tile,
                   borderRadius: BorderRadius.circular(19),
                   border: _focused
-                      ? Border.all(color: Colors.white38, width: 1)
+                      ? Border.all(color: const Color(0xFF94DAFF), width: 2)
                       : Border.all(color: Colors.transparent, width: 1),
                 ),
                 child: Row(

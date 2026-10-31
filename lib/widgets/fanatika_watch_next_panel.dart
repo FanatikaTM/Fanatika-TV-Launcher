@@ -126,9 +126,9 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard> {
   @override Widget build(BuildContext context) {
     final poster = widget.service.getCachedPoster(widget.item.posterUri);
     return SizedBox(width: 280, height: 206, child: Material(
-      color: _focused ? const Color(0xFF425A79) : const Color(0xDD1B3049),
+      color: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13),
-        side: BorderSide(color: _focused ? const Color(0xFFBEE9FF) : Colors.white24,
+        side: BorderSide(color: _focused ? const Color(0xFFBEE9FF) : Colors.transparent,
           width: _focused ? 2.5 : 1)),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -141,8 +141,7 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           // Preserve the WHOLE Plex artwork (including portrait posters).
           // BoxFit.cover cropped titles and faces in the previous version.
-          Expanded(child: ColoredBox(
-            color: const Color(0xFF0B1729),
+          Expanded(child: Center(
             child: poster != null
               ? Image.memory(poster, fit: BoxFit.contain,
                   width: double.infinity, height: double.infinity,
@@ -155,7 +154,9 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard> {
           Padding(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             // Show only the title: never prepend the Plex source name.
             child: Text(widget.item.title, maxLines: 1, overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
               style: const TextStyle(color: Colors.white,
+                shadows: [Shadow(color: Colors.black, blurRadius: 7)],
                 fontWeight: FontWeight.w600, fontSize: 13))),
         ]),
       ),

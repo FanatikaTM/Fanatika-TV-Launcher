@@ -32,4 +32,4 @@ class V297(unittest.TestCase):
   self.assertIn('FanatikaPanelHeader(title: widget.sections.length == 1',s)
   self.assertIn('maxLines: 2',s)
  def test_version(self):
-  self.assertIn('version: 2.9.8+4151', read('pubspec.yaml'))
+  self.assertIn('version: 2.9.9+4152', read('pubspec.yaml'))

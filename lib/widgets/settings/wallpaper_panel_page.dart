@@ -21,7 +21,6 @@ import 'dart:io';
 import 'package:flauncher/providers/settings_service.dart';
 import 'package:flauncher/providers/wallpaper_service.dart';
 import 'package:flauncher/widgets/settings/focusable_settings_tile.dart';
-import 'package:flauncher/widgets/settings/gradient_panel_page.dart';
 import 'package:flauncher/widgets/settings/reddit_wallpaper_panel_page.dart';
 import 'package:flauncher/widgets/settings/unsplash_slideshow_panel_page.dart';
 import 'package:flauncher/widgets/tv_media_picker.dart';
@@ -92,12 +91,6 @@ class WallpaperPanelPage extends StatelessWidget {
                   } else {
                     return Column(
                       children: [
-                        FocusableSettingsTile(
-                          autofocus: true,
-                          leading: Icon(Icons.gradient),
-                          title: Text(localizations.gradient, style: Theme.of(context).textTheme.bodyMedium),
-                          onPressed: () => Navigator.of(context).pushNamed(GradientPanelPage.routeName),
-                        ),
                         FocusableSettingsTile(
                           leading: Icon(Icons.insert_drive_file_outlined),
                           title: Text(localizations.picture, style: Theme.of(context).textTheme.bodyMedium),

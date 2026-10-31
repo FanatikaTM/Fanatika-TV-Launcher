@@ -9,7 +9,7 @@ def read(name):
 
 class Unified286Tests(unittest.TestCase):
     def test_version(self):
-        self.assertIn('version: 2.9.8+4151', read('pubspec.yaml'))
+        self.assertIn('version: 2.9.9+4152', read('pubspec.yaml'))
 
     def test_arc_favorites_files_unchanged(self):
         hashes = {
@@ -68,7 +68,7 @@ class Unified286Tests(unittest.TestCase):
     def test_arc_colors(self):
         focus=read('lib/widgets/settings/focusable_settings_tile.dart')
         self.assertIn('FanatikaPanelStyle.focusedTile',focus)
-        self.assertIn('Colors.white38',focus)
+        self.assertIn('0xFF94DAFF',focus)
         self.assertNotIn('Color(0xFF7CB7FF)',focus)
         plex=read('lib/widgets/settings/plex_continue_watching_page.dart')
         self.assertIn('FanatikaPanelHeader',plex)

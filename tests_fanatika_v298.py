@@ -61,7 +61,7 @@ class V298(unittest.TestCase):
 
     def test_compact_bar_stays_and_arc_favorites_intact(self):
         tab = read('lib/widgets/settings/fanatika_top_bar_editor_page.dart')
-        self.assertIn('Icons.arrow_left', tab)
-        self.assertIn('Icons.arrow_right', tab)
-        self.assertIn('version: 2.9.8+4151',read('pubspec.yaml'))
+        self.assertIn('LogicalKeyboardKey.arrowLeft', tab)
+        self.assertIn('LogicalKeyboardKey.arrowRight', tab)
+        self.assertIn('version: 2.9.9+4152',read('pubspec.yaml'))
         self.assertIn('LauncherSectionsPanelPage.routeName', read('lib/widgets/settings/unified_settings_pages.dart'))

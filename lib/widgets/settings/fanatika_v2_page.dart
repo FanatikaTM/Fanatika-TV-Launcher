@@ -268,8 +268,6 @@ class _FanatikaV2PageState extends State<FanatikaV2Page> {
             ['Transparent', 'Glass', 'Solid', 'Compact'], (v) => v, s.fanatikaStatusBarStyle),
             subtitle: s.fanatikaStatusBarStyle),
           FanatikaToolSection('Large selected-app title'),
-          switcher('Lock title to fixed position', s.fanatikaFixedTitle,
-            (v) => s.setFanatikaOption('fanatika_v2_fixed_title', v), icon: Icons.push_pin_outlined),
           switcher('Show large app title', s.showFanatikaHero, s.setShowFanatikaHero, icon: Icons.title),
           tile(Icons.format_size, 'Title size', () => chooseSetting<double>(s, 'Title size',
             'fanatika_v2_hero_size', [28, 36, 44, 52, 60, 72, 84, 96].map((n) => n.toDouble()).toList(),

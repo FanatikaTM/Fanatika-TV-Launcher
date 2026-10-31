@@ -36,26 +36,45 @@ class FanatikaTvControls {
   static Future<T?> choose<T>(BuildContext context, {
     required String title, required List<T> values, required String Function(T) label,
     T? current,
-  }) => showDialog<T>(context: context, builder: (dialogContext) => AlertDialog(
-      title: Text(title),
-      contentPadding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
-      content: SizedBox(
-        width: 380, height: (values.length * 65.0).clamp(88.0, 440.0).toDouble(),
-        child: ListView.builder(
-          itemCount: values.length,
-          itemBuilder: (_, index) {
-            final value = values[index];
-            return FocusableSettingsTile(
-              autofocus: index == 0,
-              title: Text(label(value), style: const TextStyle(fontSize: 16)),
-              trailing: value == current
-                ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary)
-                : null,
-              onPressed: () => Navigator.pop(dialogContext, value),
-            );
-          },
+  }) {
+    final initialIndex = values.indexWhere((value) => value == current);
+    final focusIndex = initialIndex < 0 ? 0 : initialIndex;
+    const rowExtent = 71.0;
+    return showDialog<T>(context: context, builder: (dialogContext) {
+      final height = (values.length * rowExtent).clamp(88.0, 440.0).toDouble();
+      // With fixed-height rows the selected item can be positioned on-screen
+      // *before* focus is requested, even for long choice menus.
+      final scroll = ScrollController(
+        initialScrollOffset: (focusIndex * rowExtent - height / 2 + rowExtent / 2)
+          .clamp(0.0, (values.length * rowExtent - height).clamp(0.0, double.infinity))
+          .toDouble());
+      return AlertDialog(
+        title: Text(title),
+        contentPadding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+        content: SizedBox(
+          width: 380, height: height,
+          child: ListView.builder(
+            controller: scroll,
+            itemExtent: rowExtent,
+            itemCount: values.length,
+            itemBuilder: (_, index) {
+              final value = values[index];
+              return FocusableSettingsTile(
+                focusId: 'choice_$index',
+                autofocus: index == focusIndex,
+                leading: Icon(value == current ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                  color: value == current ? const Color(0xFF80CEFF) : Colors.white54),
+                title: Text(label(value), style: const TextStyle(fontSize: 16)),
+                trailing: value == current
+                  ? const Icon(Icons.check_circle, color: Color(0xFF80CEFF)) : null,
+                onPressed: () => Navigator.pop(dialogContext, value),
+              );
+            },
+          ),
         ),
-      ),
-      actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel'))],
-    ));
+        actions: [TextButton(onPressed: () => Navigator.pop(dialogContext),
+          child: const Text('Cancel'))],
+      );
+    });
+  }
 }

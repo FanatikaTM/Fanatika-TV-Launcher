@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 class FanatikaPanelStyle {
   static const Color base = Color(0xFF1E1E1E);
   static const Color tile = Color(0xFF303030);
-  static const Color focusedTile = Color(0xFF414141);
+  static const Color focusedTile = Color(0xFF145EA8);
   static const Color border = Colors.white24;
 
   static BoxDecoration get decoration => BoxDecoration(

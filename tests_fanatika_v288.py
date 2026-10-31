@@ -25,8 +25,8 @@ class Fanatika288(unittest.TestCase):
   settings=read('lib/providers/settings_service.dart')
   self.assertIn('setFanatikaTopBarTabs',editor)
   self.assertIn('setStringList',settings)
-  self.assertIn('updated[idx-1]',editor)
-  self.assertIn('updated[idx+1]',editor)
+  self.assertIn('updated[other]',editor)
+  self.assertIn('updated[other]',editor)
   self.assertIn("!normalized.contains('Settings')",settings)
   self.assertIn("!normalized.contains('Home')",settings)
  def test_sleep_no_modal_confirmation_and_native_permissions(self):

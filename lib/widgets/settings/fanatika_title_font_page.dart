@@ -13,11 +13,16 @@ class FanatikaTitleFontPage extends StatelessWidget {
   static const fonts = <(String, String)>[
     ('Automatic', 'Automatic – keep the existing title style'),
     ('sans-serif', 'Roboto / modern'),
+    ('sans-serif-thin', 'Ultra thin'),
+    ('sans-serif-condensed-light', 'Condensed light'),
+    ('sans-serif-condensed-medium', 'Condensed medium'),
+    ('sans-serif-rounded', 'Rounded (device supported)'),
     ('sans-serif-condensed', 'Condensed'),
     ('sans-serif-light', 'Thin / light'),
     ('sans-serif-medium', 'Medium'),
     ('sans-serif-black', 'Heavy'),
     ('serif', 'Classic serif'),
+    ('serif-monospace', 'Serif monospace'),
     ('monospace', 'Monospace / technical'),
     ('cursive', 'Cursive'),
     ('casual', 'Casual'),
@@ -34,6 +39,7 @@ class FanatikaTitleFontPage extends StatelessWidget {
         for (final (family, label) in fonts)
           FocusableSettingsTile(
             autofocus: family == current,
+            focusId: 'font_$family',
             title: Text(label),
             subtitle: Text('Plex   YouTube   TV', maxLines: 1,
               style: TextStyle(fontFamily: family == 'Automatic' ? null : family,

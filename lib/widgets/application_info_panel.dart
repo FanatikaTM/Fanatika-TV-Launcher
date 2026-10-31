@@ -20,7 +20,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flauncher/providers/apps_service.dart';
-import 'package:flauncher/widgets/add_to_category_dialog.dart';
+import 'package:flauncher/widgets/fanatika_add_to_category_dialog.dart';
 import 'package:flauncher/widgets/side_panel_dialog.dart';
 import 'package:flauncher/widgets/tv_media_picker.dart';
 import 'package:provider/provider.dart';
@@ -101,6 +101,10 @@ class _ApplicationInfoPanelState extends State<ApplicationInfoPanel>
                  children: [
                    // Add to Category button (First as requested)
                    TextButton(
+                     style: ButtonStyle(
+                       backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) =>
+                         states.contains(WidgetState.focused) ? const Color(0xFF145EA8) : Colors.transparent),
+                       foregroundColor: const WidgetStatePropertyAll<Color>(Colors.white)),
                      child: Row(
                        children: [
                          const Icon(Icons.add_box_outlined),
@@ -109,11 +113,15 @@ class _ApplicationInfoPanelState extends State<ApplicationInfoPanel>
                        ],
                      ),
                      onPressed: () async {
-                       Navigator.of(context).pop(ApplicationInfoPanelResult.none);
-                       await showDialog(
+                       // Open the destination picker while this panel context is
+                       // mounted. Popping first invalidates the dialog context.
+                       await showDialog<void>(
                          context: context,
-                         builder: (context) => AddToCategoryDialog(widget.application),
+                         builder: (_) => FanatikaAddToCategoryDialog(widget.application),
                        );
+                       if (context.mounted) {
+                         Navigator.of(context).pop(ApplicationInfoPanelResult.none);
+                       }
                      },
                    ),
                    // Reorder button (Second as requested)
@@ -129,6 +137,10 @@ class _ApplicationInfoPanelState extends State<ApplicationInfoPanel>
                        onPressed: () => Navigator.of(context).pop(ApplicationInfoPanelResult.reorderApp),
                      ),
                    TextButton(
+                     style: ButtonStyle(
+                       backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) =>
+                         states.contains(WidgetState.focused) ? const Color(0xFF145EA8) : Colors.transparent),
+                       foregroundColor: const WidgetStatePropertyAll<Color>(Colors.white)),
                      child: Row(
                        children: [
                          const Icon(Icons.open_in_new),
@@ -147,6 +159,9 @@ class _ApplicationInfoPanelState extends State<ApplicationInfoPanel>
                        final appsService = context.watch<AppsService>();
                        final isInFavorites = appsService.isAppInFavorites(widget.application);
                        return TextButton(
+                         style: ButtonStyle(
+                           backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) =>
+                             states.contains(WidgetState.focused) ? const Color(0xFF145EA8) : Colors.transparent)),
                          child: Row(
                            children: [
                              Icon(isInFavorites ? Icons.star : Icons.star_border),
@@ -168,6 +183,10 @@ class _ApplicationInfoPanelState extends State<ApplicationInfoPanel>
                      },
                    ),
                    TextButton(
+                     style: ButtonStyle(
+                       backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) =>
+                         states.contains(WidgetState.focused) ? const Color(0xFF145EA8) : Colors.transparent),
+                       foregroundColor: const WidgetStatePropertyAll<Color>(Colors.white)),
                      child: Row(
                        children: [
                          Icon(widget.application.hidden ? Icons.visibility : Icons.visibility_off_outlined),
@@ -284,6 +303,10 @@ onPressed: () async {
                    ),
                    const Divider(),
                    TextButton(
+                     style: ButtonStyle(
+                       backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) =>
+                         states.contains(WidgetState.focused) ? const Color(0xFF145EA8) : Colors.transparent),
+                       foregroundColor: const WidgetStatePropertyAll<Color>(Colors.white)),
                      child: Row(
                        children: [
                          const Icon(Icons.info_outlined),
@@ -294,6 +317,10 @@ onPressed: () async {
                      onPressed: () => context.read<AppsService>().openAppInfo(widget.application),
                    ),
                    TextButton(
+                     style: ButtonStyle(
+                       backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) =>
+                         states.contains(WidgetState.focused) ? const Color(0xFF145EA8) : Colors.transparent),
+                       foregroundColor: const WidgetStatePropertyAll<Color>(Colors.white)),
                      child: Row(
                        children: [
                          const Icon(Icons.delete_outlined),

@@ -87,7 +87,9 @@ class _DateTimeFormatPageState extends State<DateTimeFormatPage> {
                   ...dateFormatPresets.asMap().entries.map((entry) {
                     final isSelected = service.dateFormat == entry.value.$1;
                     return FocusableSettingsTile(
-                      autofocus: entry.key == 0,
+                      focusId: 'date_${entry.value.$1}',
+                      autofocus: service.dateFormat == entry.value.$1 ||
+                        (entry.key == 0 && !dateFormatPresets.any((p) => p.$1 == service.dateFormat)),
                       leading: Icon(
                         isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
                         color: isSelected ? Theme.of(context).colorScheme.secondary : Colors.grey,
@@ -116,6 +118,7 @@ class _DateTimeFormatPageState extends State<DateTimeFormatPage> {
                   ...timeFormatPresets.map((preset) {
                     final isSelected = service.timeFormat == preset.$1;
                     return FocusableSettingsTile(
+                      focusId: 'time_${preset.$1}',
                       leading: Icon(
                         isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
                         color: isSelected ? Theme.of(context).colorScheme.secondary : Colors.grey,
