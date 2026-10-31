@@ -9,7 +9,11 @@ class V296(unittest.TestCase):
   self.assertIn('fit: BoxFit.contain',panel)
   self.assertIn('SingleChildScrollView(',panel)
   self.assertIn('Scrollable.ensureVisible(',panel)
-  self.assertIn('width: 280, height: 206',panel)
+  # v2.9.10 uses a taller rounded cover; the old fixed extent was removed.
+  self.assertIn('width: 272,',panel)
+  self.assertIn('height: 226,',panel)
+  self.assertIn('borderRadius: BorderRadius.circular(28)',panel)
+  self.assertIn('ClipRRect(',panel)
   self.assertNotIn('fit: BoxFit.cover',panel)
  def test_no_refresh_button_on_home(self):
   panel=read('lib/widgets/fanatika_watch_next_panel.dart')
@@ -28,4 +32,4 @@ class V296(unittest.TestCase):
   self.assertIn('onGoHome!();',bar)
   self.assertIn('onHomeRequested: _returnToHomeFromTab', read('lib/flauncher.dart'))
  def test_version(self):
-  self.assertIn('version: 2.9.9+4152',read('pubspec.yaml'))
+  self.assertIn('version: 2.9.10+4153',read('pubspec.yaml'))

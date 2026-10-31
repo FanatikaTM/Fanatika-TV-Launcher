@@ -10,7 +10,7 @@ def source(path): return (ROOT/path).read_text()
 
 class FocusAndAppearance299(unittest.TestCase):
     def test_version_stays_below_three(self):
-        self.assertIn('version: 2.9.9+4152',source('pubspec.yaml'))
+        self.assertIn('version: 2.9.10+4153',source('pubspec.yaml'))
     def test_arc_original_favorites_dialog_preserved(self):
         orig=source('lib/widgets/add_to_category_dialog.dart')
         self.assertIn('class AddToCategoryDialog',orig)
@@ -23,7 +23,12 @@ class FocusAndAppearance299(unittest.TestCase):
             self.assertIn(term,s)
     def test_app_actions_use_tv_highlight(self):
         s=source('lib/widgets/application_info_panel.dart')
-        self.assertIn('WidgetState.focused',s)
+        self.assertIn('FocusableSettingsTile(',s)
+        self.assertIn('autofocus: true',s)
+        self.assertIn("focusId: 'open_${widget.application.packageName}'",s)
+        focus=source('lib/widgets/settings/focusable_settings_tile.dart')
+        self.assertIn('FanatikaPanelStyle.focusedTile',focus)
+        self.assertIn('onFocusChange: (hasFocus)',focus)
         self.assertIn('FanatikaAddToCategoryDialog',s)
         s=source('lib/widgets/settings/app_details_page.dart')
         self.assertIn('focusColor:',s)
