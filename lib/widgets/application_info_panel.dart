@@ -6,47 +6,40 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import 'dart:io';
+
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:flauncher/providers/apps_service.dart';
-import 'package:flauncher/widgets/fanatika_add_to_category_dialog.dart';
-import 'package:flauncher/widgets/side_panel_dialog.dart';
-import 'package:flauncher/widgets/tv_media_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:flauncher/l10n/app_localizations.dart';
+import 'package:flauncher/providers/apps_service.dart';
+import 'package:flauncher/widgets/fanatika_add_to_category_dialog.dart';
+import 'package:flauncher/widgets/settings/focusable_settings_tile.dart';
+import 'package:flauncher/widgets/side_panel_dialog.dart';
+import 'package:flauncher/widgets/tv_media_picker.dart';
 
 import '../models/app.dart';
 import '../models/category.dart';
 
-class ApplicationInfoPanel extends StatefulWidget
-{
+class ApplicationInfoPanel extends StatefulWidget {
   final Category? category;
   final App application;
   final ImageProvider? applicationIcon;
 
   const ApplicationInfoPanel({
+    super.key,
     required this.category,
     required this.application,
-    this.applicationIcon
+    this.applicationIcon,
   });
 
   @override
   State<ApplicationInfoPanel> createState() => _ApplicationInfoPanelState();
 }
 
-class _ApplicationInfoPanelState extends State<ApplicationInfoPanel>
-{
+class _ApplicationInfoPanelState extends State<ApplicationInfoPanel> {
   late Future<bool> _hasCustomBannerFuture;
 
   @override
@@ -56,290 +49,253 @@ class _ApplicationInfoPanelState extends State<ApplicationInfoPanel>
         .hasCustomBanner(widget.application.packageName);
   }
 
+  Future<void> _showSnack(String message) async {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _setCustomBanner() async {
+    try {
+      final media = await TvMediaPicker.show(context, mode: TvMediaPickerMode.image);
+      if (media == null) return;
+      final docDir = await getApplicationDocumentsDirectory();
+      final safePackageName = widget.application.packageName
+          .replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
+      final savedImage = File('${docDir.path}/custom_banner_$safePackageName.png');
+      await File(media.path).copy(savedImage.path);
+      await context.read<AppsService>().setCustomAppBanner(widget.application.packageName, savedImage.path);
+      if (!mounted) return;
+      setState(() {
+        _hasCustomBannerFuture = context.read<AppsService>()
+            .hasCustomBanner(widget.application.packageName);
+      });
+      Navigator.of(context).pop(ApplicationInfoPanelResult.none);
+    } catch (e) {
+      await _showSnack('Failed to set banner: $e');
+    }
+  }
+
+  Future<void> _clearCustomBanner() async {
+    try {
+      await context.read<AppsService>().removeCustomAppBanner(widget.application.packageName);
+      if (!mounted) return;
+      setState(() {
+        _hasCustomBannerFuture = context.read<AppsService>()
+            .hasCustomBanner(widget.application.packageName);
+      });
+      Navigator.of(context).pop(ApplicationInfoPanelResult.none);
+    } catch (e) {
+      await _showSnack('Failed to clear banner: $e');
+    }
+  }
+
+  Widget _tile({
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    required VoidCallback onPressed,
+    bool autofocus = false,
+    String? focusId,
+  }) {
+    return FocusableSettingsTile(
+      autofocus: autofocus,
+      focusId: focusId ?? title,
+      leading: Icon(icon),
+      title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
+      subtitle: subtitle == null ? null : Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis),
+      onPressed: onPressed,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    AppLocalizations localizations = AppLocalizations.of(context)!;
+    final localizations = AppLocalizations.of(context)!;
 
     return SidePanelDialog(
-        width: 300,
-        isRightSide: false,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                if (widget.applicationIcon != null)
-                  Image(image: widget.applicationIcon!, width: 50)
-                else
-                  const Icon(Icons.image_not_supported_outlined),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    widget.application.name,
-                    style: Theme.of(context).textTheme.titleLarge,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+      width: 340,
+      isRightSide: false,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  color: Colors.white.withValues(alpha: 0.10),
+                  width: 56,
+                  height: 56,
+                  alignment: Alignment.center,
+                  child: widget.applicationIcon != null
+                    ? Image(image: widget.applicationIcon!, width: 50)
+                    : const Icon(Icons.image_not_supported_outlined),
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              widget.application.packageName,
-              style: Theme.of(context).textTheme.bodySmall,
-              overflow: TextOverflow.ellipsis,
-            ),
-            Text(
-              "v${widget.application.version}",
-              style: Theme.of(context).textTheme.bodySmall,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const Divider(),
-            Expanded(
-              child: SingleChildScrollView(
+              ),
+              const SizedBox(width: 10),
+              Expanded(
                 child: Column(
-                 children: [
-                   // Add to Category button (First as requested)
-                   TextButton(
-                     style: ButtonStyle(
-                       backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) =>
-                         states.contains(WidgetState.focused) ? const Color(0xFF145EA8) : Colors.transparent),
-                       foregroundColor: const WidgetStatePropertyAll<Color>(Colors.white)),
-                     child: Row(
-                       children: [
-                         const Icon(Icons.add_box_outlined),
-                         Container(width: 8),
-                         Text('Add to Category', style: Theme.of(context).textTheme.bodyMedium),
-                       ],
-                     ),
-                     onPressed: () async {
-                       // Open the destination picker while this panel context is
-                       // mounted. Popping first invalidates the dialog context.
-                       await showDialog<void>(
-                         context: context,
-                         builder: (_) => FanatikaAddToCategoryDialog(widget.application),
-                       );
-                       if (context.mounted) {
-                         Navigator.of(context).pop(ApplicationInfoPanelResult.none);
-                       }
-                     },
-                   ),
-                   // Reorder button (Second as requested)
-                   if (widget.category?.sort == CategorySort.manual)
-                     TextButton(
-                       child: Row(
-                         children: [
-                           const Icon(Icons.open_with),
-                           Container(width: 8),
-                           Text(localizations.reorder, style: Theme.of(context).textTheme.bodyMedium),
-                         ],
-                       ),
-                       onPressed: () => Navigator.of(context).pop(ApplicationInfoPanelResult.reorderApp),
-                     ),
-                   TextButton(
-                     style: ButtonStyle(
-                       backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) =>
-                         states.contains(WidgetState.focused) ? const Color(0xFF145EA8) : Colors.transparent),
-                       foregroundColor: const WidgetStatePropertyAll<Color>(Colors.white)),
-                     child: Row(
-                       children: [
-                         const Icon(Icons.open_in_new),
-                         Container(width: 8),
-                         Text(localizations.open, style: Theme.of(context).textTheme.bodyMedium),
-                       ],
-                     ),
-                     onPressed: () async {
-                       await context.read<AppsService>().launchApp(widget.application);
-                       Navigator.of(context).pop(ApplicationInfoPanelResult.none);
-                     },
-                   ),
-                   // Favorites toggle button
-                   Builder(
-                     builder: (context) {
-                       final appsService = context.watch<AppsService>();
-                       final isInFavorites = appsService.isAppInFavorites(widget.application);
-                       return TextButton(
-                         style: ButtonStyle(
-                           backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) =>
-                             states.contains(WidgetState.focused) ? const Color(0xFF145EA8) : Colors.transparent)),
-                         child: Row(
-                           children: [
-                             Icon(isInFavorites ? Icons.star : Icons.star_border),
-                             Container(width: 8),
-                             Flexible(
-                               child: Text(
-                                 isInFavorites ? 'Remove from Fav' : 'Add to Fav',
-                                 style: Theme.of(context).textTheme.bodyMedium,
-                                 overflow: TextOverflow.ellipsis,
-                               ),
-                             ),
-                           ],
-                         ),
-                         onPressed: () async {
-                           await appsService.toggleFavorite(widget.application);
-                           Navigator.of(context).pop(ApplicationInfoPanelResult.none);
-                         },
-                       );
-                     },
-                   ),
-                   TextButton(
-                     style: ButtonStyle(
-                       backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) =>
-                         states.contains(WidgetState.focused) ? const Color(0xFF145EA8) : Colors.transparent),
-                       foregroundColor: const WidgetStatePropertyAll<Color>(Colors.white)),
-                     child: Row(
-                       children: [
-                         Icon(widget.application.hidden ? Icons.visibility : Icons.visibility_off_outlined),
-                         Container(width: 8),
-                         Text(widget.application.hidden ? localizations.show : localizations.hide, style: Theme.of(context).textTheme.bodyMedium),
-                       ],
-                     ),
-                     onPressed: () async {
-                       if (widget.application.hidden) {
-                         await context.read<AppsService>().showApplication(widget.application);
-                       } else {
-                         await context.read<AppsService>().hideApplication(widget.application);
-                       }
-                       Navigator.of(context).pop(ApplicationInfoPanelResult.none);
-                     },
-                   ),
-                   if (widget.category != null)
-                     TextButton(
-                       child: Row(
-                         children: [
-                           const Icon(Icons.delete_sweep_outlined),
-                           Container(width: 8),
-                           Flexible(
-                             child: Text(
-                               localizations.removeFrom(widget.category!.name),
-                               style: Theme.of(context).textTheme.bodyMedium,
-                               maxLines: 2,
-                               overflow: TextOverflow.ellipsis,
-                             ),
-                           ),
-                         ],
-                       ),
-                       onPressed: () async {
-                         await context.read<AppsService>().removeFromCategory(widget.application, widget.category!);
-                         Navigator.of(context).pop(ApplicationInfoPanelResult.none);
-                       },
-                     ),
-                   const Divider(),
-                   FutureBuilder<bool>(
-                     future: _hasCustomBannerFuture,
-                     builder: (context, snapshot) {
-                       final hasCustom = snapshot.data ?? false;
-                       return Column(
-                         crossAxisAlignment: CrossAxisAlignment.stretch,
-                         children: [
-                           TextButton(
-                             child: Row(
-                               children: [
-                                 const Icon(Icons.image_search),
-                                 Container(width: 8),
-                                 Text('Set Custom Banner', style: Theme.of(context).textTheme.bodyMedium),
-                               ],
-                             ),
-onPressed: () async {
-                                try {
-                                  final media = await TvMediaPicker.show(
-                                    context,
-                                    mode: TvMediaPickerMode.image,
-                                  );
-                                  if (media != null) {
-                                    final docDir = await getApplicationDocumentsDirectory();
-                                    // Sanitize package name for filename
-                                    final safePackageName = widget.application.packageName
-                                        .replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
-                                    final savedImage = File('${docDir.path}/custom_banner_$safePackageName.png');
-                                    await File(media.path).copy(savedImage.path);
-                                   await context.read<AppsService>().setCustomAppBanner(widget.application.packageName, savedImage.path);
-                                   // Refresh the future to reflect the change
-                                   setState(() {
-                                     _hasCustomBannerFuture = context.read<AppsService>()
-                                         .hasCustomBanner(widget.application.packageName);
-                                   });
-                                 }
-                               } catch (e) {
-                                 if (context.mounted) {
-                                   ScaffoldMessenger.of(context).showSnackBar(
-                                     SnackBar(content: Text('Failed to set banner: $e')),
-                                   );
-                                 }
-                               }
-                               if (context.mounted) Navigator.of(context).pop(ApplicationInfoPanelResult.none);
-                             },
-                           ),
-                           if (hasCustom)
-                             TextButton(
-                               child: Row(
-                                 children: [
-                                   const Icon(Icons.hide_image_outlined),
-                                   Container(width: 8),
-                                   Text('Clear Custom Banner', style: Theme.of(context).textTheme.bodyMedium),
-                                 ],
-                               ),
-                               onPressed: () async {
-                                 try {
-                                   await context.read<AppsService>().removeCustomAppBanner(widget.application.packageName);
-                                   // Refresh the future to reflect the change
-                                   setState(() {
-                                     _hasCustomBannerFuture = context.read<AppsService>()
-                                         .hasCustomBanner(widget.application.packageName);
-                                   });
-                                 } catch (e) {
-                                   if (context.mounted) {
-                                     ScaffoldMessenger.of(context).showSnackBar(
-                                       SnackBar(content: Text('Failed to clear banner: $e')),
-                                     );
-                                   }
-                                 }
-                                 if (context.mounted) Navigator.of(context).pop(ApplicationInfoPanelResult.none);
-                               },
-                             ),
-                         ],
-                       );
-                     }
-                   ),
-                   const Divider(),
-                   TextButton(
-                     style: ButtonStyle(
-                       backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) =>
-                         states.contains(WidgetState.focused) ? const Color(0xFF145EA8) : Colors.transparent),
-                       foregroundColor: const WidgetStatePropertyAll<Color>(Colors.white)),
-                     child: Row(
-                       children: [
-                         const Icon(Icons.info_outlined),
-                         Container(width: 8),
-                         Text(localizations.appInfo, style: Theme.of(context).textTheme.bodyMedium),
-                       ],
-                     ),
-                     onPressed: () => context.read<AppsService>().openAppInfo(widget.application),
-                   ),
-                   TextButton(
-                     style: ButtonStyle(
-                       backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) =>
-                         states.contains(WidgetState.focused) ? const Color(0xFF145EA8) : Colors.transparent),
-                       foregroundColor: const WidgetStatePropertyAll<Color>(Colors.white)),
-                     child: Row(
-                       children: [
-                         const Icon(Icons.delete_outlined),
-                         Container(width: 8),
-                         Text(localizations.uninstall, style: Theme.of(context).textTheme.bodyMedium),
-                       ],
-                     ),
-                     onPressed: () async {
-                       await context.read<AppsService>().uninstallApp(widget.application);
-                       Navigator.of(context).pop(ApplicationInfoPanelResult.none);
-                     },
-                   )
-                 ]
-                )
-              )
-            )
-          ]
-        )
-      );
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.application.name,
+                      style: Theme.of(context).textTheme.titleLarge,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'v${widget.application.version}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            widget.application.packageName,
+            style: Theme.of(context).textTheme.bodySmall,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const Divider(),
+          Expanded(
+            child: FutureBuilder<bool>(
+              future: _hasCustomBannerFuture,
+              builder: (context, snapshot) {
+                final appsService = context.watch<AppsService>();
+                final isInFavorites = appsService.isAppInFavorites(widget.application);
+                final hasCustomBanner = snapshot.data ?? false;
+                return ListView(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    _tile(
+                      icon: Icons.open_in_new,
+                      title: localizations.open,
+                      subtitle: 'Launch this app now',
+                      autofocus: true,
+                      focusId: 'open_${widget.application.packageName}',
+                      onPressed: () async {
+                        await context.read<AppsService>().launchApp(widget.application);
+                        if (context.mounted) {
+                          Navigator.of(context).pop(ApplicationInfoPanelResult.none);
+                        }
+                      },
+                    ),
+                    _tile(
+                      icon: isInFavorites ? Icons.star : Icons.star_border,
+                      title: isInFavorites ? 'Remove from Fav' : 'Add to Fav',
+                      subtitle: isInFavorites
+                        ? 'Remove this app from Favorites'
+                        : 'Add this app to Favorites',
+                      focusId: 'fav_${widget.application.packageName}',
+                      onPressed: () async {
+                        await appsService.toggleFavorite(widget.application);
+                        if (context.mounted) {
+                          Navigator.of(context).pop(ApplicationInfoPanelResult.none);
+                        }
+                      },
+                    ),
+                    _tile(
+                      icon: widget.application.hidden ? Icons.visibility : Icons.visibility_off_outlined,
+                      title: widget.application.hidden ? localizations.show : localizations.hide,
+                      subtitle: widget.application.hidden
+                        ? 'Show this app again on the launcher'
+                        : 'Hide this app from the launcher',
+                      focusId: 'hide_${widget.application.packageName}',
+                      onPressed: () async {
+                        if (widget.application.hidden) {
+                          await context.read<AppsService>().showApplication(widget.application);
+                        } else {
+                          await context.read<AppsService>().hideApplication(widget.application);
+                        }
+                        if (context.mounted) {
+                          Navigator.of(context).pop(ApplicationInfoPanelResult.none);
+                        }
+                      },
+                    ),
+                    _tile(
+                      icon: Icons.add_box_outlined,
+                      title: 'Add to Category',
+                      subtitle: 'Choose another section for this app',
+                      focusId: 'category_${widget.application.packageName}',
+                      onPressed: () async {
+                        await showDialog<void>(
+                          context: context,
+                          builder: (_) => FanatikaAddToCategoryDialog(widget.application),
+                        );
+                        if (context.mounted) {
+                          Navigator.of(context).pop(ApplicationInfoPanelResult.none);
+                        }
+                      },
+                    ),
+                    if (widget.category?.sort == CategorySort.manual)
+                      _tile(
+                        icon: Icons.open_with,
+                        title: localizations.reorder,
+                        subtitle: 'Move this app inside the current row',
+                        focusId: 'reorder_${widget.application.packageName}',
+                        onPressed: () => Navigator.of(context).pop(ApplicationInfoPanelResult.reorderApp),
+                      ),
+                    if (widget.category != null)
+                      _tile(
+                        icon: Icons.delete_sweep_outlined,
+                        title: localizations.removeFrom(widget.category!.name),
+                        subtitle: 'Remove this app from the current section',
+                        focusId: 'remove_${widget.application.packageName}',
+                        onPressed: () async {
+                          await context.read<AppsService>().removeFromCategory(widget.application, widget.category!);
+                          if (context.mounted) {
+                            Navigator.of(context).pop(ApplicationInfoPanelResult.none);
+                          }
+                        },
+                      ),
+                    const Divider(height: 18),
+                    _tile(
+                      icon: Icons.image_search,
+                      title: 'Set Custom Banner',
+                      subtitle: 'Use your own banner image for this app',
+                      focusId: 'banner_set_${widget.application.packageName}',
+                      onPressed: _setCustomBanner,
+                    ),
+                    if (hasCustomBanner)
+                      _tile(
+                        icon: Icons.hide_image_outlined,
+                        title: 'Clear Custom Banner',
+                        subtitle: 'Restore the original app artwork',
+                        focusId: 'banner_clear_${widget.application.packageName}',
+                        onPressed: _clearCustomBanner,
+                      ),
+                    const Divider(height: 18),
+                    _tile(
+                      icon: Icons.info_outlined,
+                      title: localizations.appInfo,
+                      subtitle: 'Open Android app information',
+                      focusId: 'info_${widget.application.packageName}',
+                      onPressed: () => context.read<AppsService>().openAppInfo(widget.application),
+                    ),
+                    _tile(
+                      icon: Icons.delete_outlined,
+                      title: localizations.uninstall,
+                      subtitle: 'Remove this app from the TV',
+                      focusId: 'uninstall_${widget.application.packageName}',
+                      onPressed: () async {
+                        await context.read<AppsService>().uninstallApp(widget.application);
+                        if (context.mounted) {
+                          Navigator.of(context).pop(ApplicationInfoPanelResult.none);
+                        }
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
