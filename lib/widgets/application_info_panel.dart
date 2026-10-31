@@ -196,7 +196,7 @@ class _ApplicationInfoPanelState extends State<ApplicationInfoPanel> {
           const Divider(),
           // Visible on TV: confirms the newly installed menu, not Android's
           // underlying application version shown above.
-          const Text('Fanatika menu v2.9.13',
+          const Text('Fanatika menu v2.9.14',
             style: TextStyle(fontSize: 11, color: Color(0xCCDBEAF6))),
           const SizedBox(height: 6),
           Expanded(

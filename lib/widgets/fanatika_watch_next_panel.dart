@@ -176,10 +176,15 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard>
         animation: _pulseCurve,
         builder: (context, child) {
           final t = _focused ? _pulseCurve.value : 0.0;
-          // White halo on selection; artwork color is almost imperceptible.
+          // Restore the stronger v2.9.10 content-driven accent glow while
+          // keeping the card body itself in the newer deep-blue palette.
           // The accent is already cached by WatchNextService before a poster
-          // is displayed, so it never jumps to a new color after focusing.
-          final glow = artworkAccent.withValues(alpha: 0.055 + (t * 0.035));
+          // is displayed, so it never jumps after the title is focused.
+          final glow = Color.lerp(
+            artworkAccent.withValues(alpha: 0.22),
+            artworkAccent.withValues(alpha: 0.42),
+            t,
+          )!;
           return AnimatedScale(
             duration: const Duration(milliseconds: 170),
             // Avoid scaling a poster over the neighboring weather panel.
@@ -192,24 +197,33 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard>
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(28),
                     boxShadow: _focused ? [
-                      BoxShadow(color: Colors.white.withValues(alpha: 0.10 + (t * 0.15)),
-                        blurRadius: 11 + (t * 9), spreadRadius: 0.5),
-                      BoxShadow(color: glow, blurRadius: 16 + (t * 4), spreadRadius: 0.5),
+                      BoxShadow(
+                        color: glow,
+                        blurRadius: 26 + (t * 9),
+                        spreadRadius: 1.2 + (t * 1.2),
+                      ),
                     ] : const [],
                   ),
                   child: child,
                 ),
-                // Paint the breathing WHITE stroke ON TOP of the filled card.
-                // Previously the border was underneath an opaque Material,
-                // making the animation effectively invisible on the TV.
+                // Keep a constant white ring while the pulse expands OUTWARD
+                // from the card edge, rather than thickening inward over the
+                // artwork. This matches the user's request.
                 if (_focused) IgnorePointer(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(28),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.42 + (t * 0.58)),
-                        width: 1.8 + (t * 2.0),
+                        color: Colors.white.withValues(alpha: 0.82 + (t * 0.18)),
+                        width: 2.0,
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.white.withValues(alpha: 0.14 + (t * 0.16)),
+                          blurRadius: 8 + (t * 7),
+                          spreadRadius: 0.8 + (t * 1.8),
+                        ),
+                      ],
                     ),
                   ),
                 ),

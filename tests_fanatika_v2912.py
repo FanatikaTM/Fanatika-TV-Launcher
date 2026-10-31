@@ -8,7 +8,7 @@ src=lambda p:(ROOT/p).read_text(encoding='utf-8')
 
 class V2912(unittest.TestCase):
     def test_version(self):
-        self.assertIn('version: 2.9.13+4156', src('pubspec.yaml'))
+        self.assertIn('version: 2.9.14+4157', src('pubspec.yaml'))
     def test_watch_next_blue_fill_white_pulse(self):
         s=src('lib/widgets/fanatika_watch_next_panel.dart')
         self.assertIn('const Color(0xB52A619B)',s)
@@ -26,7 +26,7 @@ class V2912(unittest.TestCase):
     def test_app_menu_has_unambiguous_initial_selection(self):
         page=src('lib/widgets/application_info_panel.dart')
         row=src('lib/widgets/fanatika_tv_action_row.dart')
-        self.assertIn('Fanatika menu v2.9.13',page)
+        self.assertIn('Fanatika menu v2.9.14',page)
         self.assertIn("_selectedActionId = 'open_${widget.application.packageName}'",page)
         self.assertIn('selected: _selectedActionId == id',page)
         self.assertIn('FocusScope.of(context).requestFocus(',page)

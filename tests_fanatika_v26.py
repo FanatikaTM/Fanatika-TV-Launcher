@@ -8,7 +8,7 @@ def read(path): return (ROOT / path).read_text(encoding='utf8')
 
 class UpdateV26Tests(unittest.TestCase):
     def test_version_and_settings_options(self):
-        self.assertIn('version: 2.9.13+4156', read('pubspec.yaml'))
+        self.assertIn('version: 2.9.14+4157', read('pubspec.yaml'))
         settings = read('lib/providers/settings_service.dart')
         self.assertIn('fanatikaUpdateCadenceChoices = [0, 15, 30]', settings)
         self.assertIn('setFanatikaReleaseRepo', settings)

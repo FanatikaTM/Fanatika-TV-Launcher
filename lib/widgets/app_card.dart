@@ -237,21 +237,21 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
                               builder: (context, _) {
                                 final pulse = _animationEnabled ? _curvedAnimation.value : 0.0;
                                 final mainGlow = Color.lerp(
-                                  _contentGlowColor.withValues(alpha: 0.05),
-                                  _contentGlowColor.withValues(alpha: 0.085),
+                                  _contentGlowColor.withValues(alpha: 0.26),
+                                  _contentGlowColor.withValues(alpha: 0.48),
                                   pulse,
                                 )!;
                                 final softGlow = Color.lerp(
-                                  Colors.white.withValues(alpha: 0.065),
-                                  Colors.white.withValues(alpha: 0.11),
+                                  Colors.white.withValues(alpha: 0.08),
+                                  _contentGlowColor.withValues(alpha: 0.18),
                                   pulse,
                                 )!;
                                 return DecoratedBox(
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(13),
                                     boxShadow: [
-                                      BoxShadow(color: mainGlow, blurRadius: 17 + (pulse * 4), spreadRadius: 0.4),
-                                      BoxShadow(color: softGlow, blurRadius: 10 + (pulse * 3), spreadRadius: 0.4),
+                                      BoxShadow(color: mainGlow, blurRadius: 22 + (pulse * 10), spreadRadius: 1.6 + (pulse * 1.4)),
+                                      BoxShadow(color: softGlow, blurRadius: 10 + (pulse * 5), spreadRadius: 0.5),
                                     ],
                                   ),
                                 );
@@ -262,7 +262,7 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
                             clipBehavior: Clip.antiAlias,
                             elevation: shouldHighlight ? 12 : 4,
                             shadowColor: shouldHighlight && fanatikaGlowEnabled
-                              ? Colors.white.withValues(alpha: 0.17) : Colors.black,
+                              ? _contentGlowColor : Colors.black,
                             child: Stack(
                               fit: StackFit.expand,
                               children: [
@@ -289,8 +289,32 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
                               ],
                             ),
                           ),
-                          // Keep an animated WHITE outline for the selected app
-                          // even if optional visual effects were switched off.
+                          // Restore the original content-driven accent contour,
+                          // then add a separate WHITE pulse that expands outward
+                          // from the card edge instead of thickening inward.
+                          if (shouldHighlight && !_moving)
+                            IgnorePointer(
+                              child: RepaintBoundary(
+                                child: AnimatedBuilder(
+                                  animation: _curvedAnimation,
+                                  builder: (context, _) {
+                                    final pulse = _animationEnabled ? _animation.value : 0.0;
+                                    return DecoratedBox(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(13),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.white.withValues(alpha: 0.14 + (pulse * 0.16)),
+                                            blurRadius: 8 + (pulse * 7),
+                                            spreadRadius: 0.8 + (pulse * 1.8),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
                           if (shouldHighlight || _moving)
                             if (_animationEnabled && !_moving)
                               IgnorePointer(
@@ -298,11 +322,11 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
                                   child: AnimatedBuilder(
                                     animation: _curvedAnimation,
                                     builder: (context, _) {
-                                      final alpha = 0.42 + (_animation.value * 0.58);
+                                      final alpha = 0.65 + (_animation.value * 0.35);
                                       return _HighlightOutline(
-                                        accentColor: Colors.white,
+                                        accentColor: _accentColor,
                                         alpha: alpha,
-                                        strokeWidth: (borderThickness + 0.7 + _animation.value * 2.1).clamp(1.8, 5.0).toDouble(),
+                                        strokeWidth: borderThickness,
                                       );
                                     },
                                   ),
@@ -312,7 +336,7 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
                               IgnorePointer(
                                 child: RepaintBoundary(
                                   child: _HighlightOutline(
-                                    accentColor: _moving ? _accentColor : Colors.white,
+                                    accentColor: _accentColor,
                                     alpha: _moving ? 1.0 : 0.90,
                                     isMoving: _moving,
                                     strokeWidth: borderThickness,

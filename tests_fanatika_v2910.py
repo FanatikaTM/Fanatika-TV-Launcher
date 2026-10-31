@@ -8,7 +8,7 @@ read=lambda p:(ROOT/p).read_text(encoding='utf8')
 
 class V2910(unittest.TestCase):
     def test_version_matches_archive(self):
-        self.assertIn('version: 2.9.13+4156',read('pubspec.yaml'))
+        self.assertIn('version: 2.9.14+4157',read('pubspec.yaml'))
     def test_rounded_full_watch_next_artwork(self):
         code=read('lib/widgets/fanatika_watch_next_panel.dart')
         for required in ('BorderRadius.circular(28)', 'BorderRadius.circular(20)',

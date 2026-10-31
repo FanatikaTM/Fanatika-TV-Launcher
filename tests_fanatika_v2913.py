@@ -8,7 +8,7 @@ src = lambda name: (ROOT/name).read_text(encoding='utf8')
 
 class V2913(unittest.TestCase):
     def test_version(self):
-        self.assertIn('version: 2.9.13+4156', src('pubspec.yaml'))
+        self.assertIn('version: 2.9.14+4157', src('pubspec.yaml'))
 
     def test_weather_cannot_be_overpainted_by_posters(self):
         s = src('lib/widgets/fanatika_watch_next_panel.dart')
