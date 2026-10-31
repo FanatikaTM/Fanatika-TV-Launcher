@@ -19,13 +19,13 @@
 import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:flauncher/actions.dart';
 import 'package:flauncher/app_image_type.dart';
 import 'package:flauncher/providers/apps_service.dart';
 import 'package:flauncher/providers/settings_service.dart';
 import 'package:flauncher/widgets/app_card_contour_painter.dart';
+import 'package:flauncher/widgets/fanatika_artwork_color.dart';
 import 'package:flauncher/widgets/application_info_panel.dart';
 import 'package:flauncher/widgets/focus_keyboard_listener.dart';
 import 'package:flutter/material.dart';
@@ -241,21 +241,21 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
                               builder: (context, _) {
                                 final pulse = _animationEnabled ? _curvedAnimation.value : 0.0;
                                 final mainGlow = Color.lerp(
-                                  _contentGlowColor.withValues(alpha: 0.26),
-                                  _contentGlowColor.withValues(alpha: 0.48),
+                                  _contentGlowColor.withValues(alpha: 0.05),
+                                  _contentGlowColor.withValues(alpha: 0.085),
                                   pulse,
                                 )!;
                                 final softGlow = Color.lerp(
-                                  Colors.white.withValues(alpha: 0.08),
-                                  _contentGlowColor.withValues(alpha: 0.18),
+                                  Colors.white.withValues(alpha: 0.065),
+                                  Colors.white.withValues(alpha: 0.11),
                                   pulse,
                                 )!;
                                 return DecoratedBox(
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(13),
                                     boxShadow: [
-                                      BoxShadow(color: mainGlow, blurRadius: 22 + (pulse * 10), spreadRadius: 1.6 + (pulse * 1.4)),
-                                      BoxShadow(color: softGlow, blurRadius: 10 + (pulse * 5), spreadRadius: 0.5),
+                                      BoxShadow(color: mainGlow, blurRadius: 17 + (pulse * 4), spreadRadius: 0.4),
+                                      BoxShadow(color: softGlow, blurRadius: 10 + (pulse * 3), spreadRadius: 0.4),
                                     ],
                                   ),
                                 );
@@ -266,7 +266,7 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
                             clipBehavior: Clip.antiAlias,
                             elevation: shouldHighlight ? 12 : 4,
                             shadowColor: shouldHighlight && fanatikaGlowEnabled
-                              ? _contentGlowColor : Colors.black,
+                              ? Colors.white.withValues(alpha: 0.17) : Colors.black,
                             child: Stack(
                               fit: StackFit.expand,
                               children: [
@@ -293,16 +293,16 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
                               ],
                             ),
                           ),
-                          if ((shouldHighlight && showFocusBorders) || _moving)
+                          if ((shouldHighlight && (showFocusBorders || fanatikaGlowEnabled)) || _moving)
                             if (animationEnabled && !_moving)
                               IgnorePointer(
                                 child: RepaintBoundary(
                                   child: AnimatedBuilder(
                                     animation: _curvedAnimation,
                                     builder: (context, _) {
-                                      final alpha = 0.65 + (_animation.value * 0.35);
+                                      final alpha = 0.80 + (_animation.value * 0.18);
                                       return _HighlightOutline(
-                                        accentColor: _accentColor,
+                                        accentColor: Colors.white,
                                         alpha: alpha,
                                         strokeWidth: borderThickness,
                                       );
@@ -314,7 +314,8 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
                               IgnorePointer(
                                 child: RepaintBoundary(
                                   child: _HighlightOutline(
-                                    accentColor: _accentColor,
+                                    accentColor: _moving ? _accentColor : Colors.white,
+                                    alpha: _moving ? 1.0 : 0.90,
                                     isMoving: _moving,
                                     strokeWidth: borderThickness,
                                   ),
@@ -345,7 +346,7 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
         type = AppImageType.Icon;
         bytes = await service.getAppIcon(widget.application.packageName);
       }
-      final extractedGlow = await _extractDominantColor(bytes);
+      final extractedGlow = await FanatikaArtworkColor.sample(bytes);
       if (mounted) {
         setState(() {
           _loadedImage = (type, ResizeImage(MemoryImage(bytes), width: 480));
@@ -427,37 +428,6 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
     }
   }
 
-
-  Future<Color> _extractDominantColor(Uint8List bytes) async {
-    try {
-      final codec = await ui.instantiateImageCodec(bytes, targetWidth: 40, targetHeight: 24);
-      final frame = await codec.getNextFrame();
-      final data = await frame.image.toByteData(format: ui.ImageByteFormat.rawRgba);
-      if (data == null) return const Color(0xFF55D7FF);
-      final rgba = data.buffer.asUint8List();
-      int r = 0, g = 0, b = 0, samples = 0;
-      for (int i = 0; i + 3 < rgba.length; i += 16) {
-        final a = rgba[i + 3];
-        if (a < 140) continue;
-        final rr = rgba[i];
-        final gg = rgba[i + 1];
-        final bb = rgba[i + 2];
-        final brightness = (rr + gg + bb) / 3;
-        if (brightness < 24) continue;
-        r += rr;
-        g += gg;
-        b += bb;
-        samples++;
-      }
-      if (samples == 0) return const Color(0xFF55D7FF);
-      final avg = Color.fromARGB(255, (r / samples).round(), (g / samples).round(), (b / samples).round());
-      final hsl = HSLColor.fromColor(avg);
-      return hsl.withSaturation(hsl.saturation.clamp(0.28, 0.88))
-        .withLightness(hsl.lightness.clamp(0.42, 0.64)).toColor();
-    } catch (_) {
-      return const Color(0xFF55D7FF);
-    }
-  }
 
   void _focusHighlightModeChanged(FocusHighlightMode mode) {
     final nextMode = mode == FocusHighlightMode.traditional;

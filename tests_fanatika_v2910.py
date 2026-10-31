@@ -8,7 +8,7 @@ read=lambda p:(ROOT/p).read_text(encoding='utf8')
 
 class V2910(unittest.TestCase):
     def test_version_matches_archive(self):
-        self.assertIn('version: 2.9.10+4153',read('pubspec.yaml'))
+        self.assertIn('version: 2.9.11+4154',read('pubspec.yaml'))
     def test_rounded_full_watch_next_artwork(self):
         code=read('lib/widgets/fanatika_watch_next_panel.dart')
         for required in ('BorderRadius.circular(28)', 'BorderRadius.circular(20)',
@@ -20,23 +20,23 @@ class V2910(unittest.TestCase):
     def test_watch_next_has_pulsating_content_glow(self):
         code=read('lib/widgets/fanatika_watch_next_panel.dart')
         for required in ('AnimationController(', '_pulse.repeat(reverse: true)',
-                         '_extractDominantColor(', 'BoxShadow(color: glow',
-                         'targetWidth: 36'):
+                         'getPosterAccent(', 'BoxShadow(color: glow',
+                         'Colors.white.withValues(alpha: 0.73 + (t * 0.25))'):
             self.assertIn(required,code)
     def test_apps_have_pulsating_artwork_glow(self):
         code=read('lib/widgets/app_card.dart')
-        for required in ('_contentGlowColor', '_extractDominantColor(bytes)',
+        for required in ('_contentGlowColor', 'FanatikaArtworkColor.sample(bytes)',
                          'AnimatedBuilder(', 'BoxShadow(color: mainGlow',
                          '_animation.repeat(reverse: true)'):
             self.assertIn(required,code)
     def test_action_menu_is_focusable(self):
         code=read('lib/widgets/application_info_panel.dart')
-        for required in ('FocusableSettingsTile(', 'autofocus: true',
+        for required in ('FanatikaTvActionRow(', 'autofocus: true',
                          'FanatikaAddToCategoryDialog(', 'toggleFavorite(',
                          'ApplicationInfoPanelResult.reorderApp'):
             self.assertIn(required,code)
     def test_arc_favorites_still_uses_original_backend(self):
-        self.assertIn('addToCategory(selectedApplication, category)',
+        self.assertIn('addToCategory(widget.selectedApplication, category)',
                       read('lib/widgets/fanatika_add_to_category_dialog.dart'))
         self.assertIn('class AddToCategoryDialog',
                       read('lib/widgets/add_to_category_dialog.dart'))

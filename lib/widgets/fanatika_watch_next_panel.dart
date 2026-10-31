@@ -1,8 +1,6 @@
 // Fanatika Continue Watching artwork row with Google TV-style rounded cards.
 // No background heading, no refresh button, and the full artwork stays visible.
 import 'dart:math' as math;
-import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -123,82 +121,21 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard>
     parent: _pulse,
     curve: Curves.easeInOut,
   );
-  Color _glowColor = const Color(0xFF88D9FF);
-  String? _loadedPosterUri;
-
   @override void initState() {
     super.initState();
-    _loadPosterAndAccent();
+    widget.service.ensurePosterLoaded(widget.item.posterUri);
   }
 
   @override void didUpdateWidget(covariant _WatchNextCompactCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.item.posterUri != widget.item.posterUri) {
-      _loadPosterAndAccent();
+      widget.service.ensurePosterLoaded(widget.item.posterUri);
     }
   }
 
   @override void dispose() {
     _pulse.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadPosterAndAccent() async {
-    widget.service.ensurePosterLoaded(widget.item.posterUri);
-    final posterUri = widget.item.posterUri;
-    if (posterUri == null || posterUri.isEmpty) return;
-    final bytes = widget.service.getCachedPoster(posterUri);
-    if (bytes == null || bytes.isEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        if (!mounted) return;
-        final later = widget.service.getCachedPoster(posterUri);
-        if (later != null && later.isNotEmpty) {
-          await _updateAccentFromBytes(later, posterUri);
-        }
-      });
-      return;
-    }
-    await _updateAccentFromBytes(bytes, posterUri);
-  }
-
-  Future<void> _updateAccentFromBytes(Uint8List bytes, String posterUri) async {
-    final color = await _extractDominantColor(bytes);
-    if (!mounted) return;
-    setState(() {
-      _loadedPosterUri = posterUri;
-      _glowColor = color;
-    });
-  }
-
-  Future<Color> _extractDominantColor(Uint8List bytes) async {
-    try {
-      final codec = await ui.instantiateImageCodec(bytes, targetWidth: 36, targetHeight: 36);
-      final frame = await codec.getNextFrame();
-      final data = await frame.image.toByteData(format: ui.ImageByteFormat.rawRgba);
-      if (data == null) return const Color(0xFF88D9FF);
-      final rgba = data.buffer.asUint8List();
-      int r = 0, g = 0, b = 0, samples = 0;
-      for (int i = 0; i + 3 < rgba.length; i += 16) {
-        final a = rgba[i + 3];
-        if (a < 140) continue;
-        final rr = rgba[i];
-        final gg = rgba[i + 1];
-        final bb = rgba[i + 2];
-        final brightness = (rr + gg + bb) / 3;
-        if (brightness < 26) continue;
-        r += rr;
-        g += gg;
-        b += bb;
-        samples++;
-      }
-      if (samples == 0) return const Color(0xFF88D9FF);
-      final avg = Color.fromARGB(255, (r / samples).round(), (g / samples).round(), (b / samples).round());
-      final hsl = HSLColor.fromColor(avg);
-      return hsl.withSaturation(hsl.saturation.clamp(0.35, 0.85))
-        .withLightness(hsl.lightness.clamp(0.44, 0.66)).toColor();
-    } catch (_) {
-      return const Color(0xFF88D9FF);
-    }
   }
 
   String _metaText() {
@@ -226,6 +163,7 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard>
   @override Widget build(BuildContext context) {
     final poster = widget.service.getCachedPoster(widget.item.posterUri);
     final meta = _metaText();
+    final artworkAccent = widget.service.getPosterAccent(widget.item.posterUri);
     return SizedBox(
       width: 272,
       height: 226,
@@ -233,7 +171,10 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard>
         animation: _pulseCurve,
         builder: (context, child) {
           final t = _focused ? _pulseCurve.value : 0.0;
-          final glow = Color.lerp(_glowColor.withValues(alpha: 0.22), _glowColor.withValues(alpha: 0.42), t)!;
+          // White halo on selection; artwork color is almost imperceptible.
+          // The accent is already cached by WatchNextService before a poster
+          // is displayed, so it never jumps to a new color after focusing.
+          final glow = artworkAccent.withValues(alpha: 0.055 + (t * 0.035));
           return AnimatedScale(
             duration: const Duration(milliseconds: 170),
             scale: _focused ? 1.03 : 1.0,
@@ -241,8 +182,14 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard>
             child: DecoratedBox(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(28),
+                border: _focused ? Border.all(
+                  color: Colors.white.withValues(alpha: 0.73 + (t * 0.25)),
+                  width: 1.7 + (t * 0.5),
+                ) : null,
                 boxShadow: _focused ? [
-                  BoxShadow(color: glow, blurRadius: 26 + (t * 9), spreadRadius: 1.2 + (t * 1.2)),
+                  BoxShadow(color: Colors.white.withValues(alpha: 0.10 + (t * 0.06)),
+                    blurRadius: 12 + (t * 5), spreadRadius: 0.5),
+                  BoxShadow(color: glow, blurRadius: 16 + (t * 4), spreadRadius: 0.5),
                 ] : const [],
               ),
               child: child,
@@ -260,9 +207,6 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard>
               if (focused) {
                 widget.onItemFocused?.call();
                 _pulse.repeat(reverse: true);
-                if (_loadedPosterUri != widget.item.posterUri) {
-                  _loadPosterAndAccent();
-                }
               } else {
                 _pulse.stop();
                 _pulse.value = 0;
@@ -275,8 +219,9 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard>
                 color: Colors.white.withValues(alpha: _focused ? 0.12 : 0.07),
                 borderRadius: BorderRadius.circular(28),
                 border: Border.all(
-                  color: _focused ? const Color(0xFFE4F8FF) : Colors.white.withValues(alpha: 0.18),
-                  width: _focused ? 2.8 : 1.0,
+                  color: _focused ? Colors.white.withValues(alpha: 0.84)
+                    : Colors.white.withValues(alpha: 0.18),
+                  width: _focused ? 1.9 : 1.0,
                 ),
               ),
               child: Column(
@@ -345,7 +290,7 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard>
                         minHeight: 4,
                         value: (widget.item.progressPercent!.clamp(0, 100)) / 100.0,
                         backgroundColor: Colors.white.withValues(alpha: 0.10),
-                        valueColor: AlwaysStoppedAnimation<Color>(_glowColor),
+                        valueColor: AlwaysStoppedAnimation<Color>(artworkAccent),
                       ),
                     ),
                   ],

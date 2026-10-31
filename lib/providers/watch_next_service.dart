@@ -20,6 +20,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flauncher/flauncher_channel.dart';
+import 'package:flutter/material.dart' show Color;
+import 'package:flauncher/widgets/fanatika_artwork_color.dart';
 import 'package:flauncher/models/watch_next_item.dart';
 import 'package:flauncher/providers/settings_service.dart';
 import 'package:flauncher/providers/plex_continue_watching_client.dart';
@@ -43,6 +45,7 @@ class WatchNextService extends ChangeNotifier {
   bool _isLoading = false;
   bool _hasPermission = false;
   final Map<String, Uint8List> _posterCache = {};
+  final Map<String, Color> _posterAccentCache = {};
   final Set<String> _loadingPosters = {};
   final Set<String> _failedPosters = {};
   Timer? _refreshTimer;
@@ -75,6 +78,7 @@ class WatchNextService extends ChangeNotifier {
     _plexClient?.dispose();
     _plexClient = null;
     _posterCache.clear();
+    _posterAccentCache.clear();
     _failedPosters.clear();
     _lastPlexItems = [];
     _lastPlexSuccess = null;
@@ -185,6 +189,7 @@ class WatchNextService extends ChangeNotifier {
         _plexClient?.dispose();
         _plexClient = null;
         _posterCache.clear();
+    _posterAccentCache.clear();
         _failedPosters.clear();
         unawaited(refreshPermissionAndItems());
       }
@@ -247,6 +252,10 @@ class WatchNextService extends ChangeNotifier {
       }
 
       if (imageBytes != null && imageBytes.isNotEmpty) {
+        // Compute the barely visible accent BEFORE showing the cover. This
+        // avoids the delayed color jump when the user focuses a new title.
+        final accent = await FanatikaArtworkColor.sample(imageBytes);
+        _posterAccentCache[uri] = accent;
         _posterCache[uri] = imageBytes;
         _failedPosters.remove(uri);
         _schedulePosterCacheNotification();
@@ -273,6 +282,10 @@ class WatchNextService extends ChangeNotifier {
     if (uri == null) return null;
     return _posterCache[uri];
   }
+
+  Color getPosterAccent(String? uri) =>
+      uri == null ? FanatikaArtworkColor.fallback :
+        (_posterAccentCache[uri] ?? FanatikaArtworkColor.fallback);
 
   bool hasPosterLoadFailed(String? uri) {
     if (uri == null) return false;

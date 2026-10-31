@@ -16,7 +16,7 @@ import 'package:provider/provider.dart';
 import 'package:flauncher/l10n/app_localizations.dart';
 import 'package:flauncher/providers/apps_service.dart';
 import 'package:flauncher/widgets/fanatika_add_to_category_dialog.dart';
-import 'package:flauncher/widgets/settings/focusable_settings_tile.dart';
+import 'package:flauncher/widgets/fanatika_tv_action_row.dart';
 import 'package:flauncher/widgets/side_panel_dialog.dart';
 import 'package:flauncher/widgets/tv_media_picker.dart';
 
@@ -41,6 +41,25 @@ class ApplicationInfoPanel extends StatefulWidget {
 
 class _ApplicationInfoPanelState extends State<ApplicationInfoPanel> {
   late Future<bool> _hasCustomBannerFuture;
+  final Map<String, FocusNode> _actionNodes = {};
+  List<String> _visibleActions = const [];
+  bool _initialFocusRequested = false;
+
+  FocusNode _node(String id) => _actionNodes.putIfAbsent(id,
+    () => FocusNode(debugLabel: 'App action $id'));
+
+  void _moveAction(String id, int delta) {
+    final index = _visibleActions.indexOf(id);
+    if (index < 0) return;
+    final next = (index + delta).clamp(0, _visibleActions.length - 1).toInt();
+    _node(_visibleActions[next]).requestFocus();
+  }
+
+  @override void dispose() {
+    for (final node in _actionNodes.values) { node.dispose(); }
+    super.dispose();
+  }
+
 
   @override
   void initState() {
@@ -97,12 +116,16 @@ class _ApplicationInfoPanelState extends State<ApplicationInfoPanel> {
     bool autofocus = false,
     String? focusId,
   }) {
-    return FocusableSettingsTile(
+    final id = focusId ?? title;
+    return FanatikaTvActionRow(
+      key: ValueKey('app_action_$id'),
+      focusNode: _node(id),
       autofocus: autofocus,
-      focusId: focusId ?? title,
-      leading: Icon(icon),
-      title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: subtitle == null ? null : Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis),
+      icon: icon,
+      title: title,
+      subtitle: subtitle,
+      moveUp: () => _moveAction(id, -1),
+      moveDown: () => _moveAction(id, 1),
       onPressed: onPressed,
     );
   }
@@ -168,6 +191,21 @@ class _ApplicationInfoPanelState extends State<ApplicationInfoPanel> {
                 final appsService = context.watch<AppsService>();
                 final isInFavorites = appsService.isAppInFavorites(widget.application);
                 final hasCustomBanner = snapshot.data ?? false;
+                final pkg = widget.application.packageName;
+                _visibleActions = [
+                  'open_$pkg', 'fav_$pkg', 'hide_$pkg', 'category_$pkg',
+                  if (widget.category?.sort == CategorySort.manual) 'reorder_$pkg',
+                  if (widget.category != null) 'remove_$pkg',
+                  'banner_set_$pkg',
+                  if (hasCustomBanner) 'banner_clear_$pkg',
+                  'info_$pkg', 'uninstall_$pkg',
+                ];
+                if (!_initialFocusRequested) {
+                  _initialFocusRequested = true;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) _node('open_$pkg').requestFocus();
+                  });
+                }
                 return ListView(
                   padding: EdgeInsets.zero,
                   children: [

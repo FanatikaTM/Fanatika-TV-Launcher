@@ -10,24 +10,25 @@ def source(path): return (ROOT/path).read_text()
 
 class FocusAndAppearance299(unittest.TestCase):
     def test_version_stays_below_three(self):
-        self.assertIn('version: 2.9.10+4153',source('pubspec.yaml'))
+        self.assertIn('version: 2.9.11+4154',source('pubspec.yaml'))
     def test_arc_original_favorites_dialog_preserved(self):
         orig=source('lib/widgets/add_to_category_dialog.dart')
         self.assertIn('class AddToCategoryDialog',orig)
         self.assertNotIn('FanatikaAddToCategoryDialog',orig)
     def test_new_destination_has_focus_and_original_backend(self):
         s=source('lib/widgets/fanatika_add_to_category_dialog.dart')
-        for term in ('FocusableSettingsTile','autofocus: index == 0',
-                     'addToCategory(selectedApplication, category)',
+        for term in ('FanatikaTvActionRow','autofocus: index == 0',
+                     'addToCategory(widget.selectedApplication, category)',
                      'destination_${category.id}_${category.name}'):
             self.assertIn(term,s)
     def test_app_actions_use_tv_highlight(self):
         s=source('lib/widgets/application_info_panel.dart')
-        self.assertIn('FocusableSettingsTile(',s)
+        self.assertIn('FanatikaTvActionRow(',s)
         self.assertIn('autofocus: true',s)
         self.assertIn("focusId: 'open_${widget.application.packageName}'",s)
         focus=source('lib/widgets/settings/focusable_settings_tile.dart')
         self.assertIn('FanatikaPanelStyle.focusedTile',focus)
+        self.assertIn('const Color(0xFF176CB5)',source('lib/widgets/fanatika_tv_action_row.dart'))
         self.assertIn('onFocusChange: (hasFocus)',focus)
         self.assertIn('FanatikaAddToCategoryDialog',s)
         s=source('lib/widgets/settings/app_details_page.dart')
