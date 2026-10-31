@@ -10,7 +10,7 @@ def source(path): return (ROOT/path).read_text()
 
 class FocusAndAppearance299(unittest.TestCase):
     def test_version_stays_below_three(self):
-        self.assertIn('version: 2.9.12+4155',source('pubspec.yaml'))
+        self.assertIn('version: 2.9.13+4156',source('pubspec.yaml'))
     def test_arc_original_favorites_dialog_preserved(self):
         orig=source('lib/widgets/add_to_category_dialog.dart')
         self.assertIn('class AddToCategoryDialog',orig)

@@ -98,7 +98,9 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
   bool _isFocused = false;
   bool _isTraditionalHighlightMode = false;
   bool _isHighlightAnimating = false;
-  bool _animationEnabled = false;
+  // The selected white ring always breathes; optional effects/performance
+  // settings still govern scaling and other, nonessential animations.
+  bool _animationEnabled = true;
   String? _accentColorHex;
   Color _accentColor = const Color(0xFF000000);
   Color _contentGlowColor = const Color(0xFF55D7FF);
@@ -193,18 +195,12 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final bool showAppNames = context.select<SettingsService, bool>((s) => s.showAppNamesBelowIcons);
-    final (bool animationEnabled, String accentColorHex, bool showFocusBorders, double borderThickness) = context.select<SettingsService, (bool, String, bool, double)>(
-      (s) => (s.appHighlightAnimationEnabled && s.fanatikaFocusAnimations && !s.fanatikaPerformance, s.accentColorHex, s.showFocusBorders, s.focusBorderThickness),
+    final (String accentColorHex, double borderThickness) = context.select<SettingsService, (String, double)>(
+      (s) => (s.accentColorHex, s.focusBorderThickness),
     );
     if (accentColorHex != _accentColorHex) {
       _accentColorHex = accentColorHex;
       _accentColor = Color(int.parse('FF$accentColorHex', radix: 16));
-    }
-    if (animationEnabled != _animationEnabled) {
-      _animationEnabled = animationEnabled;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _updateHighlightAnimation();
-      });
     }
     final appImageWidget = _appImage();
     final bool shouldHighlight = _shouldHighlight();
@@ -293,18 +289,20 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
                               ],
                             ),
                           ),
-                          if ((shouldHighlight && (showFocusBorders || fanatikaGlowEnabled)) || _moving)
-                            if (animationEnabled && !_moving)
+                          // Keep an animated WHITE outline for the selected app
+                          // even if optional visual effects were switched off.
+                          if (shouldHighlight || _moving)
+                            if (_animationEnabled && !_moving)
                               IgnorePointer(
                                 child: RepaintBoundary(
                                   child: AnimatedBuilder(
                                     animation: _curvedAnimation,
                                     builder: (context, _) {
-                                      final alpha = 0.54 + (_animation.value * 0.46);
+                                      final alpha = 0.42 + (_animation.value * 0.58);
                                       return _HighlightOutline(
                                         accentColor: Colors.white,
                                         alpha: alpha,
-                                        strokeWidth: (borderThickness + 0.8 + _animation.value * 1.6).clamp(1.8, 5.0).toDouble(),
+                                        strokeWidth: (borderThickness + 0.7 + _animation.value * 2.1).clamp(1.8, 5.0).toDouble(),
                                       );
                                     },
                                   ),
@@ -441,7 +439,7 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
   }
 
   bool _shouldHighlight() {
-    return _isTraditionalHighlightMode && _isFocused;
+    return _isFocused;
   }
 
   void _handleFocusChange(BuildContext context, bool focused) {

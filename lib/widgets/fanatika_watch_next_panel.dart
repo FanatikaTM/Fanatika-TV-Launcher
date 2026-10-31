@@ -72,9 +72,12 @@ class _FanatikaWatchNextPanelState extends State<FanatikaWatchNextPanel> {
           : SingleChildScrollView(
               controller: _posterScroll,
               scrollDirection: Axis.horizontal,
-              // White focus ring may extend slightly beyond the card bounds.
-              clipBehavior: Clip.none,
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+              // Confine posters to their column: the adjacent weather card must
+              // never receive paint from off-screen Watch Next items.
+              clipBehavior: Clip.hardEdge,
+              // Inner breathing-room lets the white ring stay visible without
+              // allowing poster content to escape over the weather panel.
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               child: Row(children: [
                 for (var index = 0; index < shows.length; index++) ...[
                   if (index > 0) const SizedBox(width: 16),
@@ -179,22 +182,38 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard>
           final glow = artworkAccent.withValues(alpha: 0.055 + (t * 0.035));
           return AnimatedScale(
             duration: const Duration(milliseconds: 170),
-            scale: _focused ? 1.03 : 1.0,
+            // Avoid scaling a poster over the neighboring weather panel.
+            scale: 1.0,
             curve: Curves.easeOutCubic,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(28),
-                border: _focused ? Border.all(
-                  color: Colors.white.withValues(alpha: 0.52 + (t * 0.47)),
-                  width: 1.9 + (t * 1.4),
-                ) : null,
-                boxShadow: _focused ? [
-                  BoxShadow(color: Colors.white.withValues(alpha: 0.10 + (t * 0.16)),
-                    blurRadius: 11 + (t * 9), spreadRadius: 0.5),
-                  BoxShadow(color: glow, blurRadius: 16 + (t * 4), spreadRadius: 0.5),
-                ] : const [],
-              ),
-              child: child,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: _focused ? [
+                      BoxShadow(color: Colors.white.withValues(alpha: 0.10 + (t * 0.15)),
+                        blurRadius: 11 + (t * 9), spreadRadius: 0.5),
+                      BoxShadow(color: glow, blurRadius: 16 + (t * 4), spreadRadius: 0.5),
+                    ] : const [],
+                  ),
+                  child: child,
+                ),
+                // Paint the breathing WHITE stroke ON TOP of the filled card.
+                // Previously the border was underneath an opaque Material,
+                // making the animation effectively invisible on the TV.
+                if (_focused) IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(28),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.42 + (t * 0.58)),
+                        width: 1.8 + (t * 2.0),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           );
         },
@@ -218,13 +237,14 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard>
             child: Container(
               padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
               decoration: BoxDecoration(
-                // Return the original rich Google TV-like blue card backgrounds.
-                // Only the outside WHITE focus ring pulses; the blue fill stays steady.
-                color: _focused ? const Color(0xFF63B6EC) : const Color(0xD51F6DAC),
+                // Restore the original translucent NAVY/BLUE palette instead
+                // of the saturated cyan that obscured the mountain wallpaper.
+                // The card fill is steady; only its WHITE selection ring pulses.
+                color: _focused ? const Color(0xB52A619B) : const Color(0xA819477D),
                 borderRadius: BorderRadius.circular(28),
                 border: Border.all(
-                  color: _focused ? Colors.white.withValues(alpha: 0.32)
-                    : Colors.white.withValues(alpha: 0.24),
+                  color: _focused ? Colors.white.withValues(alpha: 0.16)
+                    : Colors.white.withValues(alpha: 0.20),
                   width: 1.0,
                 ),
               ),
@@ -294,7 +314,7 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard>
                         minHeight: 4,
                         value: (widget.item.progressPercent!.clamp(0, 100)) / 100.0,
                         backgroundColor: Colors.white.withValues(alpha: 0.10),
-                        valueColor: AlwaysStoppedAnimation<Color>(artworkAccent),
+                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFB6DDF4)),
                       ),
                     ),
                   ],

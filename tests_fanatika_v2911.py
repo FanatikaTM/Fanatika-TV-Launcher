@@ -8,7 +8,7 @@ def src(name): return (R/name).read_text(encoding='utf8')
 
 class FocusAndSubtleGlow2911(unittest.TestCase):
     def test_version_is_prerelease_below_three(self):
-        self.assertIn('version: 2.9.12+4155', src('pubspec.yaml'))
+        self.assertIn('version: 2.9.13+4156', src('pubspec.yaml'))
     def test_action_rows_use_direct_focus_not_nested_button_focus(self):
         s=src('lib/widgets/fanatika_tv_action_row.dart')
         for term in ('focusNode: widget.focusNode', 'GestureDetector(',
@@ -31,7 +31,7 @@ class FocusAndSubtleGlow2911(unittest.TestCase):
             self.assertIn(term, s)
     def test_watch_next_white_ring_breathes_not_color_ring(self):
         s=src('lib/widgets/fanatika_watch_next_panel.dart')
-        for term in ('Colors.white.withValues(alpha: 0.52 + (t * 0.47))',
+        for term in ('Colors.white.withValues(alpha: 0.42 + (t * 0.58))',
                      'blurRadius: 11 + (t * 9)',
                      'getPosterAccent(', 'alpha: 0.055 + (t * 0.035)',
                      '_pulse.repeat(reverse: true)'):
