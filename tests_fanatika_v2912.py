@@ -8,25 +8,25 @@ src=lambda p:(ROOT/p).read_text(encoding='utf-8')
 
 class V2912(unittest.TestCase):
     def test_version(self):
-        self.assertIn('version: 2.9.14+4157', src('pubspec.yaml'))
+        self.assertIn('version: 2.9.15+4158', src('pubspec.yaml'))
     def test_watch_next_blue_fill_white_pulse(self):
         s=src('lib/widgets/fanatika_watch_next_panel.dart')
         self.assertIn('const Color(0xB52A619B)',s)
         self.assertIn('const Color(0xA819477D)',s)
-        self.assertIn('0.42 + (t * 0.58)',s)
-        self.assertIn('1.8 + (t * 2.0)',s)
+        self.assertIn('1.0 - t',s)
+        self.assertIn('width: 2.0',s)
         self.assertIn('_pulse.repeat(reverse: true)',s)
         self.assertIn('getPosterAccent(',s)
     def test_all_app_card_rings_pulse_white(self):
         s=src('lib/widgets/app_card.dart')
-        self.assertIn('final alpha = 0.42 + (_animation.value * 0.58)',s)
-        self.assertIn('strokeWidth: (borderThickness + 0.7 + _animation.value * 2.1)',s)
-        self.assertIn('accentColor: Colors.white',s)
-        self.assertIn('_contentGlowColor.withValues(alpha: 0.05)',s)
+        self.assertIn('final ringOpacity = 1.0 - _curvedAnimation.value',s)
+        self.assertIn('width: 2.0',s)
+        self.assertIn('color: Colors.white.withValues(alpha: ringOpacity)',s)
+        self.assertIn('_contentGlowColor.withValues(alpha: 0.35)',s)
     def test_app_menu_has_unambiguous_initial_selection(self):
         page=src('lib/widgets/application_info_panel.dart')
         row=src('lib/widgets/fanatika_tv_action_row.dart')
-        self.assertIn('Fanatika menu v2.9.14',page)
+        self.assertIn('Fanatika menu v2.9.15',page)
         self.assertIn("_selectedActionId = 'open_${widget.application.packageName}'",page)
         self.assertIn('selected: _selectedActionId == id',page)
         self.assertIn('FocusScope.of(context).requestFocus(',page)

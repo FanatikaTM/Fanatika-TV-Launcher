@@ -176,15 +176,9 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard>
         animation: _pulseCurve,
         builder: (context, child) {
           final t = _focused ? _pulseCurve.value : 0.0;
-          // Restore the stronger v2.9.10 content-driven accent glow while
-          // keeping the card body itself in the newer deep-blue palette.
-          // The accent is already cached by WatchNextService before a poster
-          // is displayed, so it never jumps after the title is focused.
-          final glow = Color.lerp(
-            artworkAccent.withValues(alpha: 0.22),
-            artworkAccent.withValues(alpha: 0.42),
-            t,
-          )!;
+          // The artwork color is sampled and cached before the poster is shown.
+          // Keep its halo fixed while focused; only the white ring fades.
+          final glow = artworkAccent.withValues(alpha: 0.35);
           return AnimatedScale(
             duration: const Duration(milliseconds: 170),
             // Avoid scaling a poster over the neighboring weather panel.
@@ -199,31 +193,23 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard>
                     boxShadow: _focused ? [
                       BoxShadow(
                         color: glow,
-                        blurRadius: 26 + (t * 9),
-                        spreadRadius: 1.2 + (t * 1.2),
+                        blurRadius: 29,
+                        spreadRadius: 2.0,
                       ),
                     ] : const [],
                   ),
                   child: child,
                 ),
-                // Keep a constant white ring while the pulse expands OUTWARD
-                // from the card edge, rather than thickening inward over the
-                // artwork. This matches the user's request.
+                // Fixed 2 px white outline: alpha 1 -> 0 -> 1.
+                // No size changes, expanding shadows, or color pulsing.
                 if (_focused) IgnorePointer(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(28),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.82 + (t * 0.18)),
+                        color: Colors.white.withValues(alpha: 1.0 - t),
                         width: 2.0,
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.white.withValues(alpha: 0.14 + (t * 0.16)),
-                          blurRadius: 8 + (t * 7),
-                          spreadRadius: 0.8 + (t * 1.8),
-                        ),
-                      ],
                     ),
                   ),
                 ),
@@ -257,7 +243,7 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard>
                 color: _focused ? const Color(0xB52A619B) : const Color(0xA819477D),
                 borderRadius: BorderRadius.circular(28),
                 border: Border.all(
-                  color: _focused ? Colors.white.withValues(alpha: 0.16)
+                  color: _focused ? Colors.transparent
                     : Colors.white.withValues(alpha: 0.20),
                   width: 1.0,
                 ),

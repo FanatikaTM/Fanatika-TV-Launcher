@@ -8,7 +8,7 @@ def src(name): return (R/name).read_text(encoding='utf8')
 
 class FocusAndSubtleGlow2911(unittest.TestCase):
     def test_version_is_prerelease_below_three(self):
-        self.assertIn('version: 2.9.14+4157', src('pubspec.yaml'))
+        self.assertIn('version: 2.9.15+4158', src('pubspec.yaml'))
     def test_action_rows_use_direct_focus_not_nested_button_focus(self):
         s=src('lib/widgets/fanatika_tv_action_row.dart')
         for term in ('focusNode: widget.focusNode', 'GestureDetector(',
@@ -31,9 +31,9 @@ class FocusAndSubtleGlow2911(unittest.TestCase):
             self.assertIn(term, s)
     def test_watch_next_white_ring_breathes_not_color_ring(self):
         s=src('lib/widgets/fanatika_watch_next_panel.dart')
-        for term in ('Colors.white.withValues(alpha: 0.42 + (t * 0.58))',
-                     'blurRadius: 11 + (t * 9)',
-                     'getPosterAccent(', 'alpha: 0.055 + (t * 0.035)',
+        for term in ('Colors.white.withValues(alpha: 1.0 - t)',
+                     'width: 2.0',
+                     'getPosterAccent(', 'final glow = artworkAccent.withValues(alpha: 0.35)',
                      '_pulse.repeat(reverse: true)'):
             self.assertIn(term, s)
     def test_poster_colors_are_decoded_before_cache_notification(self):
@@ -46,9 +46,9 @@ class FocusAndSubtleGlow2911(unittest.TestCase):
     def test_app_focus_uses_white_border_and_faint_artwork_halo(self):
         s=src('lib/widgets/app_card.dart')
         for term in ('FanatikaArtworkColor.sample(bytes)',
-                     '_contentGlowColor.withValues(alpha: 0.05)',
-                     '_contentGlowColor.withValues(alpha: 0.085)',
-                     'accentColor: Colors.white',
+                     '_contentGlowColor.withValues(alpha: 0.35)',
+                     '_contentGlowColor.withValues(alpha: 0.13)',
+                     'final ringOpacity = 1.0 - _curvedAnimation.value',
                      '_animation.repeat(reverse: true)'):
             self.assertIn(term, s)
     def test_sampling_is_small_and_disposed(self):

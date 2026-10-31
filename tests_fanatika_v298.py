@@ -63,5 +63,5 @@ class V298(unittest.TestCase):
         tab = read('lib/widgets/settings/fanatika_top_bar_editor_page.dart')
         self.assertIn('LogicalKeyboardKey.arrowLeft', tab)
         self.assertIn('LogicalKeyboardKey.arrowRight', tab)
-        self.assertIn('version: 2.9.14+4157',read('pubspec.yaml'))
+        self.assertIn('version: 2.9.15+4158',read('pubspec.yaml'))
         self.assertIn('LauncherSectionsPanelPage.routeName', read('lib/widgets/settings/unified_settings_pages.dart'))

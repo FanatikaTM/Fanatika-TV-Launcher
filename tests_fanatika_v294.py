@@ -36,4 +36,4 @@ class V294(unittest.TestCase):
   self.assertIn("'Date & time format'",menu)
   self.assertIn('DateTimeFormatPage.routeName',menu)
  def test_current_version(self):
-  self.assertIn('version: 2.9.14+4157',read('pubspec.yaml'))
+  self.assertIn('version: 2.9.15+4158',read('pubspec.yaml'))

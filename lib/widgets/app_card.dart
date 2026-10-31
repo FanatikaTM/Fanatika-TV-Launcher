@@ -231,32 +231,28 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
+                          // The artwork-color halo is STATIC while focused.
+                          // Only the separate white outline below fades.
                           if (shouldHighlight && !_moving && fanatikaGlowEnabled)
-                            Positioned.fill(child: AnimatedBuilder(
-                              animation: _curvedAnimation,
-                              builder: (context, _) {
-                                final pulse = _animationEnabled ? _curvedAnimation.value : 0.0;
-                                final mainGlow = Color.lerp(
-                                  _contentGlowColor.withValues(alpha: 0.26),
-                                  _contentGlowColor.withValues(alpha: 0.48),
-                                  pulse,
-                                )!;
-                                final softGlow = Color.lerp(
-                                  Colors.white.withValues(alpha: 0.08),
-                                  _contentGlowColor.withValues(alpha: 0.18),
-                                  pulse,
-                                )!;
-                                return DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(13),
-                                    boxShadow: [
-                                      BoxShadow(color: mainGlow, blurRadius: 22 + (pulse * 10), spreadRadius: 1.6 + (pulse * 1.4)),
-                                      BoxShadow(color: softGlow, blurRadius: 10 + (pulse * 5), spreadRadius: 0.5),
-                                    ],
-                                  ),
-                                );
-                              },
-                            )),
+                            Positioned.fill(
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(13),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: _contentGlowColor.withValues(alpha: 0.35),
+                                      blurRadius: 27,
+                                      spreadRadius: 2.1,
+                                    ),
+                                    BoxShadow(
+                                      color: _contentGlowColor.withValues(alpha: 0.13),
+                                      blurRadius: 13,
+                                      spreadRadius: 0.5,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           Material(
                             borderRadius: BorderRadius.circular(12),
                             clipBehavior: Clip.antiAlias,
@@ -289,60 +285,39 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
                               ],
                             ),
                           ),
-                          // Restore the original content-driven accent contour,
-                          // then add a separate WHITE pulse that expands outward
-                          // from the card edge instead of thickening inward.
+                          // Fixed-size white ring: fade the alpha only (1 -> 0 -> 1).
+                          // Do not animate stroke width, shadow radius, scale, or
+                          // the artwork-derived halo. The app ring is painted
+                          // above the Material so it remains visible.
                           if (shouldHighlight && !_moving)
-                            IgnorePointer(
-                              child: RepaintBoundary(
+                            Positioned.fill(
+                              child: IgnorePointer(
                                 child: AnimatedBuilder(
                                   animation: _curvedAnimation,
                                   builder: (context, _) {
-                                    final pulse = _animationEnabled ? _animation.value : 0.0;
+                                    final ringOpacity = 1.0 - _curvedAnimation.value;
                                     return DecoratedBox(
                                       decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(13),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.white.withValues(alpha: 0.14 + (pulse * 0.16)),
-                                            blurRadius: 8 + (pulse * 7),
-                                            spreadRadius: 0.8 + (pulse * 1.8),
-                                          ),
-                                        ],
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: Colors.white.withValues(alpha: ringOpacity),
+                                          width: 2.0,
+                                        ),
                                       ),
                                     );
                                   },
                                 ),
                               ),
                             ),
-                          if (shouldHighlight || _moving)
-                            if (_animationEnabled && !_moving)
-                              IgnorePointer(
-                                child: RepaintBoundary(
-                                  child: AnimatedBuilder(
-                                    animation: _curvedAnimation,
-                                    builder: (context, _) {
-                                      final alpha = 0.65 + (_animation.value * 0.35);
-                                      return _HighlightOutline(
-                                        accentColor: _accentColor,
-                                        alpha: alpha,
-                                        strokeWidth: borderThickness,
-                                      );
-                                    },
-                                  ),
-                                ),
-                              )
-                            else
-                              IgnorePointer(
-                                child: RepaintBoundary(
-                                  child: _HighlightOutline(
-                                    accentColor: _accentColor,
-                                    alpha: _moving ? 1.0 : 0.90,
-                                    isMoving: _moving,
-                                    strokeWidth: borderThickness,
-                                  ),
-                                ),
+                          // Original Arc moving/reorder outline stays unchanged.
+                          if (_moving)
+                            IgnorePointer(
+                              child: _HighlightOutline(
+                                accentColor: _accentColor,
+                                isMoving: true,
+                                strokeWidth: borderThickness,
                               ),
+                            ),
                         ],
                       ),
                     ),
