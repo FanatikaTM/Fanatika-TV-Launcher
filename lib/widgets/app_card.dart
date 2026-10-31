@@ -300,11 +300,11 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
                                   child: AnimatedBuilder(
                                     animation: _curvedAnimation,
                                     builder: (context, _) {
-                                      final alpha = 0.80 + (_animation.value * 0.18);
+                                      final alpha = 0.54 + (_animation.value * 0.46);
                                       return _HighlightOutline(
                                         accentColor: Colors.white,
                                         alpha: alpha,
-                                        strokeWidth: borderThickness,
+                                        strokeWidth: (borderThickness + 0.8 + _animation.value * 1.6).clamp(1.8, 5.0).toDouble(),
                                       );
                                     },
                                   ),

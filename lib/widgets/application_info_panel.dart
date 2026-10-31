@@ -44,6 +44,7 @@ class _ApplicationInfoPanelState extends State<ApplicationInfoPanel> {
   final Map<String, FocusNode> _actionNodes = {};
   List<String> _visibleActions = const [];
   bool _initialFocusRequested = false;
+  late String _selectedActionId;
 
   FocusNode _node(String id) => _actionNodes.putIfAbsent(id,
     () => FocusNode(debugLabel: 'App action $id'));
@@ -52,7 +53,9 @@ class _ApplicationInfoPanelState extends State<ApplicationInfoPanel> {
     final index = _visibleActions.indexOf(id);
     if (index < 0) return;
     final next = (index + delta).clamp(0, _visibleActions.length - 1).toInt();
-    _node(_visibleActions[next]).requestFocus();
+    final target = _visibleActions[next];
+    setState(() => _selectedActionId = target);
+    _node(target).requestFocus();
   }
 
   @override void dispose() {
@@ -64,6 +67,7 @@ class _ApplicationInfoPanelState extends State<ApplicationInfoPanel> {
   @override
   void initState() {
     super.initState();
+    _selectedActionId = 'open_${widget.application.packageName}';
     _hasCustomBannerFuture = context.read<AppsService>()
         .hasCustomBanner(widget.application.packageName);
   }
@@ -121,6 +125,12 @@ class _ApplicationInfoPanelState extends State<ApplicationInfoPanel> {
       key: ValueKey('app_action_$id'),
       focusNode: _node(id),
       autofocus: autofocus,
+      selected: _selectedActionId == id,
+      onFocusChanged: (focused) {
+        if (focused && mounted && _selectedActionId != id) {
+          setState(() => _selectedActionId = id);
+        }
+      },
       icon: icon,
       title: title,
       subtitle: subtitle,
@@ -184,8 +194,15 @@ class _ApplicationInfoPanelState extends State<ApplicationInfoPanel> {
             overflow: TextOverflow.ellipsis,
           ),
           const Divider(),
+          // Visible on TV: confirms the newly installed menu, not Android's
+          // underlying application version shown above.
+          const Text('Fanatika menu v2.9.12',
+            style: TextStyle(fontSize: 11, color: Color(0xCCDBEAF6))),
+          const SizedBox(height: 6),
           Expanded(
-            child: FutureBuilder<bool>(
+            child: FocusScope(
+              autofocus: true,
+              child: FutureBuilder<bool>(
               future: _hasCustomBannerFuture,
               builder: (context, snapshot) {
                 final appsService = context.watch<AppsService>();
@@ -203,7 +220,9 @@ class _ApplicationInfoPanelState extends State<ApplicationInfoPanel> {
                 if (!_initialFocusRequested) {
                   _initialFocusRequested = true;
                   WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted) _node('open_$pkg').requestFocus();
+                    if (mounted) {
+                      FocusScope.of(context).requestFocus(_node('open_$pkg'));
+                    }
                   });
                 }
                 return ListView(
@@ -329,6 +348,7 @@ class _ApplicationInfoPanelState extends State<ApplicationInfoPanel> {
                   ],
                 );
               },
+              ),
             ),
           ),
         ],

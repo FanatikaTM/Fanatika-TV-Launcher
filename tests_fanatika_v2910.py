@@ -8,7 +8,7 @@ read=lambda p:(ROOT/p).read_text(encoding='utf8')
 
 class V2910(unittest.TestCase):
     def test_version_matches_archive(self):
-        self.assertIn('version: 2.9.11+4154',read('pubspec.yaml'))
+        self.assertIn('version: 2.9.12+4155',read('pubspec.yaml'))
     def test_rounded_full_watch_next_artwork(self):
         code=read('lib/widgets/fanatika_watch_next_panel.dart')
         for required in ('BorderRadius.circular(28)', 'BorderRadius.circular(20)',
@@ -21,7 +21,7 @@ class V2910(unittest.TestCase):
         code=read('lib/widgets/fanatika_watch_next_panel.dart')
         for required in ('AnimationController(', '_pulse.repeat(reverse: true)',
                          'getPosterAccent(', 'BoxShadow(color: glow',
-                         'Colors.white.withValues(alpha: 0.73 + (t * 0.25))'):
+                         'Colors.white.withValues(alpha: 0.52 + (t * 0.47))'):
             self.assertIn(required,code)
     def test_apps_have_pulsating_artwork_glow(self):
         code=read('lib/widgets/app_card.dart')

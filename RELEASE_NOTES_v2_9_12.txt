@@ -1,0 +1,22 @@
+Fanatika TV Launcher v2.9.12 — blue cards, white pulse, TV menu focus
+
+Upgrade base: v2.9.11. Package version: 2.9.12+4155.
+
+UI:
+- Restores a vibrant blue background on Watch Next cards.
+- Makes the outer white ring pulsate in brightness and thickness.
+- Keeps only a subtle, pre-cached poster-color halo.
+- Applies more visible white border pulsing to all app cards.
+- Reworks the app action menu so its focused item is strongly blue-highlighted;
+  the first item is highlighted immediately before the TV gives it keyboard focus.
+- Menu includes 'Fanatika menu v2.9.12' to confirm this build is installed.
+- Keeps an alternative settings-app-details route TV focusable.
+
+Safety:
+- No changes to Android system HOME configuration or Accessibility workaround.
+- Original Arc Favorites selector/data service/settings storage unchanged.
+- No hard-coded Favorites applications.
+
+Testing:
+- Python source tests passed in authoring environment.
+- No Flutter SDK is installed here; compile and real Xiaomi D-pad behavior not verified.

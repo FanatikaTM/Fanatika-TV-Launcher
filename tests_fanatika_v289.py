@@ -44,4 +44,4 @@ class V289(unittest.TestCase):
   self.assertIn('FanatikaPanelStyle.decoration',timer)
   bar=read('lib/widgets/fanatika_top_bar_tabs.dart')
   self.assertIn('Icons.grid_view_rounded',bar)
- def test_version(self):self.assertIn('version: 2.9.11+4154',read('pubspec.yaml'))
+ def test_version(self):self.assertIn('version: 2.9.12+4155',read('pubspec.yaml'))

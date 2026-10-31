@@ -7,6 +7,7 @@ import 'package:flauncher/providers/apps_service.dart';
 import 'package:flauncher/widgets/fanatika_add_to_category_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flauncher/widgets/settings/focusable_settings_tile.dart';
 import 'package:flauncher/l10n/app_localizations.dart';
 
 class AppDetailsPage extends StatelessWidget {
@@ -122,15 +123,12 @@ class AppDetailsPage extends StatelessWidget {
 
   Widget _buildListTile(BuildContext context,
       {required IconData icon, required String title, required VoidCallback onTap}) {
-    return ListTile(
-      focusColor: const Color(0xFF145EA8),
-      hoverColor: const Color(0xFF145EA8),
-      leading: Icon(icon, color: Colors.white70),
-      title: Text(title, style: Theme.of(context).textTheme.bodyMedium),
-      onTap: onTap,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      // Add hover/focus color if needed, but default ListTile focus usually works.
-      // We can enhance it later if the user requests specific aesthetics for these details too.
+    return FocusableSettingsTile(
+      focusId: 'details_$title',
+      autofocus: title == AppLocalizations.of(context)!.open,
+      leading: Icon(icon, color: Colors.white),
+      title: Text(title, style: const TextStyle(color: Colors.white)),
+      onPressed: onTap,
     );
   }
 }

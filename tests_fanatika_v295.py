@@ -29,7 +29,7 @@ class CompactMenus295(unittest.TestCase):
             self.assertNotIn(label,quick)
     def test_editor_and_version(self):
         self.assertIn('top bar',read('lib/widgets/settings/fanatika_top_bar_editor_page.dart'))
-        self.assertIn('version: 2.9.11+4154',read('pubspec.yaml'))
+        self.assertIn('version: 2.9.12+4155',read('pubspec.yaml'))
     def test_arc_favorites_still_work(self):
         apps=read('lib/providers/apps_service.dart')
         for method in ['addToFavorites','removeFromFavorites','reorderApplication']:

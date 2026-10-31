@@ -8,18 +8,18 @@ def src(name): return (R/name).read_text(encoding='utf8')
 
 class FocusAndSubtleGlow2911(unittest.TestCase):
     def test_version_is_prerelease_below_three(self):
-        self.assertIn('version: 2.9.11+4154', src('pubspec.yaml'))
+        self.assertIn('version: 2.9.12+4155', src('pubspec.yaml'))
     def test_action_rows_use_direct_focus_not_nested_button_focus(self):
         s=src('lib/widgets/fanatika_tv_action_row.dart')
-        for term in ('focusNode: widget.focusNode', 'canRequestFocus: false',
+        for term in ('focusNode: widget.focusNode', 'GestureDetector(',
                      'LogicalKeyboardKey.arrowUp', 'LogicalKeyboardKey.arrowDown',
                      'LogicalKeyboardKey.select', 'widget.onPressed()',
-                     'const Color(0xFF176CB5)', 'onFocusChange:'):
+                     'const Color(0xFF1975CC)', 'onFocusChange:'):
             self.assertIn(term, s)
     def test_app_action_panel_initial_focus_and_explicit_navigation(self):
         s=src('lib/widgets/application_info_panel.dart')
         for term in ('_visibleActions = [', '_moveAction(id, -1)',
-                     '_moveAction(id, 1)', "_node('open_$pkg').requestFocus()",
+                     '_moveAction(id, 1)', "FocusScope.of(context).requestFocus(_node('open_$pkg'))",
                      'autofocus: true', 'FanatikaTvActionRow('):
             self.assertIn(term, s)
         self.assertNotIn('FocusableSettingsTile(',s)
@@ -31,8 +31,8 @@ class FocusAndSubtleGlow2911(unittest.TestCase):
             self.assertIn(term, s)
     def test_watch_next_white_ring_breathes_not_color_ring(self):
         s=src('lib/widgets/fanatika_watch_next_panel.dart')
-        for term in ('Colors.white.withValues(alpha: 0.73 + (t * 0.25))',
-                     'blurRadius: 12 + (t * 5)',
+        for term in ('Colors.white.withValues(alpha: 0.52 + (t * 0.47))',
+                     'blurRadius: 11 + (t * 9)',
                      'getPosterAccent(', 'alpha: 0.055 + (t * 0.035)',
                      '_pulse.repeat(reverse: true)'):
             self.assertIn(term, s)

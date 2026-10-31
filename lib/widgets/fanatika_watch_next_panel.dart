@@ -72,6 +72,8 @@ class _FanatikaWatchNextPanelState extends State<FanatikaWatchNextPanel> {
           : SingleChildScrollView(
               controller: _posterScroll,
               scrollDirection: Axis.horizontal,
+              // White focus ring may extend slightly beyond the card bounds.
+              clipBehavior: Clip.none,
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
               child: Row(children: [
                 for (var index = 0; index < shows.length; index++) ...[
@@ -183,12 +185,12 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard>
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(28),
                 border: _focused ? Border.all(
-                  color: Colors.white.withValues(alpha: 0.73 + (t * 0.25)),
-                  width: 1.7 + (t * 0.5),
+                  color: Colors.white.withValues(alpha: 0.52 + (t * 0.47)),
+                  width: 1.9 + (t * 1.4),
                 ) : null,
                 boxShadow: _focused ? [
-                  BoxShadow(color: Colors.white.withValues(alpha: 0.10 + (t * 0.06)),
-                    blurRadius: 12 + (t * 5), spreadRadius: 0.5),
+                  BoxShadow(color: Colors.white.withValues(alpha: 0.10 + (t * 0.16)),
+                    blurRadius: 11 + (t * 9), spreadRadius: 0.5),
                   BoxShadow(color: glow, blurRadius: 16 + (t * 4), spreadRadius: 0.5),
                 ] : const [],
               ),
@@ -216,12 +218,14 @@ class _WatchNextCompactCardState extends State<_WatchNextCompactCard>
             child: Container(
               padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: _focused ? 0.12 : 0.07),
+                // Return the original rich Google TV-like blue card backgrounds.
+                // Only the outside WHITE focus ring pulses; the blue fill stays steady.
+                color: _focused ? const Color(0xFF63B6EC) : const Color(0xD51F6DAC),
                 borderRadius: BorderRadius.circular(28),
                 border: Border.all(
-                  color: _focused ? Colors.white.withValues(alpha: 0.84)
-                    : Colors.white.withValues(alpha: 0.18),
-                  width: _focused ? 1.9 : 1.0,
+                  color: _focused ? Colors.white.withValues(alpha: 0.32)
+                    : Colors.white.withValues(alpha: 0.24),
+                  width: 1.0,
                 ),
               ),
               child: Column(

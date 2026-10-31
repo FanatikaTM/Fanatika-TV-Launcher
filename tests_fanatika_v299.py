@@ -10,7 +10,7 @@ def source(path): return (ROOT/path).read_text()
 
 class FocusAndAppearance299(unittest.TestCase):
     def test_version_stays_below_three(self):
-        self.assertIn('version: 2.9.11+4154',source('pubspec.yaml'))
+        self.assertIn('version: 2.9.12+4155',source('pubspec.yaml'))
     def test_arc_original_favorites_dialog_preserved(self):
         orig=source('lib/widgets/add_to_category_dialog.dart')
         self.assertIn('class AddToCategoryDialog',orig)
@@ -28,11 +28,11 @@ class FocusAndAppearance299(unittest.TestCase):
         self.assertIn("focusId: 'open_${widget.application.packageName}'",s)
         focus=source('lib/widgets/settings/focusable_settings_tile.dart')
         self.assertIn('FanatikaPanelStyle.focusedTile',focus)
-        self.assertIn('const Color(0xFF176CB5)',source('lib/widgets/fanatika_tv_action_row.dart'))
+        self.assertIn('const Color(0xFF1975CC)',source('lib/widgets/fanatika_tv_action_row.dart'))
         self.assertIn('onFocusChange: (hasFocus)',focus)
         self.assertIn('FanatikaAddToCategoryDialog',s)
         s=source('lib/widgets/settings/app_details_page.dart')
-        self.assertIn('focusColor:',s)
+        self.assertIn('FocusableSettingsTile(',s)
     def test_select_current_option(self):
         s=source('lib/widgets/settings/fanatika_tv_controls.dart')
         for term in ('focusIndex', 'index == focusIndex','initialScrollOffset',
